@@ -10,3 +10,9 @@ sayHello = "supports escaped quotes: \""
 singleQuoteChat = '\''
 
 add x y = + x y
+
+silly foo =
+  let foo = 5
+  in foo
+
+silly 12 == 5

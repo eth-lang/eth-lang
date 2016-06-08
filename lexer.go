@@ -113,6 +113,8 @@ func (l *lexer) next() (r rune) {
 }
 
 func (l *lexer) ignore() {
+	l.startLine = l.line
+	l.startCol = l.col
 	l.start = l.pos
 }
 

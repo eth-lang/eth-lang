@@ -69,13 +69,9 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 		case itemError:
 			return NewParseError(ast.Files[fileIndex], i.line, i.col, i.val)
 		case itemNewLine:
-			if len(node.Children) > 0 {
-				// TODO check expression is terminated
-				// start a new expression and set that as our current node
-				appendExpression(node.Parent)
-				fmt.Println(ast)
-				node = node.Parent.Children[len(node.Parent.Children)-1]
-			}
+			// handle special newline cases
+			// but always skip adding it to the ast
+			break
 		case itemComment:
 			if node.Type == itemExpression && len(node.Children) == 0 {
 				// remove empty expression, add comment, add empty expression
@@ -89,6 +85,14 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 				appendItem(node, i)
 			}
 		default:
+			// if we are at the beginning of a line, start a new expression
+			if i.col == 0 && len(node.Children) > 0 {
+				// TODO check expression is terminated
+				// start a new expression and set that as our current node
+				appendExpression(node.Parent)
+				node = node.Parent.Children[len(node.Parent.Children)-1]
+			}
+
 			appendItem(node, i)
 		}
 
