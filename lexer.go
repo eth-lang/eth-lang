@@ -15,6 +15,7 @@ const (
 	itemError itemType = iota
 
 	itemEOF
+	itemBool
 	itemChar
 	itemString
 	itemNumber
@@ -28,6 +29,8 @@ func (t itemType) String() string {
 		return "error"
 	case itemEOF:
 		return "EOF"
+	case itemBool:
+		return "bool"
 	case itemChar:
 		return "char"
 	case itemString:
@@ -180,6 +183,20 @@ func lexCode(l *lexer) stateFn {
 			l.ignore()
 		case r == '"':
 			return lexString
+		case r == '\'':
+			return lexChar
+		case r == 'T':
+			l.backup()
+			if l.acceptLiteral("True", itemBool) {
+				return lexCode
+			}
+			fallthrough
+		case r == 'F':
+			l.backup()
+			if l.acceptLiteral("False", itemBool) {
+				return lexCode
+			}
+			fallthrough
 		case '0' <= r && r <= '9':
 			l.backup()
 			return lexNumber
@@ -204,6 +221,8 @@ func lexIdentifier(l *lexer) stateFn {
 }
 
 func lexString(l *lexer) stateFn {
+	l.ignore()
+
 	var last rune
 	for {
 		switch r := l.next(); {
@@ -211,11 +230,38 @@ func lexString(l *lexer) stateFn {
 			l.emit(itemEOF)
 			return nil
 		case r == '"':
-			if last == '\\' {
-				continue
+			if last != '\\' {
+				l.backup()
+				l.emit(itemString)
+				l.next()
+				l.ignore()
+				return lexCode
 			}
-			l.emit(itemString)
-			return lexCode
+			fallthrough
+		default:
+			last = r
+		}
+	}
+}
+
+func lexChar(l *lexer) stateFn {
+	l.ignore()
+
+	var last rune
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			l.emit(itemEOF)
+			return nil
+		case r == '\'':
+			if last != '\\' {
+				l.backup()
+				l.emit(itemChar)
+				l.next()
+				l.ignore()
+				return lexCode
+			}
+			fallthrough
 		default:
 			last = r
 		}
@@ -261,6 +307,17 @@ func (l *lexer) acceptUntil(valid string) {
 	for strings.IndexRune(valid, l.next()) < 0 {
 	}
 	l.backup()
+}
+
+func (l *lexer) acceptLiteral(lit string, t itemType) bool {
+	if l.input[l.start:l.start+len(lit)] == lit {
+		for l.pos < l.start+len(lit) {
+			l.next()
+		}
+		l.emit(t)
+		return true
+	}
+	return false
 }
 
 func isSpace(r rune) bool {

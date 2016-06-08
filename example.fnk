@@ -3,5 +3,9 @@ val a = 1
 False
 not True
 32.3
+0xDEEDBEEF
 "asd"
+"a\"bc"
+"ternimated with escaped \""
+'\''
 'a'
