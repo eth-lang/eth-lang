@@ -1,0 +1,7 @@
+# This is a single line comment
+val a = 1
+False
+not True
+32.3
+"asd"
+'a'
