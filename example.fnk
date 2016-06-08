@@ -1,11 +1,12 @@
 # This is a single line comment
-val a = 1
-False
-not True
-32.3
-0xDEEDBEEF
-"asd"
-"a\"bc"
-"ternimated with escaped \""
-'\''
-'a'
+
+someBool = True
+someNumber = 45
+someFloat = 9.99
+someHex = 0xDEEDBEEF
+
+sayHello = "supports escaped quotes: \""
+
+singleQuoteChat = '\''
+
+add x y = + x y

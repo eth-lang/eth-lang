@@ -9,42 +9,7 @@ import (
 
 const eof = rune(0)
 
-type itemType int
-
-const (
-	itemError itemType = iota
-
-	itemEOF
-	itemBool
-	itemChar
-	itemString
-	itemNumber
-	itemIdentifier
-	itemComment
-)
-
-func (t itemType) String() string {
-	switch t {
-	case itemError:
-		return "error"
-	case itemEOF:
-		return "EOF"
-	case itemBool:
-		return "bool"
-	case itemChar:
-		return "char"
-	case itemString:
-		return "string"
-	case itemNumber:
-		return "number"
-	case itemIdentifier:
-		return "identifier"
-	case itemComment:
-		return "comment"
-	default:
-		return "unknown"
-	}
-}
+const identChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_!?=<>/\\"
 
 type item struct {
 	typ  itemType
@@ -76,6 +41,8 @@ type lexer struct {
 	lastLineLength int    // length last line was (for backing up)
 	line           int    // current line
 	col            int    // current col
+	startLine      int    // last emit current line
+	startCol       int    // last emit current col
 	start          int    // start of the current item
 	pos            int    // current position in the input
 	width          int    // width of the last run read
@@ -117,22 +84,24 @@ func (l *lexer) emit(t itemType) {
 	l.items <- item{
 		typ:  t,
 		val:  l.input[l.start:l.pos],
-		line: l.line,
-		col:  l.col,
+		line: l.startLine,
+		col:  l.startCol,
 	}
+	l.startLine = l.line
+	l.startCol = l.col
 	l.start = l.pos
 }
 
-func (l *lexer) next() (rune rune) {
+func (l *lexer) next() (r rune) {
 	if l.pos >= len(l.input) {
 		l.width = 0
 		return eof
 	}
-	rune, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
+	r, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
 	l.pos += l.width
 
 	// update line info
-	if rune == '\n' {
+	if r == '\n' {
 		l.lastLineLength = l.col
 		l.line++
 		l.col = 0
@@ -140,7 +109,7 @@ func (l *lexer) next() (rune rune) {
 		l.col++
 	}
 
-	return rune
+	return r
 }
 
 func (l *lexer) ignore() {
@@ -160,9 +129,9 @@ func (l *lexer) backup() {
 }
 
 func (l *lexer) peek() rune {
-	rune := l.next()
+	r := l.next()
 	l.backup()
-	return rune
+	return r
 }
 
 func lexCode(l *lexer) stateFn {
@@ -177,9 +146,10 @@ func lexCode(l *lexer) stateFn {
 				return lexSingleLineComment
 			}
 			fallthrough
-		case isSpace(r):
+		case r == '\n':
 			l.ignore()
-		case strings.IndexRune("\n\r", r) >= 0:
+			l.emit(itemNewLine)
+		case isSpace(r):
 			l.ignore()
 		case r == '"':
 			return lexString
@@ -197,10 +167,10 @@ func lexCode(l *lexer) stateFn {
 				return lexCode
 			}
 			fallthrough
-		case '0' <= r && r <= '9':
+		case unicode.IsDigit(r):
 			l.backup()
 			return lexNumber
-		case isAlphaNumeric(r):
+		case strings.IndexRune(identChars, r) >= 0:
 			l.backup()
 			return lexIdentifier
 		}
@@ -208,14 +178,14 @@ func lexCode(l *lexer) stateFn {
 }
 
 func lexSingleLineComment(l *lexer) stateFn {
-	l.acceptUntil("\n\r")
+	l.acceptUntil("\n")
 	l.emit(itemComment)
 	return lexCode
 }
 
 func lexIdentifier(l *lexer) stateFn {
 	l.pos++
-	l.acceptRun("abcdefghijklmnopqrstuvwxyz1234567890-_!?=<>/\\")
+	l.acceptRun(identChars)
 	l.emit(itemIdentifier)
 	return lexCode
 }
@@ -281,7 +251,8 @@ func lexNumber(l *lexer) stateFn {
 
 	l.acceptRun(digits)
 
-	if l.accept(".") {
+	if l.peek() == '.' {
+		l.next()
 		l.acceptRun(digits)
 	}
 
