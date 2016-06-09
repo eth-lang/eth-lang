@@ -37,6 +37,11 @@ func parse(ast *AST, data string, fileIndex int) (err error) {
 		return err
 	}
 
+	err = parseLet(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -127,30 +132,41 @@ func parseAssignment(n *Node, files []string) error {
 	for i, child := range n.Children {
 		switch t := child.Type; {
 		case isParent(t):
-			parseAssignment(child, files)
+			if err := parseAssignment(child, files); err != nil {
+				return err
+			}
 		case t == itemIdentifier && child.Data == "=":
-			if i <= 0 {
+			if i == 0 {
 				return NewParseError(files[child.File], child.Line, child.Col, "Found assignment expression (=) but missing name identifier to the left")
 			}
 			if i == len(n.Children)-1 {
 				return NewParseError(files[child.File], child.Line, child.Col, "Found assignment expression (=) but missing expression to its right")
 			}
-			n.Type = itemAssignment
 			expr := n.Children[i+1:]
+
+			// TODO check all args are plain identifiers
+			// TODO check name is identifier
+			// TODO check name is not taken?
 
 			name.Type = itemAssignmentName
 			name.Parent = n
-			n.Children = []*Node{
+			target := n
+			if target.Type != itemExpression {
+				target.Children = []*Node{&Node{Parent: target}}
+				target = target.Children[0]
+			}
+			target.Type = itemAssignment
+			target.Children = []*Node{
 				name,
 				&Node{
 					Type:     itemAssignmentArgs,
 					Children: args,
-					Parent:   n,
+					Parent:   target,
 				},
 				&Node{
 					Type:     itemAssignmentExpr,
 					Children: expr,
-					Parent:   n,
+					Parent:   target,
 				},
 			}
 			return nil
@@ -158,6 +174,63 @@ func parseAssignment(n *Node, files []string) error {
 			name = child
 		case t == itemIdentifier:
 			args = append(args, child)
+		}
+	}
+
+	return nil
+}
+
+func parseLet(n *Node, files []string) error {
+	var letNode *Node
+	var foundLet = false
+	var foundIn = false
+
+	var assignments = []*Node{}
+	var body = []*Node{}
+
+	for i, child := range n.Children {
+		switch t := child.Type; {
+		case isParent(t):
+			if err := parseLet(child, files); err != nil {
+				return err
+			}
+		case t == itemIdentifier && child.Data == "let":
+			if i != 0 {
+				return NewParseError(files[child.File], child.Line, child.Col, "Found let expression but in the middle of an other expression, let should be first")
+			}
+			letNode = child
+			foundLet = true
+		case t == itemIdentifier && child.Data == "in":
+			foundIn = true
+		case foundLet && foundIn:
+			body = append(body, child)
+		case foundLet:
+			assignments = append(assignments, child)
+		}
+	}
+
+	if foundLet && !foundIn {
+		return NewParseError(files[letNode.File], letNode.Line, letNode.Col, "Found let expression but couldn't find corresponding 'in' identifier")
+	}
+
+	if foundLet && foundIn {
+		target := n
+		if target.Type != itemExpression {
+			target.Children = []*Node{&Node{Parent: target}}
+			target = target.Children[0]
+		}
+		target.Type = itemLet
+		target.Children = []*Node{
+			&Node{
+				Type:     itemLetAssignments,
+				Children: assignments,
+				Parent:   target,
+			},
+			&Node{
+				Type:     itemLetBody,
+				Children: body,
+				Parent:   target,
+			},
 		}
 	}
 

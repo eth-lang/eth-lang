@@ -24,6 +24,9 @@ const (
 	itemAssignmentName
 	itemAssignmentArgs
 	itemAssignmentExpr
+	itemLet
+	itemLetAssignments
+	itemLetBody
 )
 
 func (t itemType) String() string {
@@ -62,6 +65,12 @@ func (t itemType) String() string {
 		return "assignmentArgs"
 	case itemAssignmentExpr:
 		return "assignmentExpr"
+	case itemLet:
+		return "let"
+	case itemLetAssignments:
+		return "letAssignments"
+	case itemLetBody:
+		return "letBody"
 
 	default:
 		return "unknown"
@@ -69,5 +78,5 @@ func (t itemType) String() string {
 }
 
 func isParent(t itemType) bool {
-	return t == itemRoot || t == itemModule || t == itemExpression
+	return t == itemRoot || t == itemModule || t == itemExpression || t == itemAssignment || t == itemAssignmentExpr || t == itemLet || t == itemLetAssignments || t == itemLetBody
 }

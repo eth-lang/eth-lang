@@ -9,7 +9,7 @@ import (
 
 const eof = rune(0)
 
-const identChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_!?=<>/\\"
+const identChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890+-_!?=<>/\\"
 
 type item struct {
 	typ  itemType

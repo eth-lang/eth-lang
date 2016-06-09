@@ -49,7 +49,7 @@ func (a *AST) String() string {
 
 func (a *AST) printNode(n *Node, pad string, b *bytes.Buffer) {
 	fmt.Fprintf(b, "%s%d:%03d:%03d %s(%q)\n",
-		pad, n.File, n.Line, n.Col, n.Type, n.Data)
+		pad, n.File, n.Line+1, n.Col, n.Type, n.Data)
 
 	for _, childNode := range n.Children {
 		a.printNode(childNode, pad+"  ", b)

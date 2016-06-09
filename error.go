@@ -14,5 +14,5 @@ func NewParseError(file string, line int, col int, f string, argv ...interface{}
 }
 
 func (e *ParseError) Error() string {
-	return fmt.Sprintf("%s:%d:%d %s", e.File, e.Line, e.Col, e.Msg)
+	return fmt.Sprintf("%s:%d:%d %s", e.File, e.Line+1, e.Col, e.Msg)
 }
