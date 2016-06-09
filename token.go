@@ -17,8 +17,13 @@ const (
 	itemNewLine
 
 	// ast / artificial
+	itemRoot
 	itemModule
 	itemExpression
+	itemAssignment
+	itemAssignmentName
+	itemAssignmentArgs
+	itemAssignmentExpr
 )
 
 func (t itemType) String() string {
@@ -43,12 +48,26 @@ func (t itemType) String() string {
 	case itemNewLine:
 		return "newline"
 
+	case itemRoot:
+		return "root"
 	case itemModule:
 		return "module"
 	case itemExpression:
 		return "expression"
+	case itemAssignment:
+		return "assignment"
+	case itemAssignmentName:
+		return "assignmentName"
+	case itemAssignmentArgs:
+		return "assignmentArgs"
+	case itemAssignmentExpr:
+		return "assignmentExpr"
 
 	default:
 		return "unknown"
 	}
+}
+
+func isParent(t itemType) bool {
+	return t == itemRoot || t == itemModule || t == itemExpression
 }

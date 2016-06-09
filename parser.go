@@ -17,37 +17,38 @@ func ParseFile(ast *AST, file string) (err error) {
 		return
 	}
 
-	return parseData(ast, string(data), fileIndex)
+	return parse(ast, string(data), fileIndex)
 }
 
 func Parse(ast *AST, data string) (err error) {
 	fileIndex, _ := ast.addFile("<raw data>")
 
-	return parseData(ast, data, fileIndex)
+	return parse(ast, data, fileIndex)
+}
+
+func parse(ast *AST, data string, fileIndex int) (err error) {
+	err = parseData(ast, data, fileIndex)
+	if err != nil {
+		return err
+	}
+
+	err = parseAssignment(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func parseData(ast *AST, data string, fileIndex int) (err error) {
-	ast.Root = Node{
-		Type: itemModule,
-		Data: "Main",
-		File: fileIndex,
-	}
-	ast.Root.Children = append(ast.Root.Children, &Node{
-		Type:   itemExpression,
-		File:   fileIndex,
-		Parent: &ast.Root,
-	})
-	node := ast.Root.Children[0]
-
-	lex := lex(ast.Files[fileIndex], data)
-
 	appendItem := func(n *Node, i item) {
 		n.Children = append(n.Children, &Node{
-			File: fileIndex,
-			Line: i.line,
-			Col:  i.col,
-			Data: i.val,
-			Type: i.typ,
+			File:   fileIndex,
+			Line:   i.line,
+			Col:    i.col,
+			Data:   i.val,
+			Type:   i.typ,
+			Parent: n,
 		})
 	}
 
@@ -62,6 +63,17 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 	deleteLastChildren := func(n *Node) {
 		n.Children = n.Children[:len(n.Children)-1]
 	}
+
+	ast.Root.Type = itemRoot
+	ast.Root.Children = append(ast.Root.Children, &Node{
+		Type: itemModule,
+		Data: "Main",
+		File: fileIndex,
+	})
+	appendExpression(ast.Root.Children[0])
+	node := ast.Root.Children[0].Children[0]
+
+	lex := lex(ast.Files[fileIndex], data)
 
 	i := lex.nextItem()
 	for i.typ != itemEOF {
@@ -88,6 +100,7 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 			// if we are at the beginning of a line, start a new expression
 			if i.col == 0 && len(node.Children) > 0 {
 				// TODO check expression is terminated
+				// TODO backout to top level
 				// start a new expression and set that as our current node
 				appendExpression(node.Parent)
 				node = node.Parent.Children[len(node.Parent.Children)-1]
@@ -102,6 +115,50 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 	// if we are left with an empty expression at the end
 	if node.Type == itemExpression && len(node.Children) == 0 {
 		node.Parent.Children = node.Parent.Children[:len(node.Parent.Children)-1]
+	}
+
+	return nil
+}
+
+func parseAssignment(n *Node, files []string) error {
+	var name *Node = nil
+	var args []*Node = []*Node{}
+
+	for i, child := range n.Children {
+		switch t := child.Type; {
+		case isParent(t):
+			parseAssignment(child, files)
+		case t == itemIdentifier && child.Data == "=":
+			if i <= 0 {
+				return NewParseError(files[child.File], child.Line, child.Col, "Found assignment expression (=) but missing name identifier to the left")
+			}
+			if i == len(n.Children)-1 {
+				return NewParseError(files[child.File], child.Line, child.Col, "Found assignment expression (=) but missing expression to its right")
+			}
+			n.Type = itemAssignment
+			expr := n.Children[i+1:]
+
+			name.Type = itemAssignmentName
+			name.Parent = n
+			n.Children = []*Node{
+				name,
+				&Node{
+					Type:     itemAssignmentArgs,
+					Children: args,
+					Parent:   n,
+				},
+				&Node{
+					Type:     itemAssignmentExpr,
+					Children: expr,
+					Parent:   n,
+				},
+			}
+			return nil
+		case t == itemIdentifier && i == 0:
+			name = child
+		case t == itemIdentifier:
+			args = append(args, child)
+		}
 	}
 
 	return nil

@@ -15,4 +15,4 @@ silly foo =
   let foo = 5
   in foo
 
-silly 12 == 5
+== (silly 12) 5

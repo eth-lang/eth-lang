@@ -40,7 +40,9 @@ func (a *AST) String() string {
 	}
 
 	fmt.Fprintf(&b, "nodes:\n")
-	a.printNode(&a.Root, "  ", &b)
+	for _, node := range a.Root.Children {
+		a.printNode(node, "  ", &b)
+	}
 
 	return b.String()
 }
