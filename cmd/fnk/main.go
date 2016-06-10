@@ -41,4 +41,5 @@ func runRun() {
 		os.Exit(1)
 	}
 	fmt.Println(ast.String())
+	fmt.Println(lang.Write(&ast))
 }

@@ -3,7 +3,79 @@ package fnk
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 )
+
+var (
+	SPECIAL_FN = &Node{
+		Type: itemIdentifier,
+		Data: "\\",
+	}
+
+	SPECIAL_DO = &Node{
+		Type: itemIdentifier,
+		Data: ">",
+	}
+
+	SPECIAL_DEF = &Node{
+		Type: itemIdentifier,
+		Data: "=",
+	}
+
+	SPECIAL_CALL = &Node{
+		Type: itemIdentifier,
+		Data: "?",
+	}
+
+	SPECIAL_LIST_GET = &Node{
+		Type: itemIdentifier,
+		Data: ".",
+	}
+
+	SPECIAL_LIST_SET = &Node{
+		Type: itemIdentifier,
+		Data: ";",
+	}
+
+	SPECIAL_MAP_GET = &Node{
+		Type: itemIdentifier,
+		Data: ".",
+	}
+
+	SPECIAL_MAP_SET = &Node{
+		Type: itemIdentifier,
+		Data: ":",
+	}
+)
+
+func createIdent(name string) *Node {
+	return &Node{
+		Type: itemIdentifier,
+		Data: name,
+	}
+}
+
+func createExpr(nodes []*Node) *Node {
+	return &Node{
+		Type:     itemExpression,
+		Children: nodes,
+	}
+}
+
+func createEmptyExpr() *Node {
+	return &Node{
+		Type:     itemExpression,
+		Children: []*Node{},
+	}
+}
+
+func createBody(nodes []*Node) *Node {
+	if len(nodes) == 1 {
+		return nodes[0]
+	} else {
+		return createExpr(nodes)
+	}
+}
 
 func ParseFile(ast *AST, file string) (err error) {
 	fileIndex, new := ast.addFile(file)
@@ -32,12 +104,26 @@ func parse(ast *AST, data string, fileIndex int) (err error) {
 		return err
 	}
 
+	// add default module
+	// validate duplicate modules
+	//
+
 	err = parseAssignment(&ast.Root, ast.Files)
 	if err != nil {
 		return err
 	}
 
 	err = parseLet(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	err = parseAssignmentFn(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	err = parseIdentDot(&ast.Root, ast.Files)
 	if err != nil {
 		return err
 	}
@@ -101,6 +187,11 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 			} else {
 				appendItem(node, i)
 			}
+		case itemExpressionOpen:
+			appendExpression(node)
+			node = node.Children[len(node.Children)-1]
+		case itemExpressionClose:
+			node = node.Parent
 		default:
 			// if we are at the beginning of a line, start a new expression
 			if i.col == 0 && len(node.Children) > 0 {
@@ -148,26 +239,46 @@ func parseAssignment(n *Node, files []string) error {
 			// TODO check name is identifier
 			// TODO check name is not taken?
 
-			name.Type = itemAssignmentName
 			name.Parent = n
+			child.Parent = n
 			target := n
-			if target.Type != itemExpression {
-				target.Children = []*Node{&Node{Parent: target}}
-				target = target.Children[0]
+
+			targetBody := &Node{
+				Type:     itemExpression,
+				Children: expr,
+				Parent:   target,
 			}
-			target.Type = itemAssignment
-			target.Children = []*Node{
-				name,
-				&Node{
-					Type:     itemAssignmentArgs,
-					Children: args,
-					Parent:   target,
-				},
-				&Node{
-					Type:     itemAssignmentExpr,
-					Children: expr,
-					Parent:   target,
-				},
+			if len(expr) == 1 {
+				targetBody = expr[0]
+				targetBody.Parent = n
+			}
+
+			/*
+				if target.Type != itemExpression {
+					target.Children = []*Node{&Node{Parent: target}}
+					target = target.Children[0]
+				}
+			*/
+			target.Type = itemExpression
+			if len(args) == 0 {
+				// Assignment 0 args
+				target.Children = []*Node{
+					child,
+					name,
+					targetBody,
+				}
+			} else {
+				// Assignment fn (takes 1+ args)
+				target.Children = []*Node{
+					child,
+					name,
+					&Node{
+						Type:     itemExpression,
+						Children: args,
+						Parent:   target,
+					},
+					targetBody,
+				}
 			}
 			return nil
 		case t == itemIdentifier && i == 0:
@@ -219,20 +330,94 @@ func parseLet(n *Node, files []string) error {
 			target.Children = []*Node{&Node{Parent: target}}
 			target = target.Children[0]
 		}
-		target.Type = itemLet
+
+		targetAssignments := &Node{
+			Type:     itemExpression,
+			Children: assignments,
+		}
+		parseAssignment(targetAssignments, files)
+
+		target.Type = itemExpression
 		target.Children = []*Node{
-			&Node{
-				Type:     itemLetAssignments,
-				Children: assignments,
-				Parent:   target,
-			},
-			&Node{
-				Type:     itemLetBody,
-				Children: body,
-				Parent:   target,
-			},
+			SPECIAL_CALL,
+			createExpr([]*Node{
+				SPECIAL_FN,
+				createEmptyExpr(),
+				createExpr([]*Node{
+					SPECIAL_DO,
+					targetAssignments,
+					&Node{
+						Type:     itemExpression,
+						Children: body,
+					},
+				}),
+			}),
 		}
 	}
 
+	return nil
+}
+
+func parseAssignmentFn(n *Node, files []string) error {
+	for i, child := range n.Children {
+		switch t := child.Type; {
+		case isParent(t):
+			if err := parseAssignmentFn(child, files); err != nil {
+				return err
+			}
+		default:
+			// If current expr looks like (= name (...) ...)
+			if t == itemIdentifier && child.Data == "=" && i == 0 &&
+				len(n.Children) >= 4 {
+				// replace (args) body with a new function
+				targetArgs := n.Children[2]
+				n.Children = []*Node{
+					SPECIAL_DEF,
+					n.Children[1], // name
+					&Node{
+						Type: itemExpression,
+						Children: []*Node{
+							SPECIAL_FN,
+							targetArgs,
+							createBody(n.Children[3:]),
+						},
+					},
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func parseIdentDot(n *Node, files []string) error {
+	for _, child := range n.Children {
+		if isParent(child.Type) {
+			if err := parseIdentDot(child, files); err != nil {
+				return err
+			}
+		} else if child.Type == itemIdentifier {
+			identParts := strings.Split(child.Data, ".")
+			if len(identParts) == 2 {
+				child.Type = itemExpression
+				child.Children = []*Node{
+					SPECIAL_MAP_GET,
+					createIdent(identParts[1]),
+					createIdent(identParts[0]),
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func parseXXX(n *Node, files []string) error {
+	for _, child := range n.Children {
+		if isParent(child.Type) {
+			if err := parseXXX(child, files); err != nil {
+				return err
+			}
+		} else if child.Type == itemIdentifier {
+		}
+	}
 	return nil
 }

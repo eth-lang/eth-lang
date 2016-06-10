@@ -9,7 +9,7 @@ import (
 
 const eof = rune(0)
 
-const identChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890+-_!?=<>/\\"
+const identChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890+-_!?=<>/\\."
 
 type item struct {
 	typ  itemType
@@ -172,6 +172,34 @@ func lexCode(l *lexer) stateFn {
 		case unicode.IsDigit(r):
 			l.backup()
 			return lexNumber
+		case r == '(':
+			l.ignore()
+			l.emit(itemExpressionOpen)
+			return lexCode
+		case r == ')':
+			l.ignore()
+			l.emit(itemExpressionClose)
+			return lexCode
+		case r == '[':
+			l.ignore()
+			l.emit(itemListOpen)
+			return lexCode
+		case r == ']':
+			l.ignore()
+			l.emit(itemListClose)
+			return lexCode
+		case r == '{':
+			l.ignore()
+			l.emit(itemMapOpen)
+			return lexCode
+		case r == '}':
+			l.ignore()
+			l.emit(itemMapClose)
+			return lexCode
+		case r == ',':
+			l.ignore()
+			l.emit(itemSeparator)
+			return lexCode
 		case strings.IndexRune(identChars, r) >= 0:
 			l.backup()
 			return lexIdentifier

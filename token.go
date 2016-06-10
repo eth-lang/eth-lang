@@ -15,6 +15,13 @@ const (
 	itemIdentifier
 	itemComment
 	itemNewLine
+	itemExpressionOpen
+	itemExpressionClose
+	itemListOpen
+	itemListClose
+	itemMapOpen
+	itemMapClose
+	itemSeparator
 
 	// ast / artificial
 	itemRoot
@@ -50,6 +57,20 @@ func (t itemType) String() string {
 		return "comment"
 	case itemNewLine:
 		return "newline"
+	case itemExpressionOpen:
+		return "expressionOpen"
+	case itemExpressionClose:
+		return "expressionClose"
+	case itemListOpen:
+		return "listOpen"
+	case itemListClose:
+		return "listClode"
+	case itemMapOpen:
+		return "mapOpen"
+	case itemMapClose:
+		return "mapClose"
+	case itemSeparator:
+		return "separator"
 
 	case itemRoot:
 		return "root"
