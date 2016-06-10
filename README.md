@@ -65,6 +65,59 @@ and syntax. This opens the door for multiple backends for the language.
 - `. ident map` get item at key from map
 - `: ident expr map` set item at key in map
 
+## intermediary language (example)
+
+As an example the (as of writing) `example.fnk` looks like:
+
+```
+# This is a single line comment
+
+someBool = True
+someNumber = 45
+someFloat = 9.99
+someHex = 0xDEEDBEEF
+
+sayHello = "supports escaped quotes: \""
+
+singleQuoteChat = '\''
+
+add x y = + x y
+
+silly foo =
+  let
+    foo = 5
+  in
+    foo
+
+== (silly 12) 5
+
+Console.log "Wowza!"
+```
+
+and compiles to:
+
+```
+(module Main (main) where
+  (= someBool True)
+  (= someNumber 45)
+  (= someFloat 9.99)
+  (= someHex 0xDEEDBEEF)
+  (= sayHello "supports escaped quotes: \"")
+  (= singleQuoteChat '\'')
+
+  (= add (\ (x y) (+ x y)))
+
+  (= silly
+    (\ (foo)
+      (? (\ () (>
+        (= foo 5)
+        (foo))))))
+
+  (== (silly 12) 5)
+
+  ((. log Console) "Wowza!"))
+```
+
 ## license
 
 See `LICENSE` file.
