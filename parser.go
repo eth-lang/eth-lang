@@ -27,9 +27,14 @@ var (
 		Data: "?",
 	}
 
+	SPECIAL_IF = &Node{
+		Type: itemIdentifier,
+		Data: "!",
+	}
+
 	SPECIAL_LIST_GET = &Node{
 		Type: itemIdentifier,
-		Data: ".",
+		Data: ",",
 	}
 
 	SPECIAL_LIST_SET = &Node{
@@ -77,6 +82,15 @@ func createBody(nodes []*Node) *Node {
 	}
 }
 
+func ensureParents(n *Node) {
+	for _, child := range n.Children {
+		child.Parent = n
+		if isParent(child.Type) {
+			ensureParents(child)
+		}
+	}
+}
+
 func ParseFile(ast *AST, file string) (err error) {
 	fileIndex, new := ast.addFile(file)
 
@@ -99,39 +113,47 @@ func Parse(ast *AST, data string) (err error) {
 }
 
 func parse(ast *AST, data string, fileIndex int) (err error) {
-	err = parseData(ast, data, fileIndex)
+	err = p1Newlines(ast, data, fileIndex)
 	if err != nil {
 		return err
 	}
 
+	// STAGE 1 order, hierarchy
+
+	// TYPE CHECK validation
+
+	// STAGE 2 expension to lower level constructs
+
+	err = p3Assignment(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	err = p3Let(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	err = p3AssignmentFn(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	err = p3IdentDot(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	// group expressions separated by ,
 	// add default module
 	// validate duplicate modules
-	//
 
-	err = parseAssignment(&ast.Root, ast.Files)
-	if err != nil {
-		return err
-	}
-
-	err = parseLet(&ast.Root, ast.Files)
-	if err != nil {
-		return err
-	}
-
-	err = parseAssignmentFn(&ast.Root, ast.Files)
-	if err != nil {
-		return err
-	}
-
-	err = parseIdentDot(&ast.Root, ast.Files)
-	if err != nil {
-		return err
-	}
+	// STAGE 3 optimisation
 
 	return nil
 }
 
-func parseData(ast *AST, data string, fileIndex int) (err error) {
+func p1Newlines(ast *AST, data string, fileIndex int) (err error) {
 	appendItem := func(n *Node, i item) {
 		n.Children = append(n.Children, &Node{
 			File:   fileIndex,
@@ -156,12 +178,15 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 	}
 
 	ast.Root.Type = itemRoot
-	ast.Root.Children = append(ast.Root.Children, &Node{
-		Type: itemModule,
-		Data: "Main",
-		File: fileIndex,
-	})
+	ast.Root.Children = append(ast.Root.Children, createExpr([]*Node{
+		createIdent("module"),
+		createIdent("Main"),
+		createExpr([]*Node{createIdent("main")}),
+		createIdent("where"),
+	}))
 	appendExpression(ast.Root.Children[0])
+	ensureParents(&ast.Root)
+
 	node := ast.Root.Children[0].Children[0]
 
 	lex := lex(ast.Files[fileIndex], data)
@@ -174,6 +199,9 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 		case itemNewLine:
 			// handle special newline cases
 			// but always skip adding it to the ast
+			break
+		case itemSeparator:
+			// HACK remove once we have a pass handling them
 			break
 		case itemComment:
 			if node.Type == itemExpression && len(node.Children) == 0 {
@@ -216,14 +244,14 @@ func parseData(ast *AST, data string, fileIndex int) (err error) {
 	return nil
 }
 
-func parseAssignment(n *Node, files []string) error {
+func p3Assignment(n *Node, files []string) error {
 	var name *Node = nil
 	var args []*Node = []*Node{}
 
 	for i, child := range n.Children {
 		switch t := child.Type; {
 		case isParent(t):
-			if err := parseAssignment(child, files); err != nil {
+			if err := p3Assignment(child, files); err != nil {
 				return err
 			}
 		case t == itemIdentifier && child.Data == "=":
@@ -291,7 +319,7 @@ func parseAssignment(n *Node, files []string) error {
 	return nil
 }
 
-func parseLet(n *Node, files []string) error {
+func p3Let(n *Node, files []string) error {
 	var letNode *Node
 	var foundLet = false
 	var foundIn = false
@@ -302,7 +330,7 @@ func parseLet(n *Node, files []string) error {
 	for i, child := range n.Children {
 		switch t := child.Type; {
 		case isParent(t):
-			if err := parseLet(child, files); err != nil {
+			if err := p3Let(child, files); err != nil {
 				return err
 			}
 		case t == itemIdentifier && child.Data == "let":
@@ -335,7 +363,7 @@ func parseLet(n *Node, files []string) error {
 			Type:     itemExpression,
 			Children: assignments,
 		}
-		parseAssignment(targetAssignments, files)
+		p3Assignment(targetAssignments, files)
 
 		target.Type = itemExpression
 		target.Children = []*Node{
@@ -358,11 +386,11 @@ func parseLet(n *Node, files []string) error {
 	return nil
 }
 
-func parseAssignmentFn(n *Node, files []string) error {
+func p3AssignmentFn(n *Node, files []string) error {
 	for i, child := range n.Children {
 		switch t := child.Type; {
 		case isParent(t):
-			if err := parseAssignmentFn(child, files); err != nil {
+			if err := p3AssignmentFn(child, files); err != nil {
 				return err
 			}
 		default:
@@ -389,10 +417,10 @@ func parseAssignmentFn(n *Node, files []string) error {
 	return nil
 }
 
-func parseIdentDot(n *Node, files []string) error {
+func p3IdentDot(n *Node, files []string) error {
 	for _, child := range n.Children {
 		if isParent(child.Type) {
-			if err := parseIdentDot(child, files); err != nil {
+			if err := p3IdentDot(child, files); err != nil {
 				return err
 			}
 		} else if child.Type == itemIdentifier {
