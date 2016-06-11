@@ -60,6 +60,30 @@ func createIdent(name string) *Node {
 	}
 }
 
+func isSpecialIdent(ident string) bool {
+	specialIdents := []string{
+		"\\", ">", "=", "?", "!", ",", ";", ".", ":",
+	}
+
+	for _, specialIdent := range specialIdents {
+		if specialIdent == ident {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isFunctionArgsExpr(n *Node) bool {
+	if n.Parent.Children[0].Data != "\\" {
+		return false
+	}
+	if len(n.Parent.Children) >= 2 && n.Parent.Children[1] != n {
+		return false
+	}
+	return true
+}
+
 func createExpr(nodes []*Node) *Node {
 	return &Node{
 		Type:     itemExpression,
@@ -129,6 +153,11 @@ func parse(ast *AST, data string, fileIndex int) (err error) {
 		return err
 	}
 
+	err = p3Module(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
 	err = p3Let(&ast.Root, ast.Files)
 	if err != nil {
 		return err
@@ -140,6 +169,12 @@ func parse(ast *AST, data string, fileIndex int) (err error) {
 	}
 
 	err = p3IdentDot(&ast.Root, ast.Files)
+	if err != nil {
+		return err
+	}
+
+	ensureParents(&ast.Root)
+	err = p3ExpressionToFunctionCall(&ast.Root, ast.Files)
 	if err != nil {
 		return err
 	}
@@ -184,10 +219,11 @@ func p1Newlines(ast *AST, data string, fileIndex int) (err error) {
 		createExpr([]*Node{createIdent("main")}),
 		createIdent("where"),
 	}))
-	appendExpression(ast.Root.Children[0])
-	ensureParents(&ast.Root)
+	module := ast.Root.Children[len(ast.Root.Children)-1]
+	appendExpression(module)
+	ensureParents(module)
 
-	node := ast.Root.Children[0].Children[0]
+	node := module.Children[len(module.Children)-1]
 
 	lex := lex(ast.Files[fileIndex], data)
 
@@ -319,6 +355,48 @@ func p3Assignment(n *Node, files []string) error {
 	return nil
 }
 
+func p3Module(n *Node, files []string) error {
+	body := n.Children
+
+	if n.Type == itemExpression &&
+		len(n.Children) > 3 &&
+		n.Children[0].Type == itemIdentifier &&
+		n.Children[0].Data == "module" {
+
+		exposed := []*Node{}
+		body := n.Children[3:]
+		if n.Children[2].Type == itemExpression {
+			exposed = n.Children[2].Children
+			body = n.Children[4:]
+		}
+
+		n.Children = []*Node{
+			SPECIAL_DEF,
+			createIdent(n.Children[1].Data),
+			createExpr([]*Node{
+				SPECIAL_CALL,
+				createExpr([]*Node{
+					SPECIAL_FN,
+					createExpr([]*Node{}),
+					createExpr(append(body, &Node{
+						Type:     itemMap,
+						Children: exposed,
+					})),
+				}),
+			}),
+		}
+	}
+
+	for _, child := range body {
+		if isParent(child.Type) {
+			if err := p3Module(child, files); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func p3Let(n *Node, files []string) error {
 	var letNode *Node
 	var foundLet = false
@@ -372,7 +450,6 @@ func p3Let(n *Node, files []string) error {
 				SPECIAL_FN,
 				createEmptyExpr(),
 				createExpr([]*Node{
-					SPECIAL_DO,
 					targetAssignments,
 					&Node{
 						Type:     itemExpression,
@@ -432,6 +509,34 @@ func p3IdentDot(n *Node, files []string) error {
 					createIdent(identParts[1]),
 					createIdent(identParts[0]),
 				}
+			}
+		}
+	}
+	return nil
+}
+
+func p3ExpressionToFunctionCall(n *Node, files []string) error {
+	if n.Type == itemExpression &&
+		len(n.Children) > 1 &&
+		n.Children[0].Type == itemIdentifier &&
+		!isFunctionArgsExpr(n) &&
+		!isSpecialIdent(n.Children[0].Data) {
+
+		// Make this expr a call
+		callee := n.Children[0]
+		callArgs := n.Children[1:]
+		n.Children = []*Node{
+			SPECIAL_CALL,
+			callee,
+			createBody(callArgs),
+		}
+		ensureParents(n)
+	}
+
+	for _, child := range n.Children {
+		if isParent(child.Type) {
+			if err := p3ExpressionToFunctionCall(child, files); err != nil {
+				return err
 			}
 		}
 	}

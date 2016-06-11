@@ -42,4 +42,5 @@ func runRun() {
 	}
 	fmt.Println(ast.String())
 	fmt.Println(lang.Write(&ast))
+	fmt.Println(lang.WriteJS(&ast))
 }

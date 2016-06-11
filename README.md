@@ -102,7 +102,9 @@ and compiles to:
   (= someNumber 45)
   (= someFloat 9.99)
   (= someHex 0xDEEDBEEF)
+
   (= sayHello "supports escaped quotes: \"")
+
   (= singleQuoteChat '\'')
 
   (= add (\ (x y) (+ x y)))

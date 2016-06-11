@@ -25,15 +25,9 @@ const (
 
 	// ast / artificial
 	itemRoot
-	itemModule
 	itemExpression
-	itemAssignment
-	itemAssignmentName
-	itemAssignmentArgs
-	itemAssignmentExpr
-	itemLet
-	itemLetAssignments
-	itemLetBody
+	itemList
+	itemMap
 )
 
 func (t itemType) String() string {
@@ -74,24 +68,12 @@ func (t itemType) String() string {
 
 	case itemRoot:
 		return "root"
-	case itemModule:
-		return "module"
 	case itemExpression:
 		return "expression"
-	case itemAssignment:
-		return "assignment"
-	case itemAssignmentName:
-		return "assignmentName"
-	case itemAssignmentArgs:
-		return "assignmentArgs"
-	case itemAssignmentExpr:
-		return "assignmentExpr"
-	case itemLet:
-		return "let"
-	case itemLetAssignments:
-		return "letAssignments"
-	case itemLetBody:
-		return "letBody"
+	case itemList:
+		return "list"
+	case itemMap:
+		return "map"
 
 	default:
 		return "unknown"
@@ -99,5 +81,5 @@ func (t itemType) String() string {
 }
 
 func isParent(t itemType) bool {
-	return t == itemRoot || t == itemModule || t == itemExpression || t == itemAssignment || t == itemAssignmentExpr || t == itemLet || t == itemLetAssignments || t == itemLetBody
+	return t == itemRoot || t == itemExpression || t == itemList || t == itemMap
 }
