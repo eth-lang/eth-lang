@@ -1,0 +1,1 @@
+test/module_error_name.test:1:7 Expected module name, got "Not an ident!" of type 'string'

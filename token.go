@@ -15,19 +15,13 @@ const (
 	itemIdentifier
 	itemComment
 	itemNewLine
-	itemExpressionOpen
-	itemExpressionClose
+	itemParensOpen
+	itemParensClose
 	itemListOpen
 	itemListClose
 	itemMapOpen
 	itemMapClose
 	itemSeparator
-
-	// ast / artificial
-	itemRoot
-	itemExpression
-	itemList
-	itemMap
 )
 
 func (t itemType) String() string {
@@ -51,9 +45,9 @@ func (t itemType) String() string {
 		return "comment"
 	case itemNewLine:
 		return "newline"
-	case itemExpressionOpen:
+	case itemParensOpen:
 		return "expressionOpen"
-	case itemExpressionClose:
+	case itemParensClose:
 		return "expressionClose"
 	case itemListOpen:
 		return "listOpen"
@@ -65,21 +59,7 @@ func (t itemType) String() string {
 		return "mapClose"
 	case itemSeparator:
 		return "separator"
-
-	case itemRoot:
-		return "root"
-	case itemExpression:
-		return "expression"
-	case itemList:
-		return "list"
-	case itemMap:
-		return "map"
-
 	default:
 		return "unknown"
 	}
-}
-
-func isParent(t itemType) bool {
-	return t == itemRoot || t == itemExpression || t == itemList || t == itemMap
 }

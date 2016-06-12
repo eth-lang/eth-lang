@@ -120,6 +120,33 @@ and compiles to:
   ((. log Console) "Wowza!"))
 ```
 
+## building
+
+```
+make
+```
+
+_This will output the `fnk` binary at the root of the project_
+
+## testing
+
+```
+make test
+```
+
+## research
+
+- MinCaml - http://esumii.github.io/min-caml/paper.pdf
+  - Nice toy ML out of course given at U Tokyo
+  - Code: https://github.com/esumii/min-caml
+  - < 2000 line, implemented in OCaml
+- Effective ML - https://vimeo.com/14313378
+  - Favor the reader not the code writer
+  - Avoid boilerplate, can't pay people enough to look at dull code
+  - Make common errors obvious
+  - Make illegal state unrepresentable
+  - Code for exhaustiveness
+
 ## license
 
 See `LICENSE` file.

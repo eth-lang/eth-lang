@@ -1,0 +1,1 @@
+test/top_level_invalid_keyword.test:2:0 Expected keyword let or import at top level, got "66" of type 'number'

@@ -173,12 +173,17 @@ func lexCode(l *lexer) stateFn {
 			l.backup()
 			return lexNumber
 		case r == '(':
+			if l.peek() == '*' {
+				l.next()
+				l.ignore()
+				return lexMultipleLineComment
+			}
 			l.ignore()
-			l.emit(itemExpressionOpen)
+			l.emit(itemParensOpen)
 			return lexCode
 		case r == ')':
 			l.ignore()
-			l.emit(itemExpressionClose)
+			l.emit(itemParensClose)
 			return lexCode
 		case r == '[':
 			l.ignore()
@@ -210,6 +215,23 @@ func lexCode(l *lexer) stateFn {
 func lexSingleLineComment(l *lexer) stateFn {
 	l.acceptUntil("\n")
 	l.emit(itemComment)
+	return lexCode
+}
+
+func lexMultipleLineComment(l *lexer) stateFn {
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			l.emit(itemEOF)
+			return nil
+		case r == '*':
+			if l.accept(")") {
+				l.emit(itemComment)
+				return lexCode
+			}
+		}
+	}
+
 	return lexCode
 }
 
