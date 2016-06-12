@@ -19,7 +19,8 @@ const (
 	TypeMap             = "map"
 	TypeList            = "list"
 
-	TypeLet NodeType = "let"
+	TypeLet    NodeType = "let"
+	TypeLetDef          = "let-def"
 
 	TypeModule NodeType = "module"
 	TypeImport          = "import"

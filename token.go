@@ -22,6 +22,7 @@ const (
 	itemMapOpen
 	itemMapClose
 	itemSeparator
+	itemSemicolon
 )
 
 func (t itemType) String() string {
@@ -59,6 +60,8 @@ func (t itemType) String() string {
 		return "mapClose"
 	case itemSeparator:
 		return "separator"
+	case itemSemicolon:
+		return "semicolon"
 	default:
 		return "unknown"
 	}

@@ -205,6 +205,10 @@ func lexCode(l *lexer) stateFn {
 			l.ignore()
 			l.emit(itemSeparator)
 			return lexCode
+		case r == ';':
+			l.ignore()
+			l.emit(itemSemicolon)
+			return lexCode
 		case strings.IndexRune(identChars, r) >= 0:
 			l.backup()
 			return lexIdentifier
