@@ -4,6 +4,8 @@ open Parser
 
 exception SyntaxError of string
 
+let comment_depth = ref 0
+
 let next_line lexbuf =
   let pos = lexbuf.lex_curr_p in
   lexbuf.lex_curr_p <-
@@ -30,6 +32,7 @@ rule read =
   | int      { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | float    { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | '"'      { read_string (Buffer.create 17) lexbuf }
+  | "(*"     { comment_depth := 1; comment lexbuf }
   | '('      { LPAREN }
   | ')'      { RPAREN }
   | '{'      { LBRACE }
@@ -64,5 +67,21 @@ and read_string buf =
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_string buf lexbuf
     }
-  | _ { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
-  | eof { raise (SyntaxError ("String is not terminated")) }
+  | eof
+    { raise (SyntaxError ("String is not terminated")) }
+  | _
+    { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
+
+and comment =
+  parse
+  | "(*"
+    { comment_depth := !comment_depth + 1; comment lexbuf }
+  | "*)"
+    { comment_depth := !comment_depth - 1;
+      if !comment_depth > 0 then comment lexbuf else read lexbuf }
+  | newline
+    { next_line lexbuf; comment lexbuf }
+  | eof
+    { raise(SyntaxError ("Comment not terminated")) }
+  | _
+    { comment lexbuf }

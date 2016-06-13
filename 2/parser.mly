@@ -61,6 +61,10 @@ simple_exp:
     { String($1) }
 | IDENT
     { Var($1) }
+| LBRACK RBRACK
+    { List([]) }
+| LBRACK elems_semi RBRACK
+    { List($2) }
 
 exp:
 | simple_exp
@@ -83,8 +87,6 @@ exp:
     { LetTuple($3, $6, $8) }
 | exp SEMI exp
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
-| LBRACK elems RBRACK
-    { List($2) }
 | error
     { failwith
     (Printf.sprintf "parse error near characters %d-%d"
@@ -108,6 +110,12 @@ actual_args:
 | simple_exp
     %prec prec_app
     { [$1] }
+
+elems_semi:
+| elems_semi SEMI exp
+    { $1 @ [$3] }
+| exp SEMI exp
+    { [$1; $3] }
 
 elems:
 | elems COMMA exp

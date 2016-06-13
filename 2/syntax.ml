@@ -25,7 +25,8 @@ let rec output_value outc = function
   | Char c            -> printf "'%c'" c
   | String s          -> printf "\"%s\"" s
   | If(_, _, _)       -> output_string outc "if"
-  | Let(_, _, _)      -> output_string outc "let"
+  | Let((_, Type.Unit), e1, e2) -> print_let outc "()" e1 e2
+  | Let((i, typ), e1, e2) -> print_let outc i e1 e2
   | Var i             -> printf "%s" i
   | LetRec(_, _)      -> output_string outc "letrec"
   | App(c, a)         -> print_app outc c a
@@ -33,11 +34,21 @@ let rec output_value outc = function
   | LetTuple(_, _, _) -> output_string outc "lettuple"
   | List l            -> print_list outc l
 
+and print_let outc ident e1 e2 =
+  output_string outc "let ";
+  output_string outc ident;
+  output_string outc " = ";
+  output_value outc e1;
+  output_string outc " in ";
+  output_value outc e2;
+
 and print_app outc callee args =
   output_value outc callee;
-  output_string outc " = ";
-  List.iter ~f:(fun value ->
-    output_value outc value) args;
+  output_string outc " ";
+  List.iteri ~f:(fun i v ->
+    if i > 0 then
+      output_string outc " ";
+    output_value outc v) args;
 
 and print_tuple outc arr =
   output_string outc "(";
