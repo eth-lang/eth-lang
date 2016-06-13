@@ -8,17 +8,19 @@ let print_position outx lexbuf =
     pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
 let parse_with_error lexbuf =
-  try Parser.prog Lexer.read lexbuf with
-  | SyntaxError msg ->
-    fprintf stderr "%a: %s\n" print_position lexbuf msg;
-    None
-  | Parser.Error ->
-    fprintf stderr "%a: syntax error\n" print_position lexbuf;
-    exit (-1)
-  | msg ->
-    fprintf stderr "%a: unknown error %s\n" print_position lexbuf
-      (Exn.to_string msg);
-    exit (-1)
+  try
+    Parser.prog Lexer.read lexbuf
+  with
+    | SyntaxError msg ->
+      fprintf stderr "%a: %s\n" print_position lexbuf msg;
+      None
+    | Parser.Error ->
+      fprintf stderr "%a: syntax error\n" print_position lexbuf;
+      exit (-1)
+    | msg ->
+      fprintf stderr "%a: unknown error %s\n" print_position lexbuf
+        (Exn.to_string msg);
+      exit (-1)
 
 let rec parse_and_print lexbuf =
   match parse_with_error lexbuf with

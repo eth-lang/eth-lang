@@ -31,6 +31,7 @@ rule read =
   | "False"  { BOOL (false) }
   | int      { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | float    { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
+  | '''      { read_char lexbuf }
   | '"'      { read_string (Buffer.create 17) lexbuf }
   | "(*"     { comment_depth := 1; comment lexbuf }
   | '('      { LPAREN }
@@ -53,9 +54,29 @@ rule read =
   | eof      { EOF }
   | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
 
+and read_char =
+  parse
+  | '\''
+    { raise (SyntaxError ("Empty char is not allowed")) }
+  | '\\' '\'' '\'' { CHAR ('\'') }
+  | '\\' '/' '\''  { CHAR ('/') }
+  | '\\' '\\' '\'' { CHAR ('\\') }
+  | '\\' 'b' '\''  { CHAR ('\b') }
+  | '\\' 'f' '\''  { CHAR ('\012') }
+  | '\\' 'n' '\''  { CHAR ('\n') }
+  | '\\' 'r' '\''  { CHAR ('\r') }
+  | '\\' 't' '\''  { CHAR ('\t') }
+  | [^ '\'' '\\'] '\''
+    { CHAR (String.get (Lexing.lexeme lexbuf) 0) }
+  | eof
+    { raise (SyntaxError ("Char is not terminated")) }
+  | _
+    { raise (SyntaxError ("Illegal char with more than one character: " ^ Lexing.lexeme lexbuf)) }
+
 and read_string buf =
   parse
   | '"'       { STRING (Buffer.contents buf) }
+  | '\\' '"'  { Buffer.add_char buf '"'; read_string buf lexbuf }
   | '\\' '/'  { Buffer.add_char buf '/'; read_string buf lexbuf }
   | '\\' '\\' { Buffer.add_char buf '\\'; read_string buf lexbuf }
   | '\\' 'b'  { Buffer.add_char buf '\b'; read_string buf lexbuf }

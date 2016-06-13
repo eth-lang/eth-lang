@@ -1,5 +1,6 @@
 %{
 open Syntax
+
 let addtyp x = (x, Type.gentyp ())
 %}
 
@@ -89,9 +90,9 @@ exp:
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
 | error
     { failwith
-    (Printf.sprintf "parse error near characters %d-%d"
-       (Parsing.symbol_start ())
-       (Parsing.symbol_end ())) }
+        (Printf.sprintf "parse error near characters %d-%d"
+          (Parsing.symbol_start ())
+          (Parsing.symbol_end ())) }
 
 fundef:
 | IDENT formal_args EQUAL exp
@@ -112,9 +113,9 @@ actual_args:
     { [$1] }
 
 elems_semi:
-| elems_semi SEMI exp
+| elems_semi SEMI simple_exp
     { $1 @ [$3] }
-| exp SEMI exp
+| simple_exp SEMI simple_exp
     { [$1; $3] }
 
 elems:

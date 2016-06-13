@@ -22,8 +22,8 @@ let rec output_value outc = function
   | Bool false        -> output_string outc "False"
   | Int i             -> printf "%d" i
   | Float x           -> printf "%f" x
-  | Char c            -> printf "'%c'" c
-  | String s          -> printf "\"%s\"" s
+  | Char c            -> printf "'%s'" (Char.escaped c)
+  | String s          -> printf "\"%s\"" (String.escaped s)
   | If(_, _, _)       -> output_string outc "if"
   | Let((_, Type.Unit), e1, e2) -> print_let outc "()" e1 e2
   | Let((i, typ), e1, e2) -> print_let outc i e1 e2
