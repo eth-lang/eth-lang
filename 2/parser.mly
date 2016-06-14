@@ -17,6 +17,7 @@ let addtyp x = (x, Type.gentyp ())
 %token LBRACK
 %token RBRACK
 %token EQUAL
+%token SEMISEMI
 %token SEMI
 %token COMMA
 %token LET
@@ -29,6 +30,7 @@ let addtyp x = (x, Type.gentyp ())
 %token EOF
 
 %right prec_let
+%right prec_define
 %right SEMI
 %right prec_if
 %left prec_app
@@ -42,8 +44,18 @@ let addtyp x = (x, Type.gentyp ())
 prog:
 | EOF
     { None }
-| e = exp EOF
-    { Some e }
+| toplevel EOF
+    { Some $1 }
+
+toplevel:
+| exp SEMISEMI
+    { TopLevel $1 }
+| LET IDENT EQUAL exp SEMISEMI
+    %prec prec_let
+    { TopLevel(Let(addtyp $2, $4, Unit)) }
+| LET REC fundef SEMISEMI
+    %prec prec_let
+    { TopLevel(LetRec($3, Unit)) }
 
 simple_exp:
 | LPAREN exp RPAREN
@@ -70,6 +82,9 @@ simple_exp:
 exp:
 | simple_exp
     { $1 }
+| IF exp THEN exp
+    %prec prec_if
+    { If($2, $4, Unit) }
 | IF exp THEN exp ELSE exp
     %prec prec_if
     { If($2, $4, $6) }
@@ -96,6 +111,7 @@ exp:
 
 fundef:
 | IDENT formal_args EQUAL exp
+    %prec prec_define
     { { name = addtyp $1; args = $2; body = $4 } }
 
 formal_args:

@@ -41,6 +41,7 @@ rule read =
   | '['      { LBRACK }
   | ']'      { RBRACK }
   | '='      { EQUAL }
+  | ";;"     { SEMISEMI }
   | ';'      { SEMI }
   | ','      { COMMA }
   | "let"    { LET }

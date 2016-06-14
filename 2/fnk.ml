@@ -25,7 +25,8 @@ let parse_with_error lexbuf =
 let rec parse_and_print lexbuf =
   match parse_with_error lexbuf with
   | Some value ->
-    printf "%a\n" Syntax.output_value value;
+    Syntax.output_value "" stdout value;
+    fprintf stdout "\n";
     parse_and_print lexbuf
   | None -> ()
 
