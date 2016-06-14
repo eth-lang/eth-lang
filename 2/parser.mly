@@ -21,7 +21,6 @@ let addtyp x = (x, Type.gentyp ())
 %token SEMI
 %token COMMA
 %token LET
-%token REC
 %token AND
 %token IN
 %token IF
@@ -30,10 +29,8 @@ let addtyp x = (x, Type.gentyp ())
 %token EOF
 
 %right prec_let
-%right prec_define
 %right SEMI
 %right prec_if
-%left prec_app
 
 
 %type <Syntax.t> exp
@@ -51,11 +48,9 @@ toplevel:
 | exp SEMISEMI
     { TopLevel $1 }
 | LET IDENT EQUAL exp SEMISEMI
-    %prec prec_let
     { TopLevel(Let(addtyp $2, $4, Unit)) }
-| LET REC fundef SEMISEMI
-    %prec prec_let
-    { TopLevel(LetRec($3, Unit)) }
+| LET fundef SEMISEMI
+    { TopLevel(LetRec($2, Unit)) }
 
 simple_exp:
 | LPAREN exp RPAREN
@@ -78,6 +73,10 @@ simple_exp:
     { List([]) }
 | LBRACK elems_semi RBRACK
     { List($2) }
+| LBRACE RBRACE
+    { Map([]) }
+| LBRACE binding_semi RBRACE
+    { Map($2) }
 
 exp:
 | simple_exp
@@ -91,16 +90,15 @@ exp:
 | LET IDENT EQUAL exp IN exp
     %prec prec_let
     { Let(addtyp $2, $4, $6) }
-| LET REC fundef IN exp
+| LET fundef IN exp
     %prec prec_let
-    { LetRec($3, $5) }
+    { LetRec($2, $4) }
+| LET LPAREN pat RPAREN EQUAL exp IN exp
+    { LetTuple($3, $6, $8) }
 | exp actual_args
-    %prec prec_app
     { App($1, $2) }
 | elems
     { Tuple($1) }
-| LET LPAREN pat RPAREN EQUAL exp IN exp
-    { LetTuple($3, $6, $8) }
 | exp SEMI exp
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
 | error
@@ -111,7 +109,6 @@ exp:
 
 fundef:
 | IDENT formal_args EQUAL exp
-    %prec prec_define
     { { name = addtyp $1; args = $2; body = $4 } }
 
 formal_args:
@@ -122,10 +119,8 @@ formal_args:
 
 actual_args:
 | actual_args simple_exp
-    %prec prec_app
     { $1 @ [$2] }
 | simple_exp
-    %prec prec_app
     { [$1] }
 
 elems_semi:
@@ -139,6 +134,12 @@ elems:
     { $1 @ [$3] }
 | exp COMMA exp
     { [$1; $3] }
+
+binding_semi:
+| binding_semi SEMI IDENT EQUAL simple_exp
+    { $1 @ [($3, $5)] }
+| IDENT EQUAL simple_exp SEMI IDENT EQUAL simple_exp
+    { [($1, $3); ($5, $7)] }
 
 pat:
 | pat COMMA IDENT

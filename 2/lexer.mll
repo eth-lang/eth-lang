@@ -45,7 +45,6 @@ rule read =
   | ';'      { SEMI }
   | ','      { COMMA }
   | "let"    { LET }
-  | "rec"    { REC }
   | "and"    { AND }
   | "in"     { IN }
   | "if"     { IF }

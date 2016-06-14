@@ -1,7 +1,7 @@
 (* commenting (* supports nesting! *) *)
 let add = True;;
 
-let rec add x y = 1;;
+let add x y = 1;;
 
 
 (*

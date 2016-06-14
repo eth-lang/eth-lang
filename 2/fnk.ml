@@ -17,9 +17,8 @@ let parse_with_error lexbuf =
     | Parser.Error ->
       fprintf stderr "%a: syntax error\n" print_position lexbuf;
       exit (-1)
-    | msg ->
-      fprintf stderr "%a: unknown error %s\n" print_position lexbuf
-        (Exn.to_string msg);
+    | Failure msg ->
+      fprintf stderr "%a: %s\n" print_position lexbuf msg;
       exit (-1)
 
 let rec parse_and_print lexbuf =
