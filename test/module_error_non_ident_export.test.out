@@ -1,1 +1,0 @@
-test/module_error_non_ident_export.test:1:20 Expected module export, got "but not this" of type 'string'
