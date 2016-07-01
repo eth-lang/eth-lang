@@ -1,0 +1,18 @@
+'use strict';
+true;
+false;
+null;
+123;
+-123;
+1.23;
+-1.23;
+"asd";
+"a\nb";
+"a\"";
+"some\nmultiline";
+"";
+a(b, c);
+[1, 2, 3];
+{a: 1, b: 2};
+{"!": illegal};
+

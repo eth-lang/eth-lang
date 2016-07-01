@@ -1,0 +1,5 @@
+(console.log "asd")
+((. :log console) "asd")
+(set fnName "asd")
+((. fnName obj) 123)
+((. "asd" obj) 123)
