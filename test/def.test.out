@@ -1,10 +1,9 @@
-'use strict';
 identity = (function (a) {
-return a;
-});
+    return a;
+  });
 multi = (function () {
-do_a();
-do_b();
-return 10;
-});
+  do_a();
+  do_b();
+    return 10;
+  });
 
