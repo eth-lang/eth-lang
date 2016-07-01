@@ -1,5 +1,5 @@
 (function() { var __eth__result; while (true) {
-  __eth__result = do_something();
+  __eth__result = doSomething();
 } return __eth__result; })();
 (function() { var __eth__result; while ((i < 5)) {
   show(5);

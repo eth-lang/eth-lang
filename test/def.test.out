@@ -2,8 +2,8 @@ identity = (function (a) {
     return a;
   });
 multi = (function () {
-  do_a();
-  do_b();
+  doA();
+  doB();
     return 10;
   });
 
