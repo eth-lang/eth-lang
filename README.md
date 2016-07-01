@@ -88,16 +88,15 @@ Eth Usage:
 
 | data type | eth | js | description |
 |---|---|---|---|
-| Comment | `; comment` | `` | Eth only has single line comments and the don't aprear in compiled code |
+| Comment | `; comment` | ` ` | Eth only has single line comments and the don't aprear in compiled code |
 | Null | `null` | `null` | Null is simply written null |
 | Boolean | `true` | `true` | Booleans are the same as in JavaScript |
 | String | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
 | Numbers | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
 | Symbol | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
-| Keyword | `:key` | `':key:'` | Keywords are use to express unique names more tersly than using strings and is used by the `.` builtin. The translate to strings starting and ending with `:` |
 | List | `(a b c)` | `a(b, c)` | Lists in list denote function application when evaluated |
-| Array | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in javascript except that you omit the commas as they are\'t neccessary |
-| Object | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in javascript except that you omit the commas and `:` as they are\'t neccessary |
+| Array | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in javascript except that you omit the commas as they aren't neccessary |
+| Object | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in javascript except that you omit the commas and `:` as they aren't neccessary |
 
 ## special syntax
 
@@ -105,10 +104,42 @@ Eth Usage:
 |---|---|---|
 | `a.b` | `a.b` | Having dots in a keyword will translate to the equivalent in javascipt, no need to use `(. b a)` all over the place |
 | `@` | `this` | The `@` symbol simply translates `this` |
-| `@prop` | `this.props` | The `@` symbol followed by letter thranslate to getting a propperty of `this` |
+| `@prop` | `this.prop` | The `@` symbol followed by letter thranslate to getting a propperty of `this` |
 | `some-fn` | `someFn` | `-` is not a valid in JavaScript but often used in lisp so keywords containing them are camel cased instead |
 
 ## language builtins
+
+| eth | js | description |
+|---|---|---|
+| `(+ 1 2)` | `1 + 1` | |
+| `(- 1 2)` | `1 - 1` | |
+| `(* 1 2)` | `1 * 2` | |
+| `(/ 1 2)` | `1 / 2` | |
+| `(% 3 2)` | `3 % 2` | |
+| `(< 1 2)` | `1 < 2` | |
+| `(> 1 2)` | `1 > 2` | |
+| `(<= 1 2)` | `1 <= 2` | |
+| `(>= 1 2)` | `1 >= 2` | |
+| `(== 1 2)` | `1 === 2` | No need to use `===`. `==` translates to it. |
+| `(!= 1 2)` | `1 !== 2` | No need to use `!==`. `!=` translates to it. |
+| `(fn (a) (+ a 1))` | `function(a) { return a + 1; }` | Declares an anomymous function returning the last expression in it's body |
+| `(do (a) (b))` | `a(); return b();` | Executes it's body and returns the value of the last expression |
+| `(if (< a b) a b)` | `if (a < b) { return a; } else { return b; }` | Returns the value of the then branch if the given condition is truthy or the else branch if not |
+| `(while (< i 5) (set i (+ i 1)))` | `while (i < 5) { i = i + 1; }` | Executes the given body until the condition is falsy, returning the value of the last expression in the body at the end |
+| `(set x 5)` | `x = 5` | Assignment |
+| `(set (. "x" obj) 5)` | `obj["x"] = 5` | Assignment to object property |
+| `(= x 5)` | `x = 5` | Assignment alternate syntax |
+| `(get :y obj) | `obj.y` | Dereferencing using a know symbol |
+| `(get x obj)` | `obj[x]` | Dereferencing by value  |
+| `(get "$%!" obj)` | `obj["$%!"]` | Dereferencing by value (using a string) |
+| `(. :y obj)` | `obj.y` | Dereferencing alternate syntax |
+| `(def add (x y) (+ x y))` | `add = function(x y) { return x + y; }` | Defines a new function and assign it to a variable |
+| `(let ((a 1) (b (+ a 1))) b)` | `a = 1; b = a + 1; return b;` | Defines variables in given definition list then evaluate it's body returning the last expression's value |
+| `(package adder (add) (def add ...))` | `add = ...; exports.add = add; window.adder = {add: add};` | Defines a package using a given name and list of exported symbols, it will run it's body in a new closure and export (on the `window` in the brower or using `module.exports` in node) the specified exported symbols |
+| `(import http)` | `http = require('http')` | Named import |
+| `(import util u)` | `u = require('util')` | Aliased import |
+| `(import (str "u" "til") util)` | `util = require('u' + 'til')` | Aliased import (dynamic) |
+| `(import http (createServer METHODS))` | `createServer = require('http').createServer; METHODS = require('http').METHODS` | Destructing import |
 
 ## standard library
 
