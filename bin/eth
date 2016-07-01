@@ -18,17 +18,36 @@ function repl() {
   });
 }
 
-function compile() {
-  var filename = process.argv[2];
+function compile(filename, onlyAst) {
   var sourceCode = require('fs').readFileSync(filename, 'utf8');
-  console.log(eth.write(eth.read(filename, sourceCode)));
+  var ast = eth.read(filename, sourceCode);
+  if (onlyAst) {
+    function astToString(astNode) {
+      if ('nodes' in astNode) {
+        return astNode.nodes.map(astToString);
+      } else {
+        return '[' + astNode.type + '|' + astNode.value + ']';
+      }
+    }
+    console.log(JSON.stringify(astToString(ast.ast), null, 2));
+  } else {
+    console.log(eth.write(ast));
+  }
+}
+
+function help() {
+  console.log('Eth Usage:\n  eth => run repl\n  eth file.sl => run file\n');
 }
 
 if (process.argv.length === 2) {
   repl();
 } else if (process.argv[2] === '-h' || process.argv[2] === '--help') {
-  console.log('Eth Usage:\n  eth => run repl\n  eth file.sl => run file\n');
+  help();
+} else if (process.argv[2] === '--ast' && process.argv.length === 4) {
+  compile(process.argv[3], true);
 } else if (process.argv.length === 3) {
-  compile();
+  compile(process.argv[2]);
+} else {
+  help();
 }
 
