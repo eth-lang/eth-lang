@@ -1,0 +1,10 @@
+'use strict';
+identity = (function (a) {
+return a;
+});
+multi = (function () {
+do_a();
+do_b();
+return 10;
+});
+

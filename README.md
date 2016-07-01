@@ -23,7 +23,7 @@ Here's what a package would look like:
   (import http)
   (import util u)
 
-  (def PORT 1337)
+  (set PORT 1337)
 
   (def server-create (message)
     (http.createServer (fn (req res)
@@ -34,7 +34,7 @@ Here's what a package would look like:
     (let (started (fn () (console.log (u.format "Started listenning on port " port))))
       ((. :listen server) port started)))
 
-  (def server (server-create "Hello homoiconicity, expresiveness and fun times!"))
+  (set server (server-create "Hello homoiconicity, expresiveness and fun times!"))
 
   (server-listen server PORT))
 ```

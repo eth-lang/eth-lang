@@ -1,0 +1,6 @@
+(def identity (a)
+  a)
+(def multi ()
+  (do-a)
+  (do-b)
+  10)
