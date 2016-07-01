@@ -4,7 +4,7 @@ exitcode=0
 
 for f in test/*.test; do
   expected=$(cat $f.out)
-  given=$(bin/eth $f)
+  given=$(bin/eth -c $f)
   if [ "$given" != "$expected" ]; then
     exitcode=1
 

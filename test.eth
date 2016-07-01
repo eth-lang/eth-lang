@@ -1,15 +1,1 @@
-; some comment
-(+ 2 4)
-(+ (- 10 5) (* 2 10))
-(def x [1 2 3])
-(assign x "asd\tefg")
-(fn (a b) (* a b))
-((fn (a b) (* a b)) 2 3)
-(do
-  (herp)
-  (derp)
-  213)
-
-(= x (== 5 6))
-
-(if false x y)
+(+ 4 5)
