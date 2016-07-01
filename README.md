@@ -143,6 +143,23 @@ Eth Usage:
 
 ## standard library
 
+...
+
+## developing
+
+**The compiler** for the language is all in `lib/index.js` and is still way under 1000 lines.
+
+**The repl/cli tool** is implemented in `bin/eth`.
+
+**The standard library** is written in `eth` and is located in the `core` folder. If you make changes to
+the standard library you can recompile the `.js` file for use in `npm` using the `make build` command.
+
+To run the test suite simply run:
+
+```
+make test
+```
+
 ## license
 
 See `LICENSE` file.
