@@ -1,6 +1,5 @@
 (package hello-world (server-create server-listen)
 
-(import core (..))
 (import http)
 (import util u)
 
@@ -12,7 +11,7 @@
     (res.end message))))
 
 (def server-listen (server port)
-  (let (started (fn () (console.log (u.format "Started listenning on port " port))))
+  (let ((started (fn () (console.log (u.format "Started listenning on port" port)))))
     ((. :listen server) port started)))
 
 (set server (server-create "Hello homoiconicity, expresiveness and fun times!"))

@@ -1,0 +1,6 @@
+(package t ()
+  (import http (..))
+
+  (set x 5)
+
+  (console.log METHODS))
