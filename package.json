@@ -1,0 +1,24 @@
+{
+  "name": "eth",
+  "version": "1.0.0",
+  "description": "A fun, experimental and simple lisp transpiler for JavaScript.",
+  "main": "lib/index.js",
+  "bin": {
+    "eth": "bin/eth"
+  },
+  "scripts": {
+    "test": "test.sh",
+    "patch-release": "npm version patch && npm publish && git push --follow-tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiasaki/eth-lang.git"
+  },
+  "keywords": [],
+  "author": "Frederic Gingras <frederic@gingras.cc>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kiasaki/eth-lang/issues"
+  },
+  "homepage": "https://github.com/kiasaki/eth-lang#readme"
+}
