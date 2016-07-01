@@ -29,7 +29,7 @@ function compile(filename, onlyAst) {
         return '[' + astNode.type + '|' + astNode.value + ']';
       }
     }
-    return JSON.stringify(astToString(ast.ast), null, 2);
+    return JSON.stringify(astToString(ast), null, 2);
   } else {
     return eth.write(ast);
   }
