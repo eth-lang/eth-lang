@@ -1,3 +1,4 @@
+; vim: set ft=clojure:
 (def identity (a)
   a)
 (def multi ()

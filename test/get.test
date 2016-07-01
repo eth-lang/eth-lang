@@ -1,3 +1,4 @@
+; vim: set ft=clojure:
 (console.log "asd")
 ((. :log console) "asd")
 (set fnName "asd")

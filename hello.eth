@@ -1,6 +1,6 @@
-(package hello-world (.)
+(package hello-world (server-create server-listen)
 
-(import core (*))
+(import core (..))
 (import http)
 (import util u)
 

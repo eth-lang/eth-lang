@@ -1,0 +1,10 @@
+; vim: set ft=clojure:
+
+; simple named import
+(import http)
+
+; aliased imports
+(import util u)
+
+; destructed imports
+(import helpers (derp herp))
