@@ -14,7 +14,8 @@ null
 multiline"
 ""
 symbol
-:keyword
+name-with-dash
+name-with!
 @
 @derp
 (a b c)
