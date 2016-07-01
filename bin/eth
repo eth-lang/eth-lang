@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+var eth = require('../lib');
+
+function ethEval(code, env, filename, callback) {
+  try {
+    var result = eth.print(eth.eval(env, eth.read(filename, code)));
+    callback(null, result);
+  } catch(e) {
+    callback(e);
+  }
+}
+
+function repl() {
+  require('repl').start({
+    prompt: 'eth> ',
+    eval: ethEval
+  });
+}
+
+function compile() {
+  var filename = process.argv[2];
+  var sourceCode = require('fs').readFileSync(filename, 'utf8');
+  console.log(eth.write(eth.read(filename, sourceCode)));
+}
+
+if (process.argv.length === 2) {
+  repl();
+} else if (process.argv[2] === '-h' || process.argv[2] === '--help') {
+  console.log('Eth Usage:\n  eth => run repl\n  eth file.sl => run file\n');
+} else if (process.argv.length === 3) {
+  compile();
+}
+
