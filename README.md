@@ -194,6 +194,42 @@ string array object type and or
 print
 ```
 
+## using eth for your next project
+
+### Browser
+
+Eth compiles down to plain JavaScript so you could simply run `eth -c app.eth >app.js` and load that
+in a browser but that only hic is that you won't have the nice `import` statements any more.
+
+To be able to use `import`s (really `require`s) you need to use a module loader / system to bundle
+your code for browsers.
+
+**If you are using _webpack_** you can install the `eth-loader` package and use that like so:
+
+```
+// webpack.config.js
+module.exports = {
+  entry: './src/app.eth',
+  output: {path: './build', filename: 'app.js'},
+  module: {
+    loaders: [{test: /\.eth$/, loader: 'eth-loader'}]
+  }
+};
+```
+
+### Node
+
+... comming up ...
+
+### Library
+
+You will probably want to have two directories, say `src` for `.eth` source files and a `lib` or
+`build` folder for compiled javascript.
+
+That way people consuming your library don't even need to know it is written in `eth` and still use
+it. To get there you'll simply have to make sure that you build all necessary `.js` files before
+commiting changes and have a line that looks like `"main": "build/index.js"` in your `package.json`.
+
 ## developing
 
 **The compiler** for the language is all in `lib/index.js` and is still way under 1000 lines.
