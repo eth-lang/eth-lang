@@ -12,9 +12,12 @@ function ethEval(code, env, filename, callback) {
 }
 
 function repl() {
-  require('repl').start({
+  var repl = require('repl').start({
     prompt: 'eth> ',
     eval: ethEval
+  });
+  ethEval('(import "../core" (..))', repl.context, 'repl', function(err) {
+    if (err) throw err;
   });
 }
 
