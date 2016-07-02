@@ -1,0 +1,4 @@
+__eth__module["asd"] = 1;
+__eth__module[asdAsd] = 1;
+__eth__module.asdAsd = 1;
+

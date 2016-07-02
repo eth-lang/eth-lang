@@ -189,9 +189,11 @@ Eth Usage:
 | `(random n ^number?)` | With no arguments return a number from 0 to 1. When given a number returns a pseudo-random number from 0 to `n` |
 
 ```
-len head tail last concat cons append map reduce filter
+even odd
+len head tail last concat cons append map reduce filter for-each
 string array object type and or
-print
+print identity
+keys values merge clone
 ```
 
 ## using eth for your next project

@@ -12,8 +12,10 @@
     });
 
   curry = (function (f) {
+    var baseArgs = Array.prototype.slice.call(arguments, 1);
     return (function () {
-      return apply(f, arguments);
+      var args = Array.prototype.slice.call(arguments, 0);
+      return apply(f, Array.prototype.concat.call(baseArgs, args));
       });
     });
 
@@ -43,7 +45,7 @@
     return (function () {
       newArgs = Array.prototype.slice.call(arguments);
       return (function () {
-        mergedArgs = (args || []).concat(newArgs);
+        var mergedArgs = (args || []).concat(newArgs);
         return (function() { if ((mergedArgs.length >= n)) {
           return apply(f, mergedArgs);
         } else {
@@ -95,6 +97,14 @@
     } })();
     });
 
+  isEven = (function (x) {
+    return ((x % 2) === 0);
+    });
+
+  isOdd = (function (x) {
+    return ((x % 2) === 1);
+    });
+
   len = (function (l) {
     return l.length;
     });
@@ -144,6 +154,13 @@
     });
 
   map = curryN(2, map);
+
+  forEach = (function (f, iterable) {
+    map(f, iterable);
+    return null;
+    });
+
+  forEach = curryN(2, forEach);
 
   reduce = (function (f, init, iterable) {
     acc = init;
@@ -213,11 +230,27 @@
     });
 
   object = (function () {
-    return null;
+    var keysAndVals = Array.prototype.slice.call(arguments, 0);
+    assert(isEven(len(keysAndVals)), "'object' needs a even number of elements");
+    return (function () {
+      var ret = {};
+      var i = 0;
+      return (function() { var __eth__result; while ((i < len(keysAndVals))) {
+        __eth__result = keysAndVals[i] = keysAndVals[inc(i)];
+      } return __eth__result; })();
+      })();
     });
 
-  type = (function () {
-    return null;
+  type = (function (x) {
+    return (function() { if (Array.isArray(x)) {
+      return "array";
+    } else {
+      return (function() { if ((x === null)) {
+      return "null";
+    } else {
+      return typeof(x);
+    } })();
+    } })();
     });
 
   and = (function () {
@@ -236,6 +269,49 @@
 
   print = (function () {
     return apply(console.log, arguments);
+    });
+
+  identity = (function (a) {
+    return a;
+    });
+
+  keys = (function (o) {
+    return Object.keys(o);
+    });
+
+  values = (function (o) {
+    return map((function (key) {
+      return o[key];
+      }), keys(o));
+    });
+
+  merge = (function (o1, o2) {
+    return (function () {
+      var ret = {};
+      var setter = (function (o) {
+        return (function (k) {
+          return ret[k] = o[k];
+          });
+        });
+      forEach(setter(o1), keys(o1));
+      forEach(setter(o2), keys(o2));
+      return ret;
+      })();
+    });
+
+  clone = (function (a) {
+    return (function () {
+      var t = type(a);
+      return (function() { if ((t === "array")) {
+        return map(identity, a);
+      } else {
+        return (function() { if ((t === "object")) {
+        return merge({}, a);
+      } else {
+        return a;
+      } })();
+      } })();
+      })();
     });
 
   __eth__module.assert = assert;
@@ -265,6 +341,8 @@
   __eth__module.inc = inc;
   __eth__module.dec = dec;
   __eth__module.random = random;
+  __eth__module.isEven = isEven;
+  __eth__module.isOdd = isOdd;
   __eth__module.len = len;
   __eth__module.head = head;
   __eth__module.tail = tail;
@@ -275,6 +353,7 @@
   __eth__module.map = map;
   __eth__module.reduce = reduce;
   __eth__module.filter = filter;
+  __eth__module.forEach = forEach;
   __eth__module.string = string;
   __eth__module.array = array;
   __eth__module.object = object;
@@ -282,5 +361,10 @@
   __eth__module.and = and;
   __eth__module.or = or;
   __eth__module.print = print;
+  __eth__module.identity = identity;
+  __eth__module.keys = keys;
+  __eth__module.values = values;
+  __eth__module.merge = merge;
+  __eth__module.clone = clone;
 })(typeof window !== 'undefined' ? window['eth/core'] : module.exports);
 

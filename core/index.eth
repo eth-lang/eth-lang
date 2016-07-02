@@ -1,9 +1,10 @@
 (package eth/core (assert apply curry curry2 curry3 curryN
                    add sub mul div mod
-                   PI abs ceil floor log sin cos tan pow max min round sqrt inc dec random
-                   len head tail last concat cons append map reduce filter
+                   PI abs ceil floor log sin cos tan pow max min round sqrt inc dec random even? odd?
+                   len head tail last concat cons append map reduce filter for-each
                    string array object type and or
-                   print)
+                   print identity
+                   keys values merge clone)
 
 ; basics
 (def assert (c message)
@@ -14,8 +15,8 @@
 (def apply (f args)
   (f.apply null args))
 
-(def curry (f) (fn ()
-  (apply f arguments)))
+(def curry (f ... base-args) (fn (... args)
+  (apply f (Array.prototype.concat.call base-args args))))
 (def curry2 () (fn (f) (fn (arg1) (fn (arg2) (f arg1 arg2)))))
 (def curry3 () (fn (f) (fn (arg1) (fn (arg2) (fn (arg3) (f arg1 arg2 arg3))))))
 (def curryN (n f args)
@@ -42,8 +43,15 @@
 (set sqrt Math.sqrt)
 (def inc (x) (+ x 1))
 (def dec (x) (- x 1))
+
 (def random (x)
   (if x (round (* (Math.random) x)) (Math.random)))
+
+(def even? (x)
+  (== (% x 2) 0))
+
+(def odd? (x)
+  (== (% x 2) 1))
 
 ; lists
 (def len (l)
@@ -79,6 +87,11 @@
     (set (. (len ret) ret) (f (. (len ret) iterable))))
   ret)
 (set map (curryN 2 map))
+
+(def for-each (f iterable)
+  (map f iterable)
+  ())
+(set for-each (curryN 2 for-each))
 
 (def reduce (f init iterable)
   (set acc init)
@@ -123,8 +136,18 @@
 (def array ()
   (Array.prototype.slice.call arguments))
 
-(def object () ())
-(def type () ())
+(def object (... keys-and-vals)
+  (assert (even? (len keys-and-vals)) "'object' needs a even number of elements")
+  (let ((ret {})
+        (i 0))
+    (while (< i (len keys-and-vals))
+      (set (. i keys-and-vals) (. (inc i) keys-and-vals)))))
+
+(def type (x)
+  (if (Array.isArray x) "array"
+    (if (== x null) "null"
+      (typeof x))))
+
 (def and ()
   (assert (>= (len arguments) 2) "'and' takes a minimum of 2 arguments")
   (reduce (fn (a b) (&& a b)) (head arguments) (tail arguments)))
@@ -134,4 +157,26 @@
 
 (def print ()
   (apply console.log arguments))
+
+(def identity (a) a)
+
+; objects
+(def keys (o)
+  (Object.keys o))
+
+(def values (o)
+  (map (fn (key) (. key o)) (keys o)))
+
+(def merge (o1 o2)
+  (let ((ret {})
+        (setter (fn (o) (fn (k) (set (. k ret) (. k o))))))
+    (for-each (setter o1) (keys o1))
+    (for-each (setter o2) (keys o2))
+    ret))
+
+(def clone (a)
+  (let ((t (type a)))
+    (if (== t "array") (map identity a)
+    (if (== t "object") (merge {} a)
+    a))))
 )
