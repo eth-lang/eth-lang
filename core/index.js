@@ -63,6 +63,12 @@
 
   log = Math.log;
 
+  sin = Math.sin;
+
+  cos = Math.cos;
+
+  tan = Math.tan;
+
   pow = Math.pow;
 
   max = Math.max;
@@ -244,6 +250,9 @@
   __eth__module.ceil = ceil;
   __eth__module.floor = floor;
   __eth__module.log = log;
+  __eth__module.sin = sin;
+  __eth__module.cos = cos;
+  __eth__module.tan = tan;
   __eth__module.pow = pow;
   __eth__module.max = max;
   __eth__module.min = min;
