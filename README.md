@@ -40,7 +40,8 @@ Here's what a package would look like:
   (server-listen! server PORT))
 ```
 
-_(Not really nice way of writing it but it demos language features XD)_
+_(Not really nice way of writing it but it demos language features XD See `hello-compact.eth` for a
+more node.js style version of the above)_
 
 ## running
 
