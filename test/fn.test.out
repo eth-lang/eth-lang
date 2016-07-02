@@ -1,0 +1,18 @@
+(function () {
+  return null;
+  });
+(function (a) {
+  return null;
+  });
+(function (a, b, c, d, e) {
+  return null;
+  });
+(function (a) {
+  var as = Array.prototype.slice.call(arguments, 1);
+  return null;
+  });
+(function () {
+  var as = Array.prototype.slice.call(arguments, 0);
+  return null;
+  });
+

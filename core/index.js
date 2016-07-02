@@ -127,6 +127,10 @@
     return Array.prototype.concat.call(l1,(l2));
     });
 
+  cons = (function (a, l) {
+    return concat([a], l);
+    });
+
   append = (function (a, l) {
     return concat(a, [l]);
     });
@@ -266,6 +270,7 @@
   __eth__module.tail = tail;
   __eth__module.last = last;
   __eth__module.concat = concat;
+  __eth__module.cons = cons;
   __eth__module.append = append;
   __eth__module.map = map;
   __eth__module.reduce = reduce;

@@ -25,16 +25,16 @@ Here's what a package would look like:
 
   (set PORT 1337)
 
-  (def server-create (message)
+  (def server-create (message ... extra-messages)
     (http.create-server (fn (req res)
       (res.write-head 200 {"Content-Type" "text/plain"})
-      (res.end message))))
+      (res.end (apply u.format (cons message extra-message))))))
 
   (def server-listen! (server port)
     (let (started (fn () (console.log (u.format "Started listenning on port " port))))
       ((. :listen server) port started)))
 
-  (set server (server-create "Hello homoiconicity, expresiveness and fun times!"))
+  (set server (server-create "Hello homoiconicity, expresiveness and fun times" "!" "!"))
 
   ; And here we go!
   (server-listen! server PORT))
@@ -189,7 +189,7 @@ Eth Usage:
 | `(random n ^number?)` | With no arguments return a number from 0 to 1. When given a number returns a pseudo-random number from 0 to `n` |
 
 ```
-len head tail last concat append map reduce filter
+len head tail last concat cons append map reduce filter
 string array object type and or
 print
 ```
