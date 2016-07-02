@@ -4,3 +4,4 @@
 (set fnName "asd")
 ((. fnName obj) 123)
 ((. "asd" obj) 123)
+(. 0 arr)

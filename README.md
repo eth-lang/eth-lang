@@ -26,18 +26,18 @@ Here's what a package would look like:
   (set PORT 1337)
 
   (def server-create (message)
-    (http.createServer (fn (req res)
-      (res.writeHead 200 {"Content-Type" "text/plain"})
+    (http.create-server (fn (req res)
+      (res.write-head 200 {"Content-Type" "text/plain"})
       (res.end message))))
 
-  (def server-listen (server port)
+  (def server-listen! (server port)
     (let (started (fn () (console.log (u.format "Started listenning on port " port))))
       ((. :listen server) port started)))
 
   (set server (server-create "Hello homoiconicity, expresiveness and fun times!"))
 
   ; And here we go!
-  (server-listen server PORT))
+  (server-listen! server PORT))
 ```
 
 _(Not really nice way of writing it but it demos language features XD)_
@@ -89,7 +89,7 @@ Eth Usage:
 | data type | eth | js | description |
 |---|---|---|---|
 | Comment | `; comment` | ` ` | Eth only has single line comments and the don't aprear in compiled code |
-| Null | `null` | `null` | Null is simply written null |
+| Null | `null` | `null` | Null is simply written null (`()` also evaluates to `null`) |
 | Boolean | `true` | `true` | Booleans are the same as in JavaScript |
 | String | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
 | Numbers | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |

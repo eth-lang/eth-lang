@@ -1,2 +1,16 @@
-(package eth/core ()
+(package eth/core (string array object type
+                   PI abs ceil floor cos sin tan exp log max min pow round random sqrt
+                   head tail last length)
+  (def length (l)
+    (. :length l))
+
+  (def head (l)
+    (if (> (length l) 0)
+      (. 0 l)
+      null))
+
+  (def tail (l)
+    (if (> (length l) 0)
+      (Array.prorotype.slice.call l 1)
+      []))
   )

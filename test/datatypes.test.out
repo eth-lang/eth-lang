@@ -13,6 +13,7 @@ null;
 symbol;
 nameWithDash;
 nameWith$;
+isBool;
 this;
 this.derp;
 a(b, c);
