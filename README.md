@@ -151,7 +151,48 @@ Eth Usage:
 
 ## standard library
 
-...
+**basics**
+
+| function | description |
+|---|---|
+| `(assert condition ^bool message ^string)` | Throws an assertion error if `cond` is falsy |
+| `(apply f ^function args ^array)` | Call function with given arguments array |
+| `(curry f ^function)` | Returns a function that when called will call the given function with it's argument |
+| `(curry2 f ^function)` | Returns a function that must be called 2 times with 1 argument before it call the given function with those |
+| `(curry3 f ^function)` | Returns a function that must be called 3 times with 1 argument before it call the given function with those |
+| `(curryN n ^number f ^function)` | Returns a function that can be called any number of time with any number of arguments until `n` arguments have been given, at this point it will call the given `f` |
+
+**math**
+
+| function | description |
+|---|---|
+| `(add ...a ^number)` | Sums all the given numbers |
+| `(sub a ^number ...as ^number)` | Substracts the given numbers from the first one |
+| `(mul ...a ^number)` | Multiples all the given numbers together |
+| `(div ...a ^number)` | Divides all the given numbers together |
+| `(mod a ^number b ^number)` | Returns the reminder of the division of `a` with `b` |
+| `PI ^number` | PI Constant |
+| `(abs a ^number)` | Returns the absolute of a number |
+| `(ceil a ^number)` | Returns the smallest integer greater than or equal to a number |
+| `(floor a ^number)` | Returns the largest integer less than or equal to a number |
+| `(log a ^number)` | Returns the natural logarithm of a number |
+| `(sin a ^number)` | Returns the sine of a number |
+| `(cos a ^number)` | Returns the cosine of a number |
+| `(tan a ^number)` | Returns the tangent of a number |
+| `(pow base ^number exp ^number)` | Returns base to the exponent power (b^e) |
+| `(max a ^number b ^number)` | Returns the largest of 2 given numbers |
+| `(min a ^number b ^number)` | Returns the smallest of 2 given numbers |
+| `(round a ^number)` | Returns the value of a number rounded to the nearest integer |
+| `(sqrt a ^number)` | Returns the positive square root of a number |
+| `(inc a ^number)` | Returns `a` with 1 added to it |
+| `(dec a ^number)` | Returns `a` with 1 substracted from it |
+| `(random n ^number?)` | With no arguments return a number from 0 to 1. When given a number returns a pseudo-random number from 0 to `n` |
+
+```
+len head tail last concat append map reduce filter
+string array object type and or
+print
+```
 
 ## developing
 

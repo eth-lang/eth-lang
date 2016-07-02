@@ -1,8 +1,9 @@
 (package eth/core (assert apply curry curry2 curry3 curryN
                    add sub mul div mod
-                   PI abs ceil floor log pow max min round sqrt inc dec random
+                   PI abs ceil floor log sin cos tan pow max min round sqrt inc dec random
                    len head tail last concat append map reduce filter
-                   string array object type and or)
+                   string array object type and or
+                   print)
 
   ; basics
   (def assert (c message)
@@ -27,6 +28,9 @@
   (set ceil Math.ceil)
   (set floor Math.floor)
   (set log Math.log)
+  (set sin Math.sin)
+  (set cos Math.cos)
+  (set tan Math.tan)
   (set pow Math.pow)
   (set max Math.max)
   (set min Math.min)
@@ -121,4 +125,6 @@
     (assert (>= (len arguments) 2) "'or' takes a minimum of 2 arguments")
     (reduce (fn (a b) (|| a b)) (head arguments) (tail arguments)))
 
+  (def print ()
+    (apply console.log arguments))
   )

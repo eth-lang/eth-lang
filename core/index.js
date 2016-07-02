@@ -224,6 +224,10 @@
       }), head(arguments), tail(arguments));
     });
 
+  print = (function () {
+    return apply(console.log, arguments);
+    });
+
   __eth__module.assert = assert;
   __eth__module.apply = apply;
   __eth__module.curry = curry;
@@ -263,5 +267,6 @@
   __eth__module.type = type;
   __eth__module.and = and;
   __eth__module.or = or;
+  __eth__module.print = print;
 })(typeof window !== 'undefined' ? window['eth/core'] : module.exports);
 
