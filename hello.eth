@@ -1,13 +1,13 @@
 (package hello-world (server-create server-listen)
 
-(import http)
+(import http (create-server))
 (import util u)
 
 (set PORT 1337)
 
 (def server-create (message)
-  (http.createServer (fn (req res)
-    (res.writeHead 200 {"Content-Type" "text/plain"})
+  (create-server (fn (req res)
+    (res.write-head 200 {"Content-Type" "text/plain"})
     (res.end message))))
 
 (def server-listen (server port)

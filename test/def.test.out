@@ -1,9 +1,9 @@
 identity = (function (a) {
-    return a;
+  return a;
   });
 multi = (function () {
   doA();
   doB();
-    return 10;
+  return 10;
   });
 

@@ -1,5 +1,5 @@
 http = require("http");
 u = require("util");
 derp = require("helpers").derp;
-herp = require("helpers").herp;;
+herp = require("helpers").herp;
 
