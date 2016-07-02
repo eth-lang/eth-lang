@@ -121,6 +121,8 @@ Eth Usage:
 | `(> 1 2)` | `1 > 2` | |
 | `(<= 1 2)` | `1 <= 2` | |
 | `(>= 1 2)` | `1 >= 2` | |
+| `(|| 1 2)` | `1 || 2` | |
+| `(&& 1 2)` | `1 && 2` | |
 | `(== 1 2)` | `1 === 2` | No need to use `===`. `==` translates to it. |
 | `(!= 1 2)` | `1 !== 2` | No need to use `!==`. `!=` translates to it. |
 | `(fn (a) (+ a 1))` | `function(a) { return a + 1; }` | Declares an anomymous function returning the last expression in it's body |
