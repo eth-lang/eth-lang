@@ -4,7 +4,7 @@ var eth = require('../lib');
 
 function ethEval(code, env, filename, callback) {
   try {
-    var result = eth.print(eth.eval(env, eth.read(filename, code)));
+    var result = eth.eval(env, eth.read(filename, code));
     callback(null, result);
   } catch(e) {
     callback(e);

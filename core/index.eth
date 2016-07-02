@@ -1,29 +1,124 @@
-(package eth/core (string array object type and or
-                   PI abs ceil floor exp log max min pow round random sqrt inc dec
-                   length head tail last map reduce filter)
+(package eth/core (assert apply curry curry2 curry3 curryN
+                   add sub mul div mod
+                   PI abs ceil floor log pow max min round sqrt inc dec random
+                   len head tail last concat append map reduce filter
+                   string array object type and or)
 
-  (def length (l)
+  ; basics
+  (def assert (c message)
+    (if (! c)
+      (throw (Error. (+ "Assertion Error: " message)))
+      ()))
+  (def apply (f args) (f.apply null args))
+  (def curry (f) (fn () (apply f arguments)))
+  (def curry2 () (fn (f) (fn (arg1) (fn (arg2) (f arg1 arg2)))))
+  (def curry3 () (fn (f) (fn (arg1) (fn (arg2) (fn (arg3) (f arg1 arg2 arg3))))))
+  (def curryN (n f args)
+    (fn ()
+      (set new-args (Array.prototype.slice.call arguments))
+      (let ((merged-args ((. :concat (|| args [])) new-args)))
+          (if (>= (. :length merged-args) n)
+            (apply f merged-args)
+            (curryN n f merged-args)))))
+
+  ; math
+  (set PI Math.PI)
+  (set abs Math.abs)
+  (set ceil Math.ceil)
+  (set floor Math.floor)
+  (set log Math.log)
+  (set pow Math.pow)
+  (set max Math.max)
+  (set min Math.min)
+  (set round Math.round)
+  (set sqrt Math.sqrt)
+  (def inc (x) (+ x 1))
+  (def dec (x) (- x 1))
+  (def random (x)
+    (if x (round (* (Math.random) x)) (Math.random)))
+
+  ; lists
+  (def len (l)
     (. :length l))
 
   (def head (l)
-    (if (> (length l) 0)
+    (if (> (len l) 0)
       (. 0 l)
       null))
 
   (def tail (l)
-    (if (> (length l) 0)
-      (Array.prorotype.slice.call l 1)
+    (if (> (len l) 0)
+      (Array.prototype.slice.call l 1)
       []))
 
   (def last (l)
-    (if (> (length l) 0)
-      (. (dec (length l)) l)
+    (if (> (len l) 0)
+      (. (dec (len l)) l)
       null))
 
-  (def inc (x)
-    (+ x 1))
+  (def concat (l1 l2)
+    (Array.prototype.concat.call(l1, l2)))
 
-  (def dec (x)
-    (- x 1))
+  (def append (a l)
+    (concat a [l]))
+
+  (def map (f iterable)
+    (set ret [])
+    (while (< (len ret) (len iterable))
+      (set (. (len ret) ret) (f (. (len ret) iterable))))
+    ret)
+  (set map (curryN 2 map))
+
+  (def reduce (f init iterable)
+    (set acc init)
+    (set i 0)
+    (while (< i (len iterable))
+      (set acc (f acc (. i iterable)))
+      (set i (inc i)))
+    acc)
+  (set reduce (curryN 3 reduce))
+
+  (def filter (f iterable)
+    (set ret [])
+    (set i 0)
+    (while (< i (len iterable))
+      (if (f (. i iterable))
+        (set ret (append ret (. i iterable)))
+        ())
+      (set i (inc i)))
+    ret)
+  (set filter (curryN 2 filter))
+
+  ; basic math
+  (def add ()
+    (reduce (fn (acc a) (+ acc a)) 0 arguments))
+
+  (def sub ()
+    (assert (>= (len arguments) 2) "'sub' takes a minimum of 2 arguments")
+    (reduce (fn (acc a) (- acc a)) (head arguments) (tail arguments)))
+
+  (def mul ()
+    (reduce (fn (acc a) (* acc a)) 1 arguments))
+
+  (def div ()
+    (reduce (fn (acc a) (/ acc a)) 1 arguments))
+
+  (set mod (curryN 2 (fn (x y) (% x y))))
+
+  ; types
+  (def string ()
+    (reduce (fn (acc a) (+ acc a)) "" arguments))
+
+  (def array ()
+    (Array.prototype.slice.call arguments))
+
+  (def object () ())
+  (def type () ())
+  (def and ()
+    (assert (>= (len arguments) 2) "'and' takes a minimum of 2 arguments")
+    (reduce (fn (a b) (&& a b)) (head arguments) (tail arguments)))
+  (def or ()
+    (assert (>= (len arguments) 2) "'or' takes a minimum of 2 arguments")
+    (reduce (fn (a b) (|| a b)) (head arguments) (tail arguments)))
 
   )

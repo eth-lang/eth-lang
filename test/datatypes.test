@@ -26,3 +26,5 @@ bool?
 {}
 {a 1 b 2}
 {"!" illegal}
+(Error.)
+(throw (Error. "!"))

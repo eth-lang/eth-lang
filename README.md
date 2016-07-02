@@ -107,6 +107,9 @@ Eth Usage:
 | `@` | `this` | The `@` symbol simply translates `this` |
 | `@prop` | `this.prop` | The `@` symbol followed by letter thranslate to getting a propperty of `this` |
 | `some-fn` | `someFn` | `-` is not a valid in JavaScript but often used in lisp so keywords containing them are camel cased instead |
+| `danger!` | `danger$` | `!` is not a valid in JavaScript keyword but often used in lisp |
+| `healed?` | `isHealed` | `?` is not a valid in JavaScript keyword but often used in lisp |
+| `(SomeClass. ...)` | `new SomeClass(...)` | The keywords ending in dot will be translated to the instantiation of the given class |
 
 ## language builtins
 
@@ -125,10 +128,12 @@ Eth Usage:
 | `(&& 1 2)` | `1 && 2` | |
 | `(== 1 2)` | `1 === 2` | No need to use `===`. `==` translates to it. |
 | `(!= 1 2)` | `1 !== 2` | No need to use `!==`. `!=` translates to it. |
+| `(! false)` | `!false` | |
 | `(fn (a) (+ a 1))` | `function(a) { return a + 1; }` | Declares an anomymous function returning the last expression in it's body |
 | `(do (a) (b))` | `a(); return b();` | Executes it's body and returns the value of the last expression |
 | `(if (< a b) a b)` | `if (a < b) { return a; } else { return b; }` | Returns the value of the then branch if the given condition is truthy or the else branch if not |
 | `(while (< i 5) (set i (+ i 1)))` | `while (i < 5) { i = i + 1; }` | Executes the given body until the condition is falsy, returning the value of the last expression in the body at the end |
+| `(throw (Error. "!"))` | `throw new Error('!')` | Takes one argument and throws it as an exception |
 | `(set x 5)` | `x = 5` | Assignment |
 | `(set (. "x" obj) 5)` | `obj["x"] = 5` | Assignment to object property |
 | `(= x 5)` | `x = 5` | Assignment alternate syntax |
