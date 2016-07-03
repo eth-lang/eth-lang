@@ -7,6 +7,10 @@
     } })();
     });
 
+  not = (function (x) {
+    return (! x);
+    });
+
   apply = (function (f, args) {
     return f.apply(null, args);
     });
@@ -142,7 +146,7 @@
     });
 
   append = (function (a, l) {
-    return concat(a, [l]);
+    return concat(l, [a]);
     });
 
   map = (function (f, iterable) {
@@ -154,13 +158,6 @@
     });
 
   map = curryN(2, map);
-
-  forEach = (function (f, iterable) {
-    map(f, iterable);
-    return null;
-    });
-
-  forEach = curryN(2, forEach);
 
   reduce = (function (f, init, iterable) {
     acc = init;
@@ -179,7 +176,7 @@
     i = 0;
     (function() { var __eth__result; while ((i < len(iterable))) {
       (function() { if (f(iterable[i])) {
-      return ret = append(ret, iterable[i]);
+      return ret = append(iterable[i], ret);
     } else {
       return null;
     } })();
@@ -189,6 +186,17 @@
     });
 
   filter = curryN(2, filter);
+
+  forEach = (function (f, iterable) {
+    map(f, iterable);
+    return null;
+    });
+
+  forEach = curryN(2, forEach);
+
+  contains = (function (x, xs) {
+    return (xs.indexOf(x) > -1);
+    });
 
   add = (function () {
     return reduce((function (acc, a) {
@@ -314,7 +322,36 @@
       })();
     });
 
+  assoc = (function (key, value, obj) {
+    return (function () {
+      var shallowCopy = clone(obj);
+      shallowCopy[key] = value;
+      return shallowCopy;
+      })();
+    });
+
+  getIn = (function (path, obj) {
+    return (function() { if ((len(path) === 0)) {
+      return obj;
+    } else {
+      return getIn(tail(path), obj[head(path)]);
+    } })();
+    });
+
+  setIn = (function (path, value, obj) {
+    return (function() { if ((len(path) === 0)) {
+      return value;
+    } else {
+      return assoc(head(path), setIn(tail(path), value, obj[head(path)]), obj);
+    } })();
+    });
+
+  updateIn = (function (path, updateFn, obj) {
+    return setIn(path, updateFn(getIn(path, obj)), obj);
+    });
+
   __eth__module.assert = assert;
+  __eth__module.not = not;
   __eth__module.apply = apply;
   __eth__module.curry = curry;
   __eth__module.curry2 = curry2;
@@ -354,6 +391,7 @@
   __eth__module.reduce = reduce;
   __eth__module.filter = filter;
   __eth__module.forEach = forEach;
+  __eth__module.contains = contains;
   __eth__module.string = string;
   __eth__module.array = array;
   __eth__module.object = object;
@@ -366,5 +404,9 @@
   __eth__module.values = values;
   __eth__module.merge = merge;
   __eth__module.clone = clone;
+  __eth__module.assoc = assoc;
+  __eth__module.getIn = getIn;
+  __eth__module.setIn = setIn;
+  __eth__module.updateIn = updateIn;
 })(typeof window !== 'undefined' ? window['eth/core'] : module.exports);
 

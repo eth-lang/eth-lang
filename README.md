@@ -158,7 +158,7 @@ Eth Usage:
 |---|---|
 | `(assert condition ^bool message ^string)` | Throws an assertion error if `cond` is falsy |
 | `(apply f ^function args ^array)` | Call function with given arguments array |
-| `(curry f ^function)` | Returns a function that when called will call the given function with it's argument |
+| `(curry f ^function ...args ^any)` | Returns a function that when called will call the given function with the given `args` concatenated with the call's arguments |
 | `(curry2 f ^function)` | Returns a function that must be called 2 times with 1 argument before it call the given function with those |
 | `(curry3 f ^function)` | Returns a function that must be called 3 times with 1 argument before it call the given function with those |
 | `(curryN n ^number f ^function)` | Returns a function that can be called any number of time with any number of arguments until `n` arguments have been given, at this point it will call the given `f` |
@@ -190,11 +190,12 @@ Eth Usage:
 | `(random n ^number?)` | With no arguments return a number from 0 to 1. When given a number returns a pseudo-random number from 0 to `n` |
 
 ```
-even odd
-len head tail last concat cons append map reduce filter for-each
+not
+even? odd?
+len head tail last concat cons append map reduce filter for-each contains
 string array object type and or
 print identity
-keys values merge clone
+keys values merge clone assoc get-in set-in update-in
 ```
 
 ## using eth for your next project

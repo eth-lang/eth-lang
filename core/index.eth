@@ -1,16 +1,19 @@
-(package eth/core (assert apply curry curry2 curry3 curryN
+(package eth/core (assert not apply curry curry2 curry3 curryN
                    add sub mul div mod
                    PI abs ceil floor log sin cos tan pow max min round sqrt inc dec random even? odd?
-                   len head tail last concat cons append map reduce filter for-each
+                   len head tail last concat cons append map reduce filter for-each contains
                    string array object type and or
                    print identity
-                   keys values merge clone)
+                   keys values merge clone assoc get-in set-in update-in)
 
 ; basics
 (def assert (c message)
   (if (! c)
     (throw (Error. (+ "Assertion Error: " message)))
     ()))
+
+(def not (x)
+  (! x))
 
 (def apply (f args)
   (f.apply null args))
@@ -79,7 +82,7 @@
   (concat [a] l))
 
 (def append (a l)
-  (concat a [l]))
+  (concat l [a]))
 
 (def map (f iterable)
   (set ret [])
@@ -87,11 +90,6 @@
     (set (. (len ret) ret) (f (. (len ret) iterable))))
   ret)
 (set map (curryN 2 map))
-
-(def for-each (f iterable)
-  (map f iterable)
-  ())
-(set for-each (curryN 2 for-each))
 
 (def reduce (f init iterable)
   (set acc init)
@@ -107,11 +105,19 @@
   (set i 0)
   (while (< i (len iterable))
     (if (f (. i iterable))
-      (set ret (append ret (. i iterable)))
+      (set ret (append (. i iterable) ret))
       ())
     (set i (inc i)))
   ret)
 (set filter (curryN 2 filter))
+
+(def for-each (f iterable)
+  (map f iterable)
+  ())
+(set for-each (curryN 2 for-each))
+
+(def contains (x xs)
+  (> (xs.index-of x) -1))
 
 ; basic math
 (def add ()
@@ -179,4 +185,26 @@
     (if (== t "array") (map identity a)
     (if (== t "object") (merge {} a)
     a))))
+
+(def assoc (key value obj)
+  (let ((shallow-copy (clone obj)))
+    (set (. key shallow-copy) value)
+    shallow-copy))
+
+(def get-in (path obj)
+  (if (== (len path) 0)
+    obj
+    (get-in (tail path) (get (head path) obj))))
+
+(def set-in (path value obj)
+  (if (== (len path) 0)
+    value
+    (assoc
+      (head path)
+      (set-in (tail path) value (get (head path) obj))
+      obj)))
+
+(def update-in (path update-fn obj)
+  (set-in path (update-fn (get-in path obj)) obj))
+
 )
