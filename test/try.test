@@ -1,0 +1,5 @@
+; vim: set ft=eth:
+
+(try
+  (fn () (throw (Error. "!")))
+  (fn (err) (console.error err)))

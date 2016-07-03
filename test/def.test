@@ -1,7 +1,12 @@
-; vim: set ft=clojure:
+; vim: set ft=eth:
 (def identity (a)
   a)
+
 (def multi ()
   (do-a)
   (do-b)
   10)
+
+(def x 5)
+
+(def x (some "a" "b"))

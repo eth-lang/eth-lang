@@ -1,4 +1,5 @@
-; vim: set ft=clojure:
+; vim: set ft=eth
+
 ; line comments
 true ; truthy
 false

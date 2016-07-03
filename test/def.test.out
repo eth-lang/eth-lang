@@ -1,9 +1,11 @@
-identity = (function (a) {
+var identity = (function (a) {
   return a;
   });
-multi = (function () {
+var multi = (function () {
   doA();
   doB();
   return 10;
   });
+var x = 5;
+var x = some("a", "b");
 

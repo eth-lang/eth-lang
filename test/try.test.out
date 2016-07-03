@@ -1,0 +1,10 @@
+(function() { try {
+  return (function () {
+    return (function() { throw new Error("!"); })();
+    })();
+} catch(e) {
+  (function (err) {
+    return console.error(err);
+    })(e);
+} })();
+
