@@ -95,6 +95,7 @@ Eth Usage:
 | String | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
 | Numbers | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
 | Symbol | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
+| Keyword | `:key` | `':key:'` | Keywords are use to express unique names more tersly than using strings and is used by the `.` builtin. The translate to strings starting and ending with `:` |
 | List | `(a b c)` | `a(b, c)` | Lists in list denote function application when evaluated |
 | Array | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in javascript except that you omit the commas as they aren't neccessary |
 | Object | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in javascript except that you omit the commas and `:` as they aren't neccessary |

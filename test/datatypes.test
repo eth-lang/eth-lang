@@ -19,6 +19,10 @@ name-with!
 bool?
 @
 @derp
+:keyword
+:key-word
+:keyword?
+:keyword!
 ()
 (a b c)
 []
