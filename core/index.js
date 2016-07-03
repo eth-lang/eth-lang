@@ -1,7 +1,56 @@
 (function(__eth__module) {
-  assert = (function (c, message) {
+  type = (function (x) {
+    return (function() { if (Array.isArray(x)) {
+      return ":array:";
+    } else {
+      return (function() { if ((x === null)) {
+      return ":null:";
+    } else {
+      return typeof(x);
+    } })();
+    } })();
+    });
+
+  isOfType = (function (t, value) {
+    return (type(value) === t);
+    });
+
+  isNull = (function (value) {
+    return (type(value) === ":null:");
+    });
+
+  isUndefined = (function (value) {
+    return (type(value) === ":undefined:");
+    });
+
+  isBoolean = (function (value) {
+    return (type(value) === ":boolean:");
+    });
+
+  isNumber = (function (value) {
+    return (type(value) === ":number:");
+    });
+
+  isString = (function (value) {
+    return (type(value) === ":string:");
+    });
+
+  isObject = (function (value) {
+    return (type(value) === ":object:");
+    });
+
+  isArray = (function (value) {
+    return (type(value) === ":array:");
+    });
+
+  isFunction = (function (value) {
+    return (type(value) === ":function:");
+    });
+
+  assert = (function (c) {
+    var messages = Array.prototype.slice.call(arguments, 1);
     return (function() { if ((! c)) {
-      return (function() { throw new Error(("Assertion Error: " + message)); })();
+      return (function() { throw new Error(("Assertion Error: " + messages.join(""))); })();
     } else {
       return null;
     } })();
@@ -198,6 +247,12 @@
     return (xs.indexOf(x) > -1);
     });
 
+  join = (function (sep, xs) {
+    return xs.join(sep);
+    });
+
+  join = curryN(2, join);
+
   add = (function () {
     return reduce((function (acc, a) {
       return (acc + a);
@@ -249,18 +304,6 @@
       })();
     });
 
-  type = (function (x) {
-    return (function() { if (Array.isArray(x)) {
-      return "array";
-    } else {
-      return (function() { if ((x === null)) {
-      return "null";
-    } else {
-      return typeof(x);
-    } })();
-    } })();
-    });
-
   and = (function () {
     assert((len(arguments) >= 2), "'and' takes a minimum of 2 arguments");
     return reduce((function (a, b) {
@@ -281,6 +324,52 @@
 
   identity = (function (a) {
     return a;
+    });
+
+  always = (function (a) {
+    return (function () {
+      return a;
+      });
+    });
+
+  fromJson = (function (s) {
+    return JSON.parse(s);
+    });
+
+  toJson = (function (value, prettyPrint) {
+    return (function() { if (prettyPrint) {
+      return JSON.stringify(value, null, (function() { if ((prettyPrint === true)) {
+      return 2;
+    } else {
+      return prettyPrint;
+    } })());
+    } else {
+      return JSON.stringify(value);
+    } })();
+    });
+
+  propEq = (function (key, value) {
+    return (function (obj) {
+      return (obj[key] === value);
+      });
+    });
+
+  prop = (function (key) {
+    return (function (obj) {
+      return obj[key];
+      });
+    });
+
+  pick = (function (ks, obj) {
+    assert(isOfType(":array:", ks), "core: pick: need an array of keys, got: ", toJson(ks));
+    assert(isOfType(":object:", ks), "core: pick: need an object as 2nd argument, got: ", toJson(obj));
+    return (function () {
+      var ret = {};
+      var setValue = (function (k) {
+        return ret[k] = obj[k];
+        });
+      return forEach(setValue, ks);
+      })();
     });
 
   keys = (function (o) {
@@ -350,6 +439,15 @@
     return setIn(path, updateFn(getIn(path, obj)), obj);
     });
 
+  __eth__module.isOfType = isOfType;
+  __eth__module.isNull = isNull;
+  __eth__module.isUndefined = isUndefined;
+  __eth__module.isBoolean = isBoolean;
+  __eth__module.isNumber = isNumber;
+  __eth__module.isString = isString;
+  __eth__module.isObject = isObject;
+  __eth__module.isArray = isArray;
+  __eth__module.isFunction = isFunction;
   __eth__module.assert = assert;
   __eth__module.not = not;
   __eth__module.apply = apply;
@@ -392,6 +490,7 @@
   __eth__module.filter = filter;
   __eth__module.forEach = forEach;
   __eth__module.contains = contains;
+  __eth__module.join = join;
   __eth__module.string = string;
   __eth__module.array = array;
   __eth__module.object = object;
@@ -400,6 +499,12 @@
   __eth__module.or = or;
   __eth__module.print = print;
   __eth__module.identity = identity;
+  __eth__module.always = always;
+  __eth__module.fromJson = fromJson;
+  __eth__module.toJson = toJson;
+  __eth__module.prop = prop;
+  __eth__module.propEq = propEq;
+  __eth__module.pick = pick;
   __eth__module.keys = keys;
   __eth__module.values = values;
   __eth__module.merge = merge;

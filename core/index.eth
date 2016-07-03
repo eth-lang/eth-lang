@@ -1,15 +1,52 @@
-(package eth/core (assert not apply curry curry2 curry3 curryN
+(package eth/core (of-type? null? undefined? boolean? number? string? object? array? function?
+                   string array object type and or
+                   assert not apply curry curry2 curry3 curryN
                    add sub mul div mod
                    PI abs ceil floor log sin cos tan pow max min round sqrt inc dec random even? odd?
-                   len head tail last concat cons append map reduce filter for-each contains
-                   string array object type and or
-                   print identity
-                   keys values merge clone assoc get-in set-in update-in)
+                   len head tail last concat cons append map reduce filter for-each contains join
+                   print identity always
+                   from-json to-json
+                   prop prop-eq pick keys values merge clone assoc get-in set-in update-in)
+
+; types
+
+(def type (x)
+  (if (Array.isArray x) :array
+    (if (== x null) :null
+      (typeof x))))
+
+(def of-type? (t value)
+  (== (type value) t))
+
+(def null? (value)
+  (== (type value) :null))
+
+(def undefined? (value)
+  (== (type value) :undefined))
+
+(def boolean? (value)
+  (== (type value) :boolean))
+
+(def number? (value)
+  (== (type value) :number))
+
+(def string? (value)
+  (== (type value) :string))
+
+(def object? (value)
+  (== (type value) :object))
+
+(def array? (value)
+  (== (type value) :array))
+
+(def function? (value)
+  (== (type value) :function))
 
 ; basics
-(def assert (c message)
+
+(def assert (c ... messages)
   (if (! c)
-    (throw (Error. (+ "Assertion Error: " message)))
+    (throw (Error. (+ "Assertion Error: " (messages.join ""))))
     ()))
 
 (def not (x)
@@ -31,6 +68,7 @@
           (curryN n f merged-args)))))
 
 ; math
+
 (set PI Math.PI)
 (set abs Math.abs)
 (set ceil Math.ceil)
@@ -57,6 +95,7 @@
   (== (% x 2) 1))
 
 ; lists
+
 (def len (l)
   (. :length l))
 
@@ -119,7 +158,12 @@
 (def contains (x xs)
   (> (xs.index-of x) -1))
 
+(def join (sep xs)
+  (xs.join sep))
+(set join (curryN 2 join))
+
 ; basic math
+
 (def add ()
   (reduce (fn (acc a) (+ acc a)) 0 arguments))
 
@@ -135,7 +179,8 @@
 
 (set mod (curryN 2 (fn (x y) (% x y))))
 
-; types
+; types (continued)
+
 (def string ()
   (reduce (fn (acc a) (+ acc a)) "" arguments))
 
@@ -149,11 +194,6 @@
     (while (< i (len keys-and-vals))
       (set (. i keys-and-vals) (. (inc i) keys-and-vals)))))
 
-(def type (x)
-  (if (Array.isArray x) "array"
-    (if (== x null) "null"
-      (typeof x))))
-
 (def and ()
   (assert (>= (len arguments) 2) "'and' takes a minimum of 2 arguments")
   (reduce (fn (a b) (&& a b)) (head arguments) (tail arguments)))
@@ -164,9 +204,43 @@
 (def print ()
   (apply console.log arguments))
 
-(def identity (a) a)
+(def identity (a)
+  a)
+
+(def always (a)
+  (fn ()
+    a))
+
+; json
+
+; parse a json string to a javascript value
+(def from-json (s)
+  (JSON.parse s))
+
+; takes a value to convert to a json string and optionnaly true or the indentation level wanted for
+; pretty printing
+(def to-json (value pretty-print)
+  (if pretty-print
+    (JSON.stringify value null (if (== pretty-print true) 2 pretty-print))
+    (JSON.stringify value)))
 
 ; objects
+
+(def prop-eq (key value)
+  (fn (obj)
+    (== (get key obj) value)))
+
+(def prop (key)
+  (fn (obj)
+    (get key obj)))
+
+(def pick (ks obj)
+  (assert (of-type? :array ks) "core: pick: need an array of keys, got: " (to-json ks))
+  (assert (of-type? :object ks) "core: pick: need an object as 2nd argument, got: " (to-json obj))
+  (let ((ret {})
+        (set-value (fn (k) (set (. k ret) (get k obj)))))
+    (for-each set-value ks)))
+
 (def keys (o)
   (Object.keys o))
 
