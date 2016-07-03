@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var path = require('path');
 var eth = require('../lib');
 
 function ethEval(code, env, filename, callback) {
@@ -16,7 +17,9 @@ function repl() {
     prompt: 'eth> ',
     eval: ethEval
   });
-  ethEval('(import "../core" (..))', repl.context, 'repl', function(err) {
+  var corePath = path.resolve(__dirname, '../core');
+  var importCode = '(import "' + corePath + '" (..))';
+  ethEval(importCode, repl.context, 'repl', function(err) {
     if (err) throw err;
   });
 }
