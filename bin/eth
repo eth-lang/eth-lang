@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var path = require('path');
-var eth = require('../lib');
+var eth = require('../eth-lang');
 
 function ethEval(code, env, filename, callback) {
   try {

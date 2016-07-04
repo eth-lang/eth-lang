@@ -4,4 +4,4 @@ machine:
 
 test:
   override:
-    - ./test.sh
+    - make test

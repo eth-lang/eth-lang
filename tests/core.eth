@@ -1,7 +1,7 @@
-(package eth/core-test ()
+(package eth/tests/core ()
 
 (import "../testing" (new-run run test before after before-each after-each))
-(import "./index" (..))
+(import "../core" (..))
 
 (new-run)
 

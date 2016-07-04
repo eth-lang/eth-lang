@@ -1,15 +1,22 @@
+ETH := ./bin/eth
+
 all:
-	./bin/eth
+	$(ETH)
 
-build-stdlib:
-	./bin/eth -c core/index.eth >core/index.js
-	./bin/eth -c core/index-test.eth >core/index-test.js
-	./bin/eth -c testing/index.eth >testing/index.js
+%.js: %.eth
+	$(ETH) -c $< >$@
 
-build: build-stdlib
+build-stdlib: core.js testing.js
+	
+build-tests: tests/core.js
+
+build: build-stdlib build-tests
 
 test: build
-	./test.sh
-	node core/index-test.js
+	./scripts/test.sh
+	node tests/core.js
 
-.PHONY: all build test
+clean:
+	rm -f tests/*.js
+
+.PHONY: all build build-stdlib build-tests test clean

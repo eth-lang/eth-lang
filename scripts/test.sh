@@ -2,7 +2,7 @@
 
 exitcode=0
 
-for f in test/*.test; do
+for f in compiler-tests/*.test; do
   expected=$(cat $f.out)
   given=$(bin/eth -c $f)
   if [ "$given" != "$expected" ]; then

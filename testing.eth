@@ -1,7 +1,7 @@
 (package eth/testing (test before after before-each after-each run new-run)
 
-(import "../core" (..))
-(import "../promise" promise)
+(import "./core" (..))
+(import "./promise" promise)
 
 ; reporting
 

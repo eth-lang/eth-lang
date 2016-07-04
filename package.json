@@ -2,12 +2,12 @@
   "name": "eth",
   "version": "1.5.1",
   "description": "A fun, experimental and simple lisp transpiler for JavaScript.",
-  "main": "lib/index.js",
+  "main": "eth-lang.js",
   "bin": {
     "eth": "bin/eth"
   },
   "scripts": {
-    "test": "test.sh",
+    "test": "make test",
     "preversion": "make test",
     "version": "make build && git add -A core/*.js",
     "postversion": "npm publish && git push && git push --tags"

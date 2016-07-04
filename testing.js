@@ -1,13 +1,13 @@
 (function(__eth__module) {
   __eth__global = (typeof window !== 'undefined' ? window : global);
-  __eth__importAll = require("../core");
+  __eth__importAll = require("./core");
   __eth__importAllKeys = Object.keys(__eth__importAll);
   for (var i = 0; i < __eth__importAllKeys.length; i++) {
     __eth__global[__eth__importAllKeys[i]] = __eth__importAll[__eth__importAllKeys[i]];
   }
   ;
 
-  promise = require("../promise");
+  promise = require("./promise");
 
   var passedCount = 0;
 
