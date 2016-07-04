@@ -242,13 +242,18 @@ keys values merge clone assoc get-in set-in update-in
 
 ### browser
 
-Eth compiles down to plain JavaScript so you could simply run `eth -c app.eth >app.js` and load that
-in a browser but that only hic is that you won't have the nice `import` statements any more.
+Eth compiles down to plain JavaScript so you could simply run `eth -c app.eth >app.js` and load
+`app.js` in a browser but that only hic is that you won't have access to the nice `import` statements
+any more.
 
 To be able to use `import`s (really `require`s) you need to use a module loader / system to bundle
-your code for browsers.
+your code for browsers. This implies that there needs to be an integration written for the tool you
+are going to choose.
 
-**If you are using _webpack_** you can install the `eth-loader` package and use that like so:
+For **Browserify** users there is no `eth` integration yet but if you are up for it this [`soloify`](https://github.com/kiasaki/soloify) project should be a good example to look at.
+
+**If you are using _webpack_** you can install the [`eth-loader`](https://github.com/kiasaki/eth-loader)
+package and use it like so:
 
 ```
 // webpack.config.js
