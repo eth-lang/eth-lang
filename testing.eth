@@ -1,4 +1,6 @@
-(package eth/testing (test before after before-each after-each run new-run)
+(package eth/testing (test before after before-each after-each
+                      run new-run
+                      assert-equal assert-throws)
 
 (import "./core" (..))
 (import "./promise" promise)
@@ -13,20 +15,23 @@
 (def color-green "\x1b[32m")
 (def color-reset "\x1b[0m")
 
+(def print-test-error (e)
+  (print color-red "In test:" e.name "\n" color-reset e.error "\n"))
+
 (def report (name err)
   (if err
     (do
       (set failed-count (inc failed-count))
-      (process.stdout.write (string color-red "!" color-reset))
-      (set test-errors (append err test-errors)))
+      (print color-red "✘" name color-reset)
+      (set test-errors (append {:name name :error err} test-errors)))
     (do
       (set passed-count (inc passed-count))
-      (process.stdout.write (string color-green "." color-reset)))))
+      (print color-green "✔" name color-reset))))
 
 (def report-summary ()
-  (print "\n")
+  (print "")
   (if (> (len test-errors) 0)
-    (do (for-each print test-errors) (print "\n"))
+    (do (for-each print-test-error test-errors) (print "\n"))
     ())
   (if (== failed-count 0)
     (print color-green "✔" passed-count "tests completed" color-reset)
@@ -96,5 +101,20 @@
 (def after (curry append-to-scope-key :after))
 (def before-each (curry append-to-scope-key :before-each))
 (def after-each (curry append-to-scope-key :after-each))
+
+
+; assertions
+
+(def assert-equal (a b)
+  (if (!= (to-json a) (to-json b))
+    (assert false (to-json a) " is not equal to " (to-json b))
+    ()))
+
+(def assert-throws (f message)
+  (let ((threw false))
+    (try f (fn () (set threw true)))
+    (if (! threw)
+      (assert false message)
+      ())))
 
 )

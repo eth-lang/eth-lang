@@ -1,4 +1,6 @@
 ETH := ./bin/eth
+WATCH := ./node_modules/.bin/watch
+NODE := node
 
 all:
 	$(ETH)
@@ -14,7 +16,10 @@ build: build-stdlib build-tests
 
 test: build
 	./scripts/test.sh
-	node tests/core.js
+	$(NODE) tests/core.js
+
+test-watch:
+	$(WATCH) "make test" tests
 
 clean:
 	rm -f tests/*.js

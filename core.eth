@@ -19,28 +19,28 @@
   (== (type value) t))
 
 (def null? (value)
-  (== (type value) :null))
+  (of-type? :null value))
 
 (def undefined? (value)
-  (== (type value) :undefined))
+  (of-type? :undefined value))
 
 (def boolean? (value)
-  (== (type value) :boolean))
+  (of-type? :boolean value))
 
 (def number? (value)
-  (== (type value) :number))
+  (of-type? :number value))
 
 (def string? (value)
-  (== (type value) :string))
+  (of-type? :string value))
 
 (def object? (value)
-  (== (type value) :object))
+  (of-type? :object value))
 
 (def array? (value)
-  (== (type value) :array))
+  (of-type? :array value))
 
 (def function? (value)
-  (== (type value) :function))
+  (of-type? :function value))
 
 ; basics
 
@@ -53,6 +53,7 @@
   (! x))
 
 (def apply (f args)
+  (assert (of-type? :function f) "core: apply: needs it's 1st arg to be a function")
   (f.apply null args))
 
 (def curry (f ... base-args) (fn (... args)

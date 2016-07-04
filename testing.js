@@ -21,26 +21,30 @@
 
   var colorReset = "[0m";
 
+  var printTestError = (function (e) {
+    return print(colorRed, "In test:", e.name, "\n", colorReset, e.error, "\n");
+    });
+
   var report = (function (name, err) {
     return (function() { if (err) {
       return (function () {
       failedCount = inc(failedCount);
-      process.stdout.write(string(colorRed, "!", colorReset));
-      return testErrors = append(err, testErrors);
+      print(colorRed, "✘", name, colorReset);
+      return testErrors = append({"name": name, "error": err}, testErrors);
       })();
     } else {
       return (function () {
       passedCount = inc(passedCount);
-      return process.stdout.write(string(colorGreen, ".", colorReset));
+      return print(colorGreen, "✔", name, colorReset);
       })();
     } })();
     });
 
   var reportSummary = (function () {
-    print("\n");
+    print("");
     (function() { if ((len(testErrors) > 0)) {
       return (function () {
-      forEach(print, testErrors);
+      forEach(printTestError, testErrors);
       return print("\n");
       })();
     } else {
@@ -147,6 +151,32 @@
 
   var afterEach = curry(appendToScopeKey, "afterEach");
 
+  var assertEqual = (function (a, b) {
+    return (function() { if ((toJson(a) !== toJson(b))) {
+      return assert(false, toJson(a), " is not equal to ", toJson(b));
+    } else {
+      return null;
+    } })();
+    });
+
+  var assertThrows = (function (f, message) {
+    return (function () {
+      var threw = false;
+      (function() { try {
+        return f();
+      } catch(e) {
+        return (function () {
+          return threw = true;
+          })(e);
+      } })();
+      return (function() { if ((! threw)) {
+        return assert(false, message);
+      } else {
+        return null;
+      } })();
+      })();
+    });
+
   __eth__module.test = test;
   __eth__module.before = before;
   __eth__module.after = after;
@@ -154,5 +184,7 @@
   __eth__module.afterEach = afterEach;
   __eth__module.run = run;
   __eth__module.newRun = newRun;
+  __eth__module.assertEqual = assertEqual;
+  __eth__module.assertThrows = assertThrows;
 })(typeof window !== 'undefined' ? window['eth/testing'] : module.exports);
 

@@ -16,35 +16,35 @@
     });
 
   var isNull = (function (value) {
-    return (type(value) === "null");
+    return isOfType("null", value);
     });
 
   var isUndefined = (function (value) {
-    return (type(value) === "undefined");
+    return isOfType("undefined", value);
     });
 
   var isBoolean = (function (value) {
-    return (type(value) === "boolean");
+    return isOfType("boolean", value);
     });
 
   var isNumber = (function (value) {
-    return (type(value) === "number");
+    return isOfType("number", value);
     });
 
   var isString = (function (value) {
-    return (type(value) === "string");
+    return isOfType("string", value);
     });
 
   var isObject = (function (value) {
-    return (type(value) === "object");
+    return isOfType("object", value);
     });
 
   var isArray = (function (value) {
-    return (type(value) === "array");
+    return isOfType("array", value);
     });
 
   var isFunction = (function (value) {
-    return (type(value) === "function");
+    return isOfType("function", value);
     });
 
   var assert = (function (c) {
@@ -61,6 +61,7 @@
     });
 
   var apply = (function (f, args) {
+    assert(isOfType("function", f), "core: apply: needs it's 1st arg to be a function");
     return f.apply(null, args);
     });
 

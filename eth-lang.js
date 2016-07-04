@@ -402,6 +402,8 @@
 
         // FIXME Really really hacky way to expose all of packages exports (setting them on global)
         // but JS lacks support for defining variables programaticaly.
+        // We could at least try to require the module at compile time and export fields falling back
+        // to the global hack
         if (nodes[2].nodes.length === 1 && nodes[2].nodes[0].value === '..') {
           return [
             out,

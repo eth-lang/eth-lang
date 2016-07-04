@@ -1,24 +1,62 @@
 (package eth/tests/core ()
 
-(import "../testing" (new-run run test before after before-each after-each))
 (import "../core" (..))
+(import "../testing" (new-run run test assert-equal assert-throws))
 
 (new-run)
 
-(test "core: type" (fn ()
-  (assert (== (type 1) :number) "type of 1 is :number")))
+(test "core: type: detects array" (fn ()
+  (assert-equal :array (type []))))
 
-(test "core: type" (fn ()
-  (assert (== (type 1) :number) "type of 1 is :number")))
+(test "core: type: detects null" (fn ()
+  (assert-equal :null (type null))))
 
-(test "core: type" (fn ()
-  (assert (== (type 1) :number) "type of 1 is :number")))
+(test "core: type: detects object" (fn ()
+  (assert-equal :object (type {}))))
 
-(test "throw" (fn ()
-  (throw (Error. "Woow this was not expected !"))))
+(test "core: type: detects undefined" (fn ()
+  (assert-equal :undefined (type (void 0)))))
 
-(test "core: type" (fn ()
-  (assert (== (type 1) :number) "type of 1 is :number")))
+
+(test "core: of-type?: returns true when type given matches" (fn ()
+  (assert-equal true (of-type? :number 1))))
+
+(test "core: of-type?: returns false when type given matches" (fn ()
+  (assert-equal false (of-type? :object 1))))
+
+
+(test "core: null?: returns true when given null" (fn ()
+  (assert-equal true (null? null))))
+
+(test "core: null?: returns false when given something else than null" (fn ()
+  (assert-equal false (null? "a"))))
+
+
+(test "core: assert: doesn't throw when given a truthy condition" (fn ()
+  (assert true)
+  (assert "asd")))
+
+(test "core: assert: throws when given falsy condition" (fn ()
+  (assert-throws (fn () (assert false)) "expected 'assert' to throw when given 'false'")
+  (assert-throws (fn () (assert 0)) "expected 'assert' to throw when given '0'")))
+
+
+(test "core: not: returns to opposite bool value" (fn ()
+  (assert-equal true (not false))
+  (assert-equal true (not 0))
+  (assert-equal false (not true))
+  (assert-equal false (not "asd"))
+  (assert-equal false (not {}))))
+
+
+(test "core: apply: applies argument array to function" (fn ()
+  (assert-equal [1 "2" 3.5] (apply (fn (... args) args) [1 "2" 3.5]))
+  (assert-throws (fn () (apply {} [])) "expected 'apply' to throw when given non-function 1st arg")))
+
+
+(test "core: curry: delays execution, contatenating args right" (fn ()
+  (assert-equal [2 3] ((curry (fn (... args) args)) 2 3))
+  (assert-equal [1 2 "3" "4"] ((curry (fn (... args) args) 1 2) "3" "4"))))
 
 
 (run)
