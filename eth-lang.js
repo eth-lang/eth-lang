@@ -25,7 +25,9 @@
     '==': '===',
     '!=': '!==',
     '||': '||',
-    '&&': '&&'
+    '&&': '&&',
+    'in': 'in',
+    'instanceof': 'instanceof'
   };
 
   // helpers {{{
@@ -218,8 +220,8 @@
       }
       // }}}
 
-      // ! {{{
-      if (firstSym === '!') {
+      // ! void typeof delete {{{
+      if (['!', 'void', 'typeof', 'delete'].indexOf(firstSym) > -1) {
         return out + '(' + firstSym + ' ' + write('', nodes[1]) + ')';
       }
       // }}}

@@ -11,4 +11,10 @@
 
 (|| (&& y z) x)
 
+(in "a" {a 1})
+(instanceof 6 Object)
+
 (! false)
+(void 0)
+(typeof "a")
+(delete obj.x)

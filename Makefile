@@ -24,4 +24,8 @@ test-watch:
 clean:
 	rm -f tests/*.js
 
+clean-all: clean
+	rm -f testing.js
+	rm -f core.js
+
 .PHONY: all build build-stdlib build-tests test clean

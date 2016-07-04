@@ -116,7 +116,7 @@ Eth Usage:
 
 So, characters accepted in a **symbol** are all the valid characters from JavaScript (`0-9a-zA-Z_$`) with the additions we just saw: `-` anywhere, `!` at the end or `?` at the end.
 
-## language builtins
+## language built-ins
 
 ### binary operators
 
@@ -128,21 +128,50 @@ equivalent, hence (like most built-ins that follow) they can't be passed around 
 The following are implemented:
 
 ```js
-+ - * / % < > <= >= || && == !=
++ - * / % < > <= >= || && == != in instanceof
 ```
 
 The following **unary** operators also work:
 
 ```js
-! void typeof
+! void typeof delete
 ```
 
-### other builtins
+### `fn`
+
+`fn` is the built-in for creating anonymous functions. It translates to JavaScript's `function() {}`
+syntax. It always needs a list of symbol as 2nd argument and a body, hence, the simplest function
+you could write would look like: `(fn () ())` (or `function() { return null; }` in JS).
+
+You can pass as much expressions you want after the arguments list and they will and be evaluated
+sequentially with the last element being returned.
+
+`fn` supports the `...` variable arguments operator as before last argument name to signify you
+want the following argument name to equal all extra arguments supplied to the function.
+
+```cljs
+(fn () (random 100)) ; -> function() { return random(100); }
+(fn (x) x) ; -> function(x) { return x; }
+(fn (x y) (+ x y)) ; -> function(x, y) { return x + y; }
+(fn (x ... xs) xs) ; -> function(x) { var xs = Array.prototype.slice.call(arguments, 1); return xs; }
+(fn () (read) (stall) (compute)) ; -> function() { read(); stall(); return compute(); }
+```
+
+### `do`
+
+`do` is the built-in for sequential execution (block creation) as every expression in `eth` must be
+a value (except `def` and few others), this one comes especially handy when you want a branch of
+an `if` to do more than 1 thing.
+
+```cljs
+(do (x) (y) (z)) ; -> x(); y(); return z();
+(if c (do (a) (b)) ()) ; -> if (c) { a(); return b(); } else { return null; }
+```
+
+### other built-ins
 
 | eth | js | description |
 |---|---|---|
-| `(fn (a) (+ a 1))` | `function(a) { return a + 1; }` | Declares an anonymous function returning the last expression in it's body |
-| `(do (a) (b))` | `a(); return b();` | Executes it's body and returns the value of the last expression |
 | `(if (< a b) a b)` | `if (a < b) { return a; } else { return b; }` | Returns the value of the then branch if the given condition is truthy or the else branch if not |
 | `(while (< i 5) (set i (+ i 1)))` | `while (i < 5) { i = i + 1; }` | Executes the given body until the condition is falsy, returning the value of the last expression in the body at the end |
 | `(throw (Error. "!"))` | `throw new Error('!')` | Takes one argument and throws it as an exception |

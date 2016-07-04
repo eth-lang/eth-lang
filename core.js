@@ -6,7 +6,7 @@
       return (function() { if ((x === null)) {
       return "null";
     } else {
-      return typeof(x);
+      return (typeof x);
     } })();
     } })();
     });
