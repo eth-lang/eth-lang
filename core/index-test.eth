@@ -1,0 +1,18 @@
+(package eth/core-test ()
+
+(import "../testing" (describe it run))
+(import "./index" (..))
+
+(describe "core" (fn ()
+
+  (describe "type" (fn ()
+
+    (it "returns the type" (fn ()
+      (assert (== (type 1) :number) "type of 1 is :number")))
+
+
+    ))))
+
+(run)
+
+)

@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/kiasaki/eth-lang/issues"
   },
-  "homepage": "https://github.com/kiasaki/eth-lang#readme"
+  "homepage": "https://github.com/kiasaki/eth-lang#readme",
+  "dependencies": {
+    "promise-polyfill": "5.2.1"
+  }
 }

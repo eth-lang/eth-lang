@@ -1,0 +1,122 @@
+(package eth/testing (describe suite it test before after beforeEach afterEach run)
+
+(import "../core" (..))
+(import "../promise" promise)
+
+; reporting
+
+(def passed-count 0)
+(def failed-count 0)
+
+(def report (path name err)
+  (if err
+    (set failed-count (inc failed-count))
+    (set passed-count (inc passed-count)))
+  (if err
+    (print err)
+    ())
+  (process.stdout.write "."))
+
+(def report-summary ()
+  (print "")
+  (if (== failed-count 0)
+    (print "✔ " passed-count " tests completed")
+    (print "✘ " failed-count " of " (+ passed-count failed-count) " tests failed"))
+  (process.exit (if (== failed-count 0) 0 1)))
+
+
+; scopes
+
+(def create-scope (path)
+  {:path (or path [])
+   :sub-scopes []
+   :suite []
+   :test []
+   :before []
+   :after []
+   :before-each []
+   :after-each []})
+
+(def current-scope (create-scope))
+
+(def run-fn (report? path test)
+  (let ((p-result (try
+                    (fn ()
+                      (let ((result (test.body)))
+                        (if (of-type? :function result.then)
+                          result
+                          (promise.resolve))))
+                   (fn (err) (promise.reject err))))
+        (success (fn ()
+          (if report?
+            (report path test.name null)
+            ())
+        (failure (fn (err)
+          (if report?
+            (report path test.name err)
+            (print (assoc :message
+              (string "error in before or after for '" test.name "': " err.message) err))))))))
+    (promise.then p-result success failure)))
+
+(def run-list (report? path before-list after-list fn-list)
+  (promise.then (promise.all (map (curry run-fn false path) before-list))
+    (fn () (promise.then (promise.all (map (curry run-fn report? path) fn-list))
+      (fn () (promise.all (map (curry run-fn false path) after-list)))))))
+
+
+(def run-scope (scope)
+  (console.log "run scope" scope)
+  (let ((augment-child-scope (fn (s)
+          (merge s {
+            :before-each (concat scope.before-each s.before-each)
+            :after-each (concat scope.after-each s.after-each)})))
+        (children-suites (map augment-child-scope scope.suite)))
+    (promise.then (run-list false [] [] scope.before)
+      (fn () (promise.then (run-list true scope.path scope.before-each scope.after-each scope.test)
+        (fn () (promise.then (promise.all (map run-scope children-suites))
+          (fn () (promise.then (run-list false [] [] scope.after))))))))))
+
+(def run ()
+  ; first make all the suites declare their suites / tests / hooks ...
+  (let ((evaluate-suite (fn (s)
+          ; create a new scope and enter it
+          (let ((parent-scope current-scope)
+                (scope (create-scope (append s.name current-scope.path))))
+            (set current-scope scope)
+            (set parent-scope.sub-scopes (append scope parent-scope.sub-scopes))
+            ; run it's body now, declarations will go in the new current scope
+            (s.body)
+            ; now we probably have child suites so go and evaluate those too
+            (map evaluate-suite scope.suite)
+              (print parent-scope)
+
+            ; exit back to parent level
+            (set current-scope parent-scope)))))
+    (map evaluate-suite current-scope.suite))
+
+  (print current-scope)
+
+  ; then run it all
+  (promise.then (run-scope global-scope)
+    (fn () (report-summary))))
+
+
+; api
+
+(def append-to-scope-key (key value)
+  (set current-scope (update-in [key] (append value) current-scope)))
+
+(def describe (name body)
+  (append-to-scope-key :suite {:name name :body body}))
+(def suite describe)
+
+(def it (name f)
+  (append-to-scope-key :test {:name name :body f}))
+(def test it)
+
+(def before (curry append-to-scope-key :before))
+(def after (curry append-to-scope-key :after))
+(def before-each (curry append-to-scope-key :before-each))
+(def after-each (curry append-to-scope-key :after-each))
+
+)

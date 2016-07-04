@@ -1,53 +1,53 @@
 (function(__eth__module) {
-  type = (function (x) {
+  var type = (function (x) {
     return (function() { if (Array.isArray(x)) {
-      return ":array:";
+      return "array";
     } else {
       return (function() { if ((x === null)) {
-      return ":null:";
+      return "null";
     } else {
       return typeof(x);
     } })();
     } })();
     });
 
-  isOfType = (function (t, value) {
+  var isOfType = (function (t, value) {
     return (type(value) === t);
     });
 
-  isNull = (function (value) {
-    return (type(value) === ":null:");
+  var isNull = (function (value) {
+    return (type(value) === "null");
     });
 
-  isUndefined = (function (value) {
-    return (type(value) === ":undefined:");
+  var isUndefined = (function (value) {
+    return (type(value) === "undefined");
     });
 
-  isBoolean = (function (value) {
-    return (type(value) === ":boolean:");
+  var isBoolean = (function (value) {
+    return (type(value) === "boolean");
     });
 
-  isNumber = (function (value) {
-    return (type(value) === ":number:");
+  var isNumber = (function (value) {
+    return (type(value) === "number");
     });
 
-  isString = (function (value) {
-    return (type(value) === ":string:");
+  var isString = (function (value) {
+    return (type(value) === "string");
     });
 
-  isObject = (function (value) {
-    return (type(value) === ":object:");
+  var isObject = (function (value) {
+    return (type(value) === "object");
     });
 
-  isArray = (function (value) {
-    return (type(value) === ":array:");
+  var isArray = (function (value) {
+    return (type(value) === "array");
     });
 
-  isFunction = (function (value) {
-    return (type(value) === ":function:");
+  var isFunction = (function (value) {
+    return (type(value) === "function");
     });
 
-  assert = (function (c) {
+  var assert = (function (c) {
     var messages = Array.prototype.slice.call(arguments, 1);
     return (function() { if ((! c)) {
       return (function() { throw new Error(("Assertion Error: " + messages.join(""))); })();
@@ -56,15 +56,15 @@
     } })();
     });
 
-  not = (function (x) {
+  var not = (function (x) {
     return (! x);
     });
 
-  apply = (function (f, args) {
+  var apply = (function (f, args) {
     return f.apply(null, args);
     });
 
-  curry = (function (f) {
+  var curry = (function (f) {
     var baseArgs = Array.prototype.slice.call(arguments, 1);
     return (function () {
       var args = Array.prototype.slice.call(arguments, 0);
@@ -72,7 +72,7 @@
       });
     });
 
-  curry2 = (function () {
+  var curry2 = (function () {
     return (function (f) {
       return (function (arg1) {
         return (function (arg2) {
@@ -82,7 +82,7 @@
       });
     });
 
-  curry3 = (function () {
+  var curry3 = (function () {
     return (function (f) {
       return (function (arg1) {
         return (function (arg2) {
@@ -94,7 +94,7 @@
       });
     });
 
-  curryN = (function (n, f, args) {
+  var curryN = (function (n, f, args) {
     return (function () {
       newArgs = Array.prototype.slice.call(arguments);
       return (function () {
@@ -134,15 +134,15 @@
 
   sqrt = Math.sqrt;
 
-  inc = (function (x) {
+  var inc = (function (x) {
     return (x + 1);
     });
 
-  dec = (function (x) {
+  var dec = (function (x) {
     return (x - 1);
     });
 
-  random = (function (x) {
+  var random = (function (x) {
     return (function() { if (x) {
       return round((Math.random() * x));
     } else {
@@ -150,19 +150,19 @@
     } })();
     });
 
-  isEven = (function (x) {
+  var isEven = (function (x) {
     return ((x % 2) === 0);
     });
 
-  isOdd = (function (x) {
+  var isOdd = (function (x) {
     return ((x % 2) === 1);
     });
 
-  len = (function (l) {
+  var len = (function (l) {
     return l.length;
     });
 
-  head = (function (l) {
+  var head = (function (l) {
     return (function() { if ((len(l) > 0)) {
       return l[0];
     } else {
@@ -170,7 +170,7 @@
     } })();
     });
 
-  tail = (function (l) {
+  var tail = (function (l) {
     return (function() { if ((len(l) > 0)) {
       return Array.prototype.slice.call(l, 1);
     } else {
@@ -178,7 +178,7 @@
     } })();
     });
 
-  last = (function (l) {
+  var last = (function (l) {
     return (function() { if ((len(l) > 0)) {
       return l[dec(len(l))];
     } else {
@@ -186,19 +186,25 @@
     } })();
     });
 
-  concat = (function (l1, l2) {
+  var concat = (function (l1, l2) {
     return Array.prototype.concat.call(l1,(l2));
     });
 
-  cons = (function (a, l) {
+  concat = curryN(2, concat);
+
+  var cons = (function (a, l) {
     return concat([a], l);
     });
 
-  append = (function (a, l) {
+  cons = curryN(2, cons);
+
+  var append = (function (a, l) {
     return concat(l, [a]);
     });
 
-  map = (function (f, iterable) {
+  append = curryN(2, append);
+
+  var map = (function (f, iterable) {
     ret = [];
     (function() { var __eth__result; while ((len(ret) < len(iterable))) {
       __eth__result = ret[len(ret)] = f(iterable[len(ret)]);
@@ -208,7 +214,7 @@
 
   map = curryN(2, map);
 
-  reduce = (function (f, init, iterable) {
+  var reduce = (function (f, init, iterable) {
     acc = init;
     i = 0;
     (function() { var __eth__result; while ((i < len(iterable))) {
@@ -220,7 +226,7 @@
 
   reduce = curryN(3, reduce);
 
-  filter = (function (f, iterable) {
+  var filter = (function (f, iterable) {
     ret = [];
     i = 0;
     (function() { var __eth__result; while ((i < len(iterable))) {
@@ -236,43 +242,43 @@
 
   filter = curryN(2, filter);
 
-  forEach = (function (f, iterable) {
+  var forEach = (function (f, iterable) {
     map(f, iterable);
     return null;
     });
 
   forEach = curryN(2, forEach);
 
-  contains = (function (x, xs) {
+  var contains = (function (x, xs) {
     return (xs.indexOf(x) > -1);
     });
 
-  join = (function (sep, xs) {
+  var join = (function (sep, xs) {
     return xs.join(sep);
     });
 
   join = curryN(2, join);
 
-  add = (function () {
+  var add = (function () {
     return reduce((function (acc, a) {
       return (acc + a);
       }), 0, arguments);
     });
 
-  sub = (function () {
+  var sub = (function () {
     assert((len(arguments) >= 2), "'sub' takes a minimum of 2 arguments");
     return reduce((function (acc, a) {
       return (acc - a);
       }), head(arguments), tail(arguments));
     });
 
-  mul = (function () {
+  var mul = (function () {
     return reduce((function (acc, a) {
       return (acc * a);
       }), 1, arguments);
     });
 
-  div = (function () {
+  var div = (function () {
     return reduce((function (acc, a) {
       return (acc / a);
       }), 1, arguments);
@@ -282,17 +288,17 @@
     return (x % y);
     }));
 
-  string = (function () {
+  var string = (function () {
     return reduce((function (acc, a) {
       return (acc + a);
       }), "", arguments);
     });
 
-  array = (function () {
+  var array = (function () {
     return Array.prototype.slice.call(arguments);
     });
 
-  object = (function () {
+  var object = (function () {
     var keysAndVals = Array.prototype.slice.call(arguments, 0);
     assert(isEven(len(keysAndVals)), "'object' needs a even number of elements");
     return (function () {
@@ -304,39 +310,39 @@
       })();
     });
 
-  and = (function () {
+  var and = (function () {
     assert((len(arguments) >= 2), "'and' takes a minimum of 2 arguments");
     return reduce((function (a, b) {
       return (a && b);
       }), head(arguments), tail(arguments));
     });
 
-  or = (function () {
+  var or = (function () {
     assert((len(arguments) >= 2), "'or' takes a minimum of 2 arguments");
     return reduce((function (a, b) {
       return (a || b);
       }), head(arguments), tail(arguments));
     });
 
-  print = (function () {
+  var print = (function () {
     return apply(console.log, arguments);
     });
 
-  identity = (function (a) {
+  var identity = (function (a) {
     return a;
     });
 
-  always = (function (a) {
+  var always = (function (a) {
     return (function () {
       return a;
       });
     });
 
-  fromJson = (function (s) {
+  var fromJson = (function (s) {
     return JSON.parse(s);
     });
 
-  toJson = (function (value, prettyPrint) {
+  var toJson = (function (value, prettyPrint) {
     return (function() { if (prettyPrint) {
       return JSON.stringify(value, null, (function() { if ((prettyPrint === true)) {
       return 2;
@@ -348,21 +354,21 @@
     } })();
     });
 
-  propEq = (function (key, value) {
+  var propEq = (function (key, value) {
     return (function (obj) {
       return (obj[key] === value);
       });
     });
 
-  prop = (function (key) {
+  var prop = (function (key) {
     return (function (obj) {
       return obj[key];
       });
     });
 
-  pick = (function (ks, obj) {
-    assert(isOfType(":array:", ks), "core: pick: need an array of keys, got: ", toJson(ks));
-    assert(isOfType(":object:", ks), "core: pick: need an object as 2nd argument, got: ", toJson(obj));
+  var pick = (function (ks, obj) {
+    assert(isOfType("array", ks), "eth/core: pick: need an array of keys, got: ", toJson(ks));
+    assert(isOfType("object", ks), "eth/core: pick: need an object as 2nd argument, got: ", toJson(obj));
     return (function () {
       var ret = {};
       var setValue = (function (k) {
@@ -372,17 +378,17 @@
       })();
     });
 
-  keys = (function (o) {
+  var keys = (function (o) {
     return Object.keys(o);
     });
 
-  values = (function (o) {
+  var values = (function (o) {
     return map((function (key) {
       return o[key];
       }), keys(o));
     });
 
-  merge = (function (o1, o2) {
+  var merge = (function (o1, o2) {
     return (function () {
       var ret = {};
       var setter = (function (o) {
@@ -396,7 +402,7 @@
       })();
     });
 
-  clone = (function (a) {
+  var clone = (function (a) {
     return (function () {
       var t = type(a);
       return (function() { if ((t === "array")) {
@@ -411,7 +417,7 @@
       })();
     });
 
-  assoc = (function (key, value, obj) {
+  var assoc = (function (key, value, obj) {
     return (function () {
       var shallowCopy = clone(obj);
       shallowCopy[key] = value;
@@ -419,7 +425,7 @@
       })();
     });
 
-  getIn = (function (path, obj) {
+  var getIn = (function (path, obj) {
     return (function() { if ((len(path) === 0)) {
       return obj;
     } else {
@@ -427,7 +433,7 @@
     } })();
     });
 
-  setIn = (function (path, value, obj) {
+  var setIn = (function (path, value, obj) {
     return (function() { if ((len(path) === 0)) {
       return value;
     } else {
@@ -435,7 +441,7 @@
     } })();
     });
 
-  updateIn = (function (path, updateFn, obj) {
+  var updateIn = (function (path, updateFn, obj) {
     return setIn(path, updateFn(getIn(path, obj)), obj);
     });
 
@@ -448,6 +454,12 @@
   __eth__module.isObject = isObject;
   __eth__module.isArray = isArray;
   __eth__module.isFunction = isFunction;
+  __eth__module.string = string;
+  __eth__module.array = array;
+  __eth__module.object = object;
+  __eth__module.type = type;
+  __eth__module.and = and;
+  __eth__module.or = or;
   __eth__module.assert = assert;
   __eth__module.not = not;
   __eth__module.apply = apply;
@@ -491,12 +503,6 @@
   __eth__module.forEach = forEach;
   __eth__module.contains = contains;
   __eth__module.join = join;
-  __eth__module.string = string;
-  __eth__module.array = array;
-  __eth__module.object = object;
-  __eth__module.type = type;
-  __eth__module.and = and;
-  __eth__module.or = or;
   __eth__module.print = print;
   __eth__module.identity = identity;
   __eth__module.always = always;

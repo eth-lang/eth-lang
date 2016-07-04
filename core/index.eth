@@ -99,29 +99,39 @@
 (def len (l)
   (. :length l))
 
+
 (def head (l)
   (if (> (len l) 0)
     (. 0 l)
     null))
+
 
 (def tail (l)
   (if (> (len l) 0)
     (Array.prototype.slice.call l 1)
     []))
 
+
 (def last (l)
   (if (> (len l) 0)
     (. (dec (len l)) l)
     null))
 
+
 (def concat (l1 l2)
   (Array.prototype.concat.call(l1, l2)))
+(set concat (curryN 2 concat))
+
 
 (def cons (a l)
   (concat [a] l))
+(set cons (curryN 2 cons))
+
 
 (def append (a l)
   (concat l [a]))
+(set append (curryN 2 append))
+
 
 (def map (f iterable)
   (set ret [])
@@ -129,6 +139,7 @@
     (set (. (len ret) ret) (f (. (len ret) iterable))))
   ret)
 (set map (curryN 2 map))
+
 
 (def reduce (f init iterable)
   (set acc init)
@@ -150,17 +161,21 @@
   ret)
 (set filter (curryN 2 filter))
 
+
 (def for-each (f iterable)
   (map f iterable)
   ())
 (set for-each (curryN 2 for-each))
 
+
 (def contains (x xs)
   (> (xs.index-of x) -1))
+
 
 (def join (sep xs)
   (xs.join sep))
 (set join (curryN 2 join))
+
 
 ; basic math
 
@@ -224,28 +239,34 @@
     (JSON.stringify value null (if (== pretty-print true) 2 pretty-print))
     (JSON.stringify value)))
 
+
 ; objects
 
 (def prop-eq (key value)
   (fn (obj)
     (== (get key obj) value)))
 
+
 (def prop (key)
   (fn (obj)
     (get key obj)))
 
+
 (def pick (ks obj)
-  (assert (of-type? :array ks) "core: pick: need an array of keys, got: " (to-json ks))
-  (assert (of-type? :object ks) "core: pick: need an object as 2nd argument, got: " (to-json obj))
+  (assert (of-type? :array ks) "eth/core: pick: need an array of keys, got: " (to-json ks))
+  (assert (of-type? :object ks) "eth/core: pick: need an object as 2nd argument, got: " (to-json obj))
   (let ((ret {})
         (set-value (fn (k) (set (. k ret) (get k obj)))))
     (for-each set-value ks)))
 
+
 (def keys (o)
   (Object.keys o))
 
+
 (def values (o)
   (map (fn (key) (. key o)) (keys o)))
+
 
 (def merge (o1 o2)
   (let ((ret {})
@@ -254,21 +275,25 @@
     (for-each (setter o2) (keys o2))
     ret))
 
+
 (def clone (a)
   (let ((t (type a)))
     (if (== t "array") (map identity a)
     (if (== t "object") (merge {} a)
     a))))
 
+
 (def assoc (key value obj)
   (let ((shallow-copy (clone obj)))
     (set (. key shallow-copy) value)
     shallow-copy))
 
+
 (def get-in (path obj)
   (if (== (len path) 0)
     obj
     (get-in (tail path) (get (head path) obj))))
+
 
 (def set-in (path value obj)
   (if (== (len path) 0)
@@ -277,6 +302,7 @@
       (head path)
       (set-in (tail path) value (get (head path) obj))
       obj)))
+
 
 (def update-in (path update-fn obj)
   (set-in path (update-fn (get-in path obj)) obj))
