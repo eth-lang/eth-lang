@@ -3,7 +3,7 @@
     return (function() { throw new Error("!"); })();
     })();
 } catch(e) {
-  (function (err) {
+  return (function (err) {
     return console.error(err);
     })(e);
 } })();

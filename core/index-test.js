@@ -1,7 +1,11 @@
 (function(__eth__module) {
-  describe = require("../testing").describe;
-  it = require("../testing").it;
+  newRun = require("../testing").newRun;
   run = require("../testing").run;
+  test = require("../testing").test;
+  before = require("../testing").before;
+  after = require("../testing").after;
+  beforeEach = require("../testing").beforeEach;
+  afterEach = require("../testing").afterEach;
 
   __eth__global = (typeof window !== 'undefined' ? window : global);
   __eth__importAll = require("./index");
@@ -11,12 +15,26 @@
   }
   ;
 
-  describe("core", (function () {
-    return describe("type", (function () {
-      return it("returns the type", (function () {
-        return assert((type(1) === "number"), "type of 1 is :number");
-        }));
-      }));
+  newRun();
+
+  test("core: type", (function () {
+    return assert((type(1) === "number"), "type of 1 is :number");
+    }));
+
+  test("core: type", (function () {
+    return assert((type(1) === "number"), "type of 1 is :number");
+    }));
+
+  test("core: type", (function () {
+    return assert((type(1) === "number"), "type of 1 is :number");
+    }));
+
+  test("throw", (function () {
+    return (function() { throw new Error("Woow this was not expected !"); })();
+    }));
+
+  test("core: type", (function () {
+    return assert((type(1) === "number"), "type of 1 is :number");
     }));
 
   run();

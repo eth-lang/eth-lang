@@ -13,26 +13,43 @@
 
   var failedCount = 0;
 
-  var report = (function (path, name, err) {
-    (function() { if (err) {
-      return failedCount = inc(failedCount);
+  var testErrors = [];
+
+  var colorRed = "[31m";
+
+  var colorGreen = "[32m";
+
+  var colorReset = "[0m";
+
+  var report = (function (name, err) {
+    return (function() { if (err) {
+      return (function () {
+      failedCount = inc(failedCount);
+      process.stdout.write(string(colorRed, "!", colorReset));
+      return testErrors = append(err, testErrors);
+      })();
     } else {
-      return passedCount = inc(passedCount);
+      return (function () {
+      passedCount = inc(passedCount);
+      return process.stdout.write(string(colorGreen, ".", colorReset));
+      })();
     } })();
-    (function() { if (err) {
-      return print(err);
-    } else {
-      return null;
-    } })();
-    return process.stdout.write(".");
     });
 
   var reportSummary = (function () {
-    print("");
-    (function() { if ((failedCount === 0)) {
-      return print("✔ ", passedCount, " tests completed");
+    print("\n");
+    (function() { if ((len(testErrors) > 0)) {
+      return (function () {
+      forEach(print, testErrors);
+      return print("\n");
+      })();
     } else {
-      return print("✘ ", failedCount, " of ", (passedCount + failedCount), " tests failed");
+      return null;
+    } })();
+    (function() { if ((failedCount === 0)) {
+      return print(colorGreen, "✔", passedCount, "tests completed", colorReset);
+    } else {
+      return print(colorRed, "✘", failedCount, "of", (passedCount + failedCount), "tests failed", colorReset);
     } })();
     return process.exit((function() { if ((failedCount === 0)) {
       return 0;
@@ -41,19 +58,27 @@
     } })());
     });
 
-  var createScope = (function (path) {
-    return {"path": or(path, []), "subScopes": [], "suite": [], "test": [], "before": [], "after": [], "beforeEach": [], "afterEach": []};
+  var newScope = (function () {
+    return {"test": [], "before": [], "after": [], "beforeEach": [], "afterEach": []};
     });
 
-  var currentScope = createScope();
+  var currentScope = newScope();
 
-  var runFn = (function (isReport, path, test) {
+  var newRun = (function () {
+    return currentScope = newScope();
+    });
+
+  var runFn = (function (isReport, test) {
     return (function () {
       var pResult = (function() { try {
         return (function () {
           return (function () {
             var result = test.body();
-            return (function() { if (isOfType("function", result.then)) {
+            return (function() { if ((function() { if (result) {
+              return isOfType("function", result.then);
+            } else {
+              return false;
+            } })()) {
               return result;
             } else {
               return promise.resolve();
@@ -61,71 +86,47 @@
             })();
           })();
       } catch(e) {
-        (function (err) {
+        return (function (err) {
           return promise.reject(err);
           })(e);
       } })();
       var success = (function () {
-        (function() { if (isReport) {
-          return report(path, test.name, null);
+        return (function() { if (isReport) {
+          return report(test.name, null);
         } else {
           return null;
         } })();
-        return failure((function (err) {
-          return (function() { if (isReport) {
-            return report(path, test.name, err);
-          } else {
-            return print(assoc("message", string("error in before or after for '", test.name, "': ", err.message), err));
-          } })();
-          }));
+        });
+      var failure = (function (err) {
+        return (function() { if (isReport) {
+          return report(test.name, err);
+        } else {
+          return print(assoc("message", string("error in before or after for '", test.name, "': ", err.message), err));
+        } })();
         });
       return promise.then(pResult, success, failure);
       })();
     });
 
-  var runList = (function (isReport, path, beforeList, afterList, fnList) {
-    return promise.then(promise.all(map(curry(runFn, false, path), beforeList)), (function () {
-      return promise.then(promise.all(map(curry(runFn, isReport, path), fnList)), (function () {
-        return promise.all(map(curry(runFn, false, path), afterList));
+  var runList = (function (isReport, beforeList, afterList, fnList) {
+    return promise.then(promise.all(map(curry(runFn, false), beforeList)), (function () {
+      return promise.then(promise.all(map(curry(runFn, isReport), fnList)), (function () {
+        return promise.all(map(curry(runFn, false), afterList));
         }));
       }));
     });
 
   var runScope = (function (scope) {
-    console.log("run scope", scope);
-    return (function () {
-      var augmentChildScope = (function (s) {
-        return merge(s, {"beforeEach": concat(scope.beforeEach, s.beforeEach), "afterEach": concat(scope.afterEach, s.afterEach)});
-        });
-      var childrenSuites = map(augmentChildScope, scope.suite);
-      return promise.then(runList(false, [], [], scope.before), (function () {
-        return promise.then(runList(true, scope.path, scope.beforeEach, scope.afterEach, scope.test), (function () {
-          return promise.then(promise.all(map(runScope, childrenSuites)), (function () {
-            return promise.then(runList(false, [], [], scope.after));
-            }));
-          }));
+    return promise.then(runList(false, [], [], scope.before), (function () {
+      return promise.then(runList(true, scope.beforeEach, scope.afterEach, scope.test), (function () {
+        return promise.then(runList(false, [], [], scope.after));
         }));
-      })();
+      }));
     });
 
   var run = (function () {
-    (function () {
-      var evaluateSuite = (function (s) {
-        return (function () {
-          var parentScope = currentScope;
-          var scope = createScope(append(s.name, currentScope.path));
-          currentScope = scope;
-          parentScope.subScopes = append(scope, parentScope.subScopes);
-          s.body();
-          map(evaluateSuite, scope.suite);
-          print(parentScope);
-          return currentScope = parentScope;
-          })();
-        });
-      return map(evaluateSuite, currentScope.suite);
-      })();
-    print(currentScope);
-    return promise.then(runScope(globalScope), (function () {
+    print("Running", len(currentScope.test), "tests...\n");
+    return promise.then(runScope(currentScope), (function () {
       return reportSummary();
       }));
     });
@@ -134,17 +135,9 @@
     return currentScope = updateIn([key], append(value), currentScope);
     });
 
-  var describe = (function (name, body) {
-    return appendToScopeKey("suite", {"name": name, "body": body});
-    });
-
-  var suite = describe;
-
-  var it = (function (name, f) {
+  var test = (function (name, f) {
     return appendToScopeKey("test", {"name": name, "body": f});
     });
-
-  var test = it;
 
   var before = curry(appendToScopeKey, "before");
 
@@ -154,14 +147,12 @@
 
   var afterEach = curry(appendToScopeKey, "afterEach");
 
-  __eth__module.describe = describe;
-  __eth__module.suite = suite;
-  __eth__module.it = it;
   __eth__module.test = test;
   __eth__module.before = before;
   __eth__module.after = after;
   __eth__module.beforeEach = beforeEach;
   __eth__module.afterEach = afterEach;
   __eth__module.run = run;
+  __eth__module.newRun = newRun;
 })(typeof window !== 'undefined' ? window['eth/testing'] : module.exports);
 
