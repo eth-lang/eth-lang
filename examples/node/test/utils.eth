@@ -1,0 +1,16 @@
+(package node/test/utils ()
+
+(import "../../../core" (..))
+(import "../../../testing" (new-run run test assert-equal))
+
+(import "../utils" (create-good-message))
+
+(new-run)
+
+(test "utils: create-good-message: returns a string" (fn ()
+  (assert-equal :string (type (create-good-message)))))
+
+(test "utils: create-good-message: returns a good message" (fn ()
+  (assert (> (len (create-good-message)) 10) "message is good")))
+
+(run))

@@ -1,0 +1,6 @@
+(package node/utils (create-good-message)
+
+(def create-good-message ()
+  "Hello homoiconicity, expresiveness and fun times!")
+
+)

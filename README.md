@@ -6,7 +6,7 @@ _A fun, experimental and simple lisp transpiler for JavaScript._
 
 ## intro
 
-_WARNING! This is highly experimental tech, use at your own risk and peril ;)_
+_WARNING! This is highly experimental tech, use at your own risk and perils ;)_
 
 `eth` is a simple lisp that aims to give you the full power of the javascript language
 and ecosystem but within the lisp syntax you've come to love. Most things you can write
@@ -240,7 +240,7 @@ keys values merge clone assoc get-in set-in update-in
 
 ## using eth for your next project
 
-### Browser
+### browser
 
 Eth compiles down to plain JavaScript so you could simply run `eth -c app.eth >app.js` and load that
 in a browser but that only hic is that you won't have the nice `import` statements any more.
@@ -261,11 +261,56 @@ module.exports = {
 };
 ```
 
-### Node
+### node
 
-... comming up ...
+The story here is similar that that of CoffeeScript or TypeScript, you have mainly two option:
+compiling all files and running those with `node` or using node.js `require.extensions` to register
+a handler for files with a specific extension, `.eth` in our case (this is clearly not production
+worthy).
 
-### Library
+**Option 1: Compiling and running**
+
+Here a simple `Makefile` that looks like the following can come in super handy:
+
+```make
+ETH := node_modules/.bin/eth
+
+FILES = server.js models.js routes.js
+TEST_FILES = test/models.js test/routes.js
+
+default: run
+
+%.js: %.eth
+    $(ETH) -c $< >$@
+
+run: build
+  node server.js
+
+build: $(FILES) $(TEST_FILES)
+
+test: build
+    node -r ./test/models.js ./test/routes.js
+
+clean:
+    @rm -rf *.js
+    @rm -rf test/*.js
+```
+**Option 2: Require extension**
+
+This version of getting `.eth` files to run on node.js is by far the easiest, it consists in having
+a `.js` file the simply requires `eth/register` followed by your `server.eth`, from that point on
+all `require`s resolving to `.eth` file will get compiled first, then ran.
+
+```js
+// bootstrap.js
+require('eth/register');
+require('./server');
+```
+
+_See the [`examples/node/`](https://github.com/kiasaki/eth-lang/tree/master/examples/node) folder
+for an example of both of those methods in action._
+
+### library
 
 You will probably want to have two directories, say `src` for `.eth` source files and a `lib` or
 `build` folder for compiled javascript.
