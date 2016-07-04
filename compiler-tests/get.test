@@ -1,4 +1,4 @@
-; vim: set ft=clojure:
+; vim: set ft=eth:
 (console.log "asd")
 ((. :log console) "asd")
 (set fnName "asd")

@@ -6,6 +6,8 @@ _A fun, experimental and simple lisp transpiler for JavaScript._
 
 ## intro
 
+_WARNING! This is highly experimental tech, use at your own risk and peril ;)_
+
 `eth` is a simple lisp that aims to give you the full power of the javascript language
 and ecosystem but within the lisp syntax you've come to love. Most things you can write
 in javascript you can directly translate to `eth`.
@@ -67,7 +69,7 @@ $ eth -c file.eth
 (+ 3 5)
 ```
 
-Or run them right away using:
+Or run them right away using (for production use it's better to compile & run with `node`):
 
 ```
 $ eth file.eth
@@ -89,22 +91,22 @@ Eth Usage:
 
 | data type | eth | js | description |
 |---|---|---|---|
-| Comment | `; comment` | ` ` | Eth only has single line comments and the don't appear in compiled code |
-| Null | `null` | `null` | Null is simply written null (`()` also evaluates to `null`) |
-| Boolean | `true` | `true` | Booleans are the same as in JavaScript |
-| String | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
-| Numbers | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
-| Symbol | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
-| Keyword | `:app-state?` | `'isAppState'` | Keywords are just a nice way of defining constants or object keys but in reality they are just string. But, they get all the same "special syntax" rules of symbols applied to them. |
-| List | `(a b c)` | `a(b, c)` | Lists in list denote function application when evaluated |
-| Array | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in JavaScript except that you omit the commas as they aren't necessary |
-| Object | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in JavaScript except that you omit the commas and `:` as they aren't necessary |
+| **comment** | `; comment` | ` ` | Eth only has single line comments and the don't appear in compiled code |
+| **null** | `null` | `null` | Null is simply written null (`()` also evaluates to `null`) |
+| **boolean** | `true` | `true` | Booleans are the same as in JavaScript |
+| **string** | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
+| **number** | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
+| **symbol** | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
+| **keyword** | `:app-state?` | `'isAppState'` | Keywords are just a nice way of defining constants or object keys. In reality they are just JS strings. But, they get all the same "special syntax" rules of symbols applied to them |
+| **list** | `(a b c)` | `a(b, c)` | Lists denote function application when evaluated |
+| **array** | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in JavaScript except that the commas are omitted |
+| **object** | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in JavaScript except that the commas (`,`) and colons (`:`) are omitted |
 
 ## special syntax
 
 | eth | js | description |
 |---|---|---|
-| `a.b` | `a.b` | Having dots in a symbol will translate to the equivalent in JavaScript, no need to use `(. b a)` all over the place |
+| `a.b` | `a.b` | Having dots in a symbol will translate to the equivalent in JavaScript, no need to use `(. :b a)` all over the place |
 | `@` | `this` | The `@` symbol simply translates `this` |
 | `@prop` | `this.prop` | The `@` symbol followed by letter translate to getting a property of `this` |
 | `some-fn` | `someFn` | `-` is not a valid in JavaScript but often used in lisp so symbols containing them are camel cased instead |
@@ -112,24 +114,33 @@ Eth Usage:
 | `healed?` | `isHealed` | `?` is not a valid in JavaScript symbols but often used in lisp |
 | `(SomeClass. ...)` | `new SomeClass(...)` | The symbol ending in dot will be translated to the instantiation of the given class |
 
+So, characters accepted in a **symbol** are all the valid characters from JavaScript (`0-9a-zA-Z_$`) with the additions we just saw: `-` anywhere, `!` at the end or `?` at the end.
+
 ## language builtins
+
+### binary operators
+
+Most of JavaScript's binary operators are implemented and translated directly to the JavaScript
+equivalent, hence (like most built-ins that follow) they can't be passed around as functions).
+
+`(< 5 8)` translates directly to `5 < 8`.
+
+The following are implemented:
+
+```js
++ - * / % < > <= >= || && == !=
+```
+
+The following **unary** operators also work:
+
+```js
+! void typeof
+```
+
+### other builtins
 
 | eth | js | description |
 |---|---|---|
-| `(+ 1 2)` | `1 + 1` | |
-| `(- 1 2)` | `1 - 1` | |
-| `(* 1 2)` | `1 * 2` | |
-| `(/ 1 2)` | `1 / 2` | |
-| `(% 3 2)` | `3 % 2` | |
-| `(< 1 2)` | `1 < 2` | |
-| `(> 1 2)` | `1 > 2` | |
-| `(<= 1 2)` | `1 <= 2` | |
-| `(>= 1 2)` | `1 >= 2` | |
-| `(|| 1 2)` | `1 || 2` | |
-| `(&& 1 2)` | `1 && 2` | |
-| `(== 1 2)` | `1 === 2` | No need to use `===`. `==` translates to it. |
-| `(!= 1 2)` | `1 !== 2` | No need to use `!==`. `!=` translates to it. |
-| `(! false)` | `!false` | |
 | `(fn (a) (+ a 1))` | `function(a) { return a + 1; }` | Declares an anonymous function returning the last expression in it's body |
 | `(do (a) (b))` | `a(); return b();` | Executes it's body and returns the value of the last expression |
 | `(if (< a b) a b)` | `if (a < b) { return a; } else { return b; }` | Returns the value of the then branch if the given condition is truthy or the else branch if not |

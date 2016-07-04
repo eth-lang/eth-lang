@@ -489,6 +489,7 @@
       return out + '[' + nodesOut.join(' ') + ']';
     } else if (astNode.type === NODES.OBJECT) {
       // {a 1 b 2} => {a: 1, b: 2}
+      assert((astNode.nodes.length % 2) === 0, '"{}" (object constructor) needs an even number of keys and values');
       var nodesOut = astNode.nodes.map(function(node, i) {
         return write('', node) + (i%2 === 0 ? ':' : (i < astNode.nodes.length-1 ? ',' : ''));
       });

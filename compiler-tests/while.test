@@ -1,4 +1,4 @@
-; vim: set ft=clojure:
+; vim: set ft=eth:
 
 (while true (do-something))
 

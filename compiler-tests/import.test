@@ -1,4 +1,4 @@
-; vim: set ft=clojure:
+; vim: set ft=eth:
 
 ; simple named import
 (import http)
