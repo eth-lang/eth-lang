@@ -1,3 +1,6 @@
+var GLOBAL = typeof window !== 'undefined' ? window : global;
+GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
+
 var NODES = {
   ROOT: 'root',
   LIST: 'list',
@@ -18,6 +21,8 @@ var TYPES = {
   STRING: 'string',
   NUMBER: 'number'
 };
+
+var LIST_LIKE_TYPES = [TYPES.ROOT, TYPES.LIST, TYPES.ARRAY, TYPES.OBJECT];
 
 var BINARY_OPERATORS = {
   '+': '+',
@@ -43,6 +48,58 @@ var UNARY_OPERATORS = {
   'typeof': 'typeof',
   'delete': 'delete'
 };
+
+var READER_EOF = '__eth__reader__eof';
+
+// ast {{{
+function EthList(items) {
+  var arr = [];
+  arr.push.apply(arr, items);
+  arr.__proto__ = EthList.prototype;
+  return arr;
+}
+EthList.prototype = new Array();
+
+function list() {
+  return new EthList(Array.prototype.slice.call(arguments));
+}
+
+function symbol(name) {
+  return '\uFEFF\'' + name;
+}
+
+function isList(v) {
+  return v instanceof EthList;
+}
+
+function isArray(v) {
+  return !(v instanceof EthList) && Array.isArray(v);
+}
+
+function isObject(v) {
+  return typeof v === 'object';
+}
+
+function isSymbol(v) {
+  return typeof v === 'string' && v.length > 2 && v[0] === '\uFEFF' && v[1] === '\'';
+}
+
+function isKeyword(v) {
+  return typeof v === 'string' && v.length > 1 && v[0] === '\uA789';
+}
+
+function isString(v) {
+  return !isSymbol(v) && !isKeyword(v) && typeof v === 'string';
+}
+
+function symbolName(v) {
+  return v.slice(2);
+}
+
+function keywordName(v) {
+  return v.slice(1);
+}
+// }}}
 
 // helpers {{{
 function assert(ast, cond, message) {
@@ -80,6 +137,33 @@ function escapeString(str) {
   str = str.replace('\r', '\\r');
   str = str.replace('\t', '\\t');
   return str;
+}
+
+function astMapNode(callback, node) {
+  if (isList(node) || isArray(node)) {
+    for (var i = 0; i < node.length; i++) {
+      node[i] = astMapNode(callback, node[i]);
+    }
+  }
+  if (isObject(node)) {
+    var keys = Object.keys(node);
+    for (var i = 0; i < keys.length; i++) {
+      node[keys[i]] = astMapNode(callback, node[keys[i]]);
+    }
+  }
+  return callback(node);
+}
+
+function astMap(callback, ast) {
+  return ast.map(astMapNode.bind(null, callback));
+}
+
+function apply(fn, args) {
+  return fn.apply(null, args);
+}
+
+function concat(l1, l2) {
+  return l1.concat(l2);
 }
 // }}}
 
@@ -128,76 +212,151 @@ function tokenize(source) {
 // }}}
 
 // read {{{
-function read(parent, tokens, index) {
-  if (index >= tokens.length) {
-    return;
+function readerError(tokens, index, message) {
+  return new Error('reader error: ' + message + tokens.slice(index, index + 15).join(' '));
+}
+
+// Takes an array of tokens and build up the ast
+var readerIndex = 0;
+var readerTokens = [];
+function read() {
+  if (readerIndex >= readerTokens.length) {
+    return READER_EOF;
   }
 
-  var token = tokens[index];
+  var startIndex = readerIndex;
+  var token = readerTokens[readerIndex];
 
-  if (token === '(') {
-    var list = {type: NODES.LIST, nodes: [], parent: parent};
-    parent.nodes.push(list);
-    return read(list, tokens, index + 1);
-  } else if (token === ')') {
-    return read(parent.parent, tokens, index + 1);
+  var node;
 
-  } else if (token === '[') {
-    // Array
-    var arr = {type: NODES.ARRAY, nodes: [], parent: parent};
-    parent.nodes.push(arr);
-    return read(arr, tokens, index + 1);
-  } else if (token === ']') {
-    return read(parent.parent, tokens, index + 1);
+  function readList(name, endToken, addFn) {
+    readerIndex++; // skip start token
+    while (readerTokens[readerIndex] !== endToken) {
+      var childNode = read();
+      if (childNode === READER_EOF) {
+        throw readerError(readerTokens, startIndex, 'unterminated ' + name + ' starting at: ');
+      }
+      addFn(childNode);
+    }
+    readerIndex++; // skip end token
+  }
 
-  } else if (token === '{') {
-    // Object
-    var obj = {type: NODES.OBJECT, nodes: [], parent: parent};
-    parent.nodes.push(obj);
-    return read(obj, tokens, index + 1);
-  } else if (token === '}') {
-    return read(parent.parent, tokens, index + 1);
+  // list ()
+  if (readerTokens[readerIndex] === '(') {
+    node = new EthList();
+    readList('list', ')', function(childNode) { node.push(childNode); });
+    return node;
+  }
 
-  } else if (/^-?\d+\.?\d*$/.test(token)) {
-    // Number
-    var value = token.indexOf('.') > -1
+  // array []
+  if (readerTokens[readerIndex] === '[') {
+    node = [];
+    readList('array', ']', function(childNode) { node.push(childNode); });
+    return node;
+  }
+
+  // object {}
+  if (readerTokens[readerIndex] === '{') {
+    node = {};
+    var lastKey;
+    readList('object', '}', function(childNode) {
+      if (((readerIndex - startIndex) % 2) === 0) {
+        // keep key
+        lastKey = childNode;
+      } else {
+        // set value to key
+        node[lastKey] = childNode;
+      }
+    });
+    if (((readerIndex - startIndex) % 2) !== 0) {
+      throw readerError(readerTokens, startIndex, "object literal given an un even amount of keys and values starting at:");
+    }
+    return node;
+  }
+
+
+  // number 1.23
+  if (/^-?\d+\.?\d*$/.test(token)) {
+    readerIndex++;
+    return token.indexOf('.') > -1
       ? parseFloat(token, 10)
       : parseInt(token, 10);
-    parent.nodes.push({
-      type: NODES.NUMBER,
-      parent: parent,
-      value: value
-    });
-    return read(parent, tokens, index + 1);
-
-  } else if (
-    token.length >= 2 && token[0] === '"' && token[token.length-1] === '"'
-  ) {
-    // String
-    parent.nodes.push({
-      type: NODES.STRING,
-      parent: parent,
-      value: interpretEscapes(token.slice(1, -1))
-    });
-    return read(parent, tokens, index + 1);
-
-  } else {
-    // Symbol
-    parent.nodes.push({
-      type: NODES.SYMBOL,
-      parent: parent,
-      value: token
-    });
-    return read(parent, tokens, index + 1);
   }
+
+  // string "abc"
+  if (token.length >= 2 && token[0] === '"' && token[token.length-1] === '"') {
+    readerIndex++;
+    return unescapeString(token.slice(1, -1));
+  }
+
+  // keyword :key-one
+  if (token.length > 1 && token[0] === ':') {
+    readerIndex++;
+    return '\uA789' + token.slice(1);
+  }
+
+  // symbol abc
+  readerIndex++;
+  return '\uFEFF\'' + token;
 }
 
 // Read source and follows requires converting it all to ast
-function eRead(filename, sourceCode) {
-  var ast = {type: NODES.ROOT, nodes: []};
-  read(ast, tokenize(sourceCode), 0);
+function ethRead(filename, sourceCode) {
+  // tokenize & read ast
+  readerIndex = 0;
+  readerTokens = tokenize(sourceCode);
+  var ast = [];
+  while (readerIndex < readerTokens.length) {
+    var node = read();
+    if (node === READER_EOF) {
+      break;
+    }
+    ast.push(node);
+  }
+
+  ast = expandSyntax(ast);
+
+  ast = expandMacros(ast);
+
   return ast;
 }
+// }}}
+
+// expand {{{
+function expandSyntax(ast) {
+  return ast;
+}
+
+// Take any ast node call it's expader if it's list starting with a registered macro
+function expandMacro(state, node) {
+  if (isList(node) && node.length > 0 && isSymbol(node[0])) {
+    var macro = GLOBAL.__eth__macros[symbolName(node[0])];
+    if (macro) {
+      state.foundMacro = true;
+      return macro.apply(null, node.slice(1));
+    }
+  }
+  return node;
+}
+
+// Call expandMacro on every ast node to repetition until the ast doesn't change anymore
+function expandMacros(ast) {
+  var state = {foundMacro: true};
+  while (state.foundMacro) {
+    state.foundMacro = false;
+    ast = astMap(expandMacro.bind(null, state), ast);
+  }
+  return ast;
+}
+
+function installMacro(name, expander) {
+  GLOBAL.__eth__macros[name] = expander;
+}
+
+installMacro('defn', function (name, params) {
+  var body = Array.prototype.slice.call(arguments, 2);
+  return list(symbol('def'), name, apply(list, concat([symbol('fn'), name, params], body)));
+});
 // }}}
 
 // write {{{
@@ -583,31 +742,37 @@ function ethEval(context, ast) {
   }).runInContext(context);
 }
 
+function print(node) {
+  if (isList(node)) {
+    return '(' + node.map(print).join(' ') + ')';
+  }
+  if (isArray(node)) {
+    return '[' + node.map(print).join(' ') + ']';
+  }
+  if (isObject(node)) {
+    return '{' + Object.keys(node).map(function(k) {
+      return print(k) + ' ' + print(node[k]);
+    }).join(' ') + '}';
+  }
+  if (isSymbol(node)) {
+    return symbolName(node);
+  }
+  if (isKeyword(node)) {
+    return ':' + keywordName(node);
+  }
+  if (isString(node)) {
+    return '"' + escapeString(node) + '"';
+  }
+  return String(node);
+}
+
 // Write out lisp value
 function ethPrint(ast) {
-  var beg = {};
-  var end = {};
-  beg[NODES.LIST] = '(';
-  end[NODES.LIST] = ')';
-  beg[NODES.ARRAY] = '[';
-  end[NODES.ARRAY] = ']';
-  beg[NODES.OBJECT] = '{';
-  end[NODES.OBJECT] = '}';
-
-  function astToString(node) {
-    if ('nodes' in node) {
-      return beg[node.type] + node.nodes.map(astToString).join(' ') + end[node.type];
-    } else if (node.type === NODES.STRING) {
-      return '"' + replaceEscapes(node.value) + '"';
-    } else {
-      return node.value;
-    }
-  }
-  return astToString(ast);
+  return ast.map(print).join('\n');
 }
 
 var __eth__module = {
-  read: eRead,
+  read: ethRead,
   eval: ethEval,
   print: ethPrint,
   write: ethWrite,
