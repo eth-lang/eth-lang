@@ -2,6 +2,10 @@
 var GLOBAL = typeof window !== 'undefined' ? window : global;
 GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
 GLOBAL.__eth__installMacro = installMacro;
+var COMPILER_CONTEXT = require('vm').createContext({
+  require: require,
+  __eth__installMacro: GLOBAL.__eth__installMacro
+});
 
 var BINARY_OPERATORS = {
   '+': '+',
@@ -64,7 +68,7 @@ function isArray(v) {
 }
 
 function isObject(v) {
-  return !isList(v) && !isArray(v) && typeof v === 'object';
+  return !isList(v) && !isArray(v) && v !== null && typeof v === 'object';
 }
 
 function isSymbol(v) {
@@ -96,6 +100,13 @@ function symbolName(v) {
 
 function keywordName(v) {
   return v.slice(1);
+}
+
+function name(v) {
+  if (isSymbol(v)) return symbolName(v);
+  if (isKeyword(v)) return keywordName(v);
+  if (isString(v)) return v;
+  throw new Error('name: unhandle name type, got:' + v);
 }
 // }}}
 
@@ -142,7 +153,11 @@ function escapeSymbol(name) {
   if (name[0] === '@') return 'this.' + escapeSymbol(name.slice(1));
   if (name.endsWith('.')) return 'new ' + escapeSymbol(name.slice(0, -1));
   if (name.endsWith('!')) name = name.slice(0, -1) + '$';
-  if (name.endsWith('?')) name = 'is-' + name.slice(0, -1);
+  if (name.endsWith('?')) {
+    var parts = name.split('.');
+    var newName = 'is-' + parts[parts.length-1].slice(0, -1);
+    name = parts.slice(0, -1).concat([newName]).join('.');
+  }
 
   // turn dashed to camel case form
   return name.replace(/-(.)/g, function(_, groupOne) {
@@ -382,21 +397,41 @@ function installMacro(name, expander) {
   GLOBAL.__eth__macros[name] = expander;
 }
 
-installMacro('defmacro', function (name, params) {
-  var globalCode = '__eth__installMacro';
-  var body = Array.prototype.slice.call(arguments, 2);
+installMacro('import', function (package, aliasOrImports) {
+  var node;
+  if (!aliasOrImports) {
+    assert(package, isSymbol(package), 'import: package name needs to be a symbol when importing and not aliasing');
+    node = list(symbol('def'), package, list(symbol('require'), name(package)));
+  } else if (isSymbol(aliasOrImports)) {
+    node = list(symbol('def'), aliasOrImports, list(symbol('require'), name(package)));
+  } else if (isSymbolList(aliasOrImports)) {
+    var defNodes = [symbol('def')];
+    for (var i = 0; i < aliasOrImports.length; i++) {
+      defNodes.push(aliasOrImports[i]);
+      defNodes.push(list('get', list(symbol('require'), name(package)), aliasOrImports[i]));
+    }
+    node = apply(list, defNodes);
+  } else {
+    assert(list(symbol('import'), package, aliasOrImports), false, 'import: invalid import usage, need package name and optionally an alias or imports');
+  }
 
-  // here we want to have access to that macro with away, hence
-  // let's write out that ast and eval it right away
-  var node = list(symbol(globalCode), symbolName(name), apply(list, concat([symbol('fn'), params], body)));
-  ethEval(null, [node]);
+  // here we want to have access to those imports right away (for other macros), hence
+  // let's write out that ast and eval it now
+  ethEval(COMPILER_CONTEXT, [node]);
 
   return node;
 });
 
-installMacro('defn', function (name, params) {
+installMacro('defmacro', function (name, params) {
+  var globalCode = '__eth__installMacro';
   var body = Array.prototype.slice.call(arguments, 2);
-  return list(symbol('def'), name, apply(list, concat([symbol('fn'), name, params], body)));
+  var node = list(symbol(globalCode), symbolName(name), apply(list, concat([symbol('fn'), params], body)));
+
+  // here we want to have access to that macro right away (for other macros), hence
+  // let's write out that ast and eval it now
+  ethEval(COMPILER_CONTEXT, [node]);
+
+  return node;
 });
 // }}}
 
@@ -437,9 +472,13 @@ function writeList(node) {
 
   // def/var
   if (calee === 'def') {
-    assert(node, node.length === 3, '"def" needs exactly 2 arguments (name, value), got: ' + (node.length - 1));
-    assert(node, isSymbol(node[1]), '"def" needs it\'s first argument to be a symbol, got: ' + print(node[1]));
-    return 'var ' + write(node[1]) + ' = ' + write(node[2]);
+    assert(node, (node.length % 2) === 1, '"def" needs an even number arguments (name & value pairs), got: ' + (node.length - 1));
+    var assignments = [];
+    for (var i = 1; i < node.length; i += 2) {
+      assert(node, isSymbol(node[i]), '"def" needs it\'s name arguments to be symbols, got: ' + print(node[i]));
+      assignments.push(write(node[i]) + ' = ' + write(node[i+1]));
+    }
+    return 'var ' + assignments.join(',\n    ');
   }
 
   // set/=
@@ -486,7 +525,7 @@ function writeList(node) {
     }
     return '(function () {if (' + write(node[1]) + ') {'
       + writeBody(thenBranch) + '} else {'
-      + writeBody(elseBranch) + '})()';
+      + writeBody(elseBranch) + '}})()';
   }
 
   // call
@@ -529,7 +568,7 @@ function ethWrite(ast) {
 // eval {{{
 // Eval ast from a given env
 function ethEval(context, ast) {
-  var vm = require('vm').createScript(write(ast), {
+  var vm = require('vm').createScript(ethWrite(ast), {
     filename: 'eval',
     showErrors: false
   });
@@ -585,6 +624,7 @@ var __eth__module = {
   isSymbolList: isSymbolList,
   symbolName: symbolName,
   keywordName: keywordName,
+  name: name,
 
   assert: assert,
   escapeSymbol: escapeSymbol,

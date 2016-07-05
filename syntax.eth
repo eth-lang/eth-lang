@@ -1,9 +1,11 @@
-(def eth (require "./eth-lang"))
+(import "./eth-lang" eth)
 
-(def L eth.list)
-(def S eth.symbol)
+(defmacro quote (node)
+  (if (eth.symbol? node) (list 'quote node)
+  (if (eth.keyword? node) (list 'quote node)
+  (if (eth.list?) node))))
 
-(defmacro defn (name params ... body)
+(not defmacro defn (name params ... body)
   (L (S "def") name (L (S "fn") ~name ~params ~@body)))
   `('def name ('fn ~name ~params ~@body))
 
