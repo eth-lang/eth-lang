@@ -1,0 +1,9 @@
+(def eth (require "./eth-lang"))
+
+(def L eth.list)
+(def S eth.symbol)
+
+(defmacro defn (name params ... body)
+  (L (S "def") name (L (S "fn") ~name ~params ~@body)))
+  `('def name ('fn ~name ~params ~@body))
+

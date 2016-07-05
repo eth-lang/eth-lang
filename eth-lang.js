@@ -27,6 +27,13 @@ var UNARY_OPERATORS = {
   'delete': 'delete'
 };
 
+var MACRO_SYNTAX = {
+  '\'': 'quote',
+  '`': 'quasi-quote',
+  '~': 'unquote',
+  '~@': 'unquote-splicing'
+};
+
 var READER_EOF = '__eth__reader__eof';
 // }}}
 
@@ -73,6 +80,13 @@ function isString(v) {
 
 function isNumber(v) {
   return typeof v === 'number';
+}
+
+function isSymbolList(v) {
+  if (!isList(v)) {
+    return false;
+  }
+  return v.reduce(function(a, s) { return a && isSymbol(s); }, true);
 }
 
 function symbolName(v) {
@@ -165,6 +179,10 @@ function concat(l1, l2) {
 
 // tokenize {{{
 function tokenizeCode(x) {
+  x = x.replace(/'/g, ' \' ');
+  x = x.replace(/`/g, ' ` ');
+  x = x.replace(/~/g, ' ~ ');
+  x = x.replace(/~@/g, ' ~@ ');
   x = x.replace(/\(/g, ' ( ');
   x = x.replace(/\)/g, ' ) ');
   x = x.replace(/\[/g, ' [ ');
@@ -271,6 +289,16 @@ function read() {
   }
 
 
+  // quote `'`, quasi-quote ```, unquote `~`, unquote-splicing `~@`
+  if (Object.keys(MACRO_SYNTAX).indexOf(token) > -1) {
+      readerIndex++;
+      var childNode = read();
+      if (childNode === READER_EOF) {
+        throw readerError(readerTokens, startIndex, 'unterminated ' + name + ' starting at: ');
+      }
+      return list(symbol(MACRO_SYNTAX[token]), childNode);
+  }
+
   // number 1.23
   if (/^-?\d+\.?\d*$/.test(token)) {
     readerIndex++;
@@ -353,6 +381,12 @@ function installMacro(name, expander) {
   GLOBAL.__eth__macros[name] = expander;
 }
 
+installMacro('defmacro', function (name, params) {
+  var globalCode = '(typeof window !== \'undefined\' ? window : global)';
+  var body = Array.prototype.slice.call(arguments, 3);
+  return list(symbol('set'), symbol(globalCode), apply(list, concat([symbol('fn'), params], body)));
+});
+
 installMacro('defn', function (name, params) {
   var body = Array.prototype.slice.call(arguments, 2);
   return list(symbol('def'), name, apply(list, concat([symbol('fn'), name, params], body)));
@@ -360,6 +394,15 @@ installMacro('defn', function (name, params) {
 // }}}
 
 // write {{{
+function writeBody(body) {
+  if (body.length === 0) {
+    return 'return (void 0);';
+  }
+  return body.slice(0, -1).map(write).join('; ')
+    + (body.length > 1 ? '; ' : '') + 'return '
+    + write(body[body.length - 1]) + ';';
+}
+
 function writeList(node) {
   // empty list is null `()`
   if (node.length === 0) {
@@ -367,16 +410,80 @@ function writeList(node) {
   }
 
   if (!isSymbol(node[0])) {
-    throw new Error('write: given list that isn\'t starting with a symbol: ' + print(node));
+    throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
   }
   var calee = symbolName(node[0]);
 
+  // binary opreator
   if (BINARY_OPERATORS[calee]) {
     assert(node, node.length === 3, 'binary operator "' + BINARY_OPERATORS[calee]
-      + '" needs exactly 2 arguments, got ' + node.length-1);
+      + '" needs exactly 2 arguments, got: ' + print(node));
     return '(' + [write(node[1]), BINARY_OPERATORS[calee], write(node[2])].join(' ') + ')';
   }
-  return '()';
+
+  // unary operator
+  if (UNARY_OPERATORS[calee]) {
+    assert(node, node.length === 2, 'unary operator "' + UNARY_OPERATORS[calee]
+      + '" needs exactly 1 arguments, got: ' + print(node));
+    return '(' + UNARY_OPERATORS[calee] + ' ' + write(node[1]) + ')';
+  }
+
+  // def/var
+  if (calee === 'def') {
+    assert(node, node.length === 3, '"def" needs exactly 2 arguments (name, value), got: ' + (node.length - 1));
+    assert(node, isSymbol(node[1]), '"def" needs it\'s first argument to be a symbol, got: ' + print(node[1]));
+    return 'var ' + write(node[1]) + ' = ' + write(node[2]);
+  }
+
+  // set/=
+  if (calee === 'set') {
+    assert(node, node.length === 3, '"set" needs exactly 2 arguments (name, value), got: ' + (node.length - 1));
+    assert(node, isSymbol(node[1]), '"set" needs it\'s first argument to be a symbol, got: ' + print(node[1]));
+    return write(node[1]) + ' = ' + write(node[2]);
+  }
+
+  // fn/function
+  if (calee === 'fn') {
+    var name = '';
+    var params = node[1];
+    var body = node.slice(2);
+    if (isSymbol(node[1])) {
+      name = write(node[1]);
+      params = node[2];
+      body = node.slice(3);
+    }
+    assert(node, isSymbolList(params), '"fn" needs it\'s params list to be a list of only symbols');
+    return '(function ' + name + '(' + params.map(write).join(', ') + ') {' + writeBody(body) + '})';
+  }
+
+  // do/block
+  if (calee === 'do') {
+    return '(function () {' + writeBody(node.slice(1)) + '})()';
+  }
+
+  // if
+  if (calee === 'if') {
+    assert(node, node.length >= 3, '"set" needs 3 arguments (condition, then-branch, else-branch), got: ' + (node.length - 1));
+    var thenBranch = [node[2]];
+    var elseBranch = [node[3]];
+    // no else is ok, it's just undefined
+    if (typeof elseBranch[0] === 'undefined') {
+      elseBranch = [list(symbol('void'), 0)];
+    }
+    // optimization: if one of the if branches is to be a `do` block, simply pass that body to writeBody
+    if (isList(thenBranch[0]) && isSymbol(thenBranch[0][0]) && symbolName(thenBranch[0][0]) === 'do') {
+      thenBranch = thenBranch[0].slice(1);
+    }
+    if (isList(elseBranch[0]) && isSymbol(elseBranch[0][0]) && symbolName(elseBranch[0][0]) === 'do') {
+      elseBranch = elseBranch[0].slice(1);
+    }
+    return '(function () {if (' + write(node[1]) + ') {'
+      + writeBody(thenBranch) + '} else {'
+      + writeBody(elseBranch) + '})()';
+  }
+
+  // call
+  return write(node[0]) + '(' + node.slice(1).map(write).join(', ') + ')';
 }
 
 function write(node) {
@@ -408,7 +515,7 @@ function write(node) {
 
 // Write out transpiled JS code
 function ethWrite(ast) {
-  return ast.map(write).join('\n') + '\n';
+  return ast.map(write).join('\n').replace(/;/g, ';\n  ').replace(/{/g, '{\n  ') + '\n';
 }
 // }}}
 
@@ -454,6 +561,24 @@ function ethPrint(ast) {
 // }}}
 
 var __eth__module = {
+  list: list,
+  symbol: symbol,
+  isList: isList,
+  isArray: isArray,
+  isObject: isObject,
+  isSymbol: isSymbol,
+  isKeyword: isKeyword,
+  isString: isString,
+  isNumber: isNumber,
+  isSymbolList: isSymbolList,
+  symbolName: symbolName,
+  keywordName: keywordName,
+
+  assert: assert,
+  escapeSymbol: escapeSymbol,
+  apply: apply,
+  concat: concat,
+
   read: ethRead,
   eval: ethEval,
   print: ethPrint,
@@ -465,3 +590,4 @@ if (module && module.exports) {
 if (typeof window !== 'undefined') {
   window['eth'] = __eth__module;
 }
+
