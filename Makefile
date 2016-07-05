@@ -28,4 +28,7 @@ clean-all: clean
 	rm -f testing.js
 	rm -f core.js
 
-.PHONY: all build build-stdlib build-tests test clean
+compiler-repl:
+	node -e 'eth = require("./eth-lang");' -i
+
+.PHONY: all build build-stdlib build-tests test clean compiler-repl

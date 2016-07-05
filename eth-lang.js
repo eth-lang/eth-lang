@@ -1,6 +1,7 @@
 // globals {{{
 var GLOBAL = typeof window !== 'undefined' ? window : global;
 GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
+GLOBAL.__eth__installMacro = installMacro;
 
 var BINARY_OPERATORS = {
   '+': '+',
@@ -382,9 +383,15 @@ function installMacro(name, expander) {
 }
 
 installMacro('defmacro', function (name, params) {
-  var globalCode = '(typeof window !== \'undefined\' ? window : global)';
-  var body = Array.prototype.slice.call(arguments, 3);
-  return list(symbol('set'), symbol(globalCode), apply(list, concat([symbol('fn'), params], body)));
+  var globalCode = '__eth__installMacro';
+  var body = Array.prototype.slice.call(arguments, 2);
+
+  // here we want to have access to that macro with away, hence
+  // let's write out that ast and eval it right away
+  var node = list(symbol(globalCode), symbolName(name), apply(list, concat([symbol('fn'), params], body)));
+  ethEval(null, [node]);
+
+  return node;
 });
 
 installMacro('defn', function (name, params) {
@@ -522,10 +529,15 @@ function ethWrite(ast) {
 // eval {{{
 // Eval ast from a given env
 function ethEval(context, ast) {
-  return require('vm').createScript(write('', ast), {
+  var vm = require('vm').createScript(write(ast), {
     filename: 'eval',
     showErrors: false
-  }).runInContext(context);
+  });
+  if (context === null) {
+    return vm.runInThisContext();
+  } else {
+    return vm.runInContext(context);
+  }
 }
 // }}}
 
