@@ -5,7 +5,6 @@ var GLOBAL = typeof window !== 'undefined' ? window : global;
 GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
 GLOBAL.__eth__installMacro = installMacro;
 var COMPILER_CONTEXT = require('vm').createContext({
-  console: console,
   require: require,
   __eth__installMacro: GLOBAL.__eth__installMacro
 });
@@ -418,11 +417,6 @@ function expandMacro(state, node) {
 
         // If the macro did nothing, no need to keep counting it as a macro to expand
         state.foundMacro = !R.equals(node, resultingNode);
-        if (state.foundMacro) {
-          console.log('A', print(node));
-          console.log('B', print(resultingNode));
-          console.log('\n');
-        }
 
         return resultingNode;
       } catch (err) {
@@ -509,10 +503,10 @@ function writeList(node) {
     return 'null';
   }
 
-  if (!isSymbol(node[0])) {
-    throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
+  var calee = '';
+  if (isSymbol(node[0])) {
+    calee = write(node[0]);
   }
-  var calee = symbolName(node[0]);
 
   // binary opreator
   if (BINARY_OPERATORS[calee]) {
@@ -571,7 +565,7 @@ function writeList(node) {
     var fnPrelude = '';
     if (params.length > 1 && params[params.length - 2] === symbol('...')) {
       fnPrelude = write(list(symbol('def'), params[params.length-1],
-        list(symbol('Array.prototype.slice.call'), symbol('arguments'), params.length-2))) + '; ';
+        list(symbol('Array.prototype.slice.call'), symbol('arguments'), params.length-2))) + ';';
       // now that we are handling ... remove it from params: (x ... xs) -> (x)
       params = params.slice(0, -2);
     }
@@ -613,6 +607,10 @@ function writeList(node) {
   }
 
   // call
+  var isValidCalee = isSymbol(node[0]) || (isQuote(node[0]) && isSymbol(node[0][1]));
+  if (!isValidCalee) {
+    throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
+  }
   return write(node[0]) + '(' + node.slice(1).map(write).join(', ') + ')';
 }
 
@@ -626,8 +624,14 @@ function write(node) {
   if (isKeyword(node)) {
     return '"' + escapeSymbol(keywordName(node)) + '"';
   }
+  if (isList(node) && isSymbol(node[0]) && node[0] === symbol('quote') && isKeyword(node[1])) {
+    return '"' + escapeSymbol(keywordName(node[1])) + '"';
+  }
   if (isSymbol(node)) {
     return escapeSymbol(symbolName(node));
+  }
+  if (isList(node) && isSymbol(node[0]) && node[0] === symbol('quote') && isSymbol(node[1])) {
+    return escapeSymbol(symbolName(node[1]));
   }
   if (isObject(node)) {
     return '{' + Object.keys(node).map(function(k) {
@@ -653,7 +657,6 @@ function ethWrite(ast) {
 // Eval ast from a given env
 function ethEval(context, ast) {
   try {
-    console.log(ethWrite(ast));
     var vm = require('vm').createScript(ethWrite(ast), {
       filename: 'eval',
       showErrors: false

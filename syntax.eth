@@ -18,6 +18,7 @@
   ; (unquote-splicing a) -> a
   ; a -> [(quote a)]
   (fn sequence-expand (nodes)
+    ; TODO make this return .concat ast not call concat now
     (R.reduce (fn (a v) (a.concat v)) [] (R.map (fn (node)
       (if (eth.unquote? node) [(R.nth 1 node)]
         (if (eth.unquote-splicing? node)
@@ -37,8 +38,7 @@
   (if (R.empty? node) node
   (if (eth.array? node) (sequence-expand node)
   (if (eth.object? node) (R.mapObjIndexed (fn (v) (eth.list (eth.symbol "quote") v)))
-  (if (eth.list? node) (do
-    (eth.list (sequence-expand node)))
+  (if (eth.list? node) (R.apply eth.list (sequence-expand node))
   (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (eth.print node))))
   ))))))))))))))
 
