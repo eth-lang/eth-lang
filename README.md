@@ -1,6 +1,6 @@
 # eth lang
 
-_A fun, experimental and simple lisp transpiler for JavaScript._
+_A fun, experimental and simple lisp that compiles to JavaScript._
 
 [![CircleCI Build Status](https://img.shields.io/circleci/project/kiasaki/eth-lang/master.svg)](https://circleci.com/gh/kiasaki/eth-lang)
 
@@ -8,14 +8,18 @@ _A fun, experimental and simple lisp transpiler for JavaScript._
 
 _WARNING! This is highly experimental tech, use at your own risk and perils ;)_
 
-`eth` is a simple lisp that aims to give you the full power of the javascript language
+`eth` is a simple lisp that aims to give you the full power of the JavaScript language
 and ecosystem but within the lisp syntax you've come to love. Most things you can write
-in javascript you can directly translate to `eth`.
+in javascript directly translate to `eth`.
 
 The Lisp syntax being more expressive than JavaScript aided by a few more concepts like
-everything being an expression, currying and function composition it becomes easy to let
-go of the need for ES6+ and compile those simple concepts directly to ES5 JavaScript
-removing the need for setting up the Babel transpiler and friends on top of `eth`.
+everything being an expression, **currying** and **function composition** it becomes easy to get
+all of the goodies ES6 packs and more.
+
+As `eth` is a lisp, it has this property called [homoiconicity](https://en.wikipedia.org/wiki/Homoiconicity)
+that basically means it's syntax is closely related to it's program's structure. This makes
+it possible to implement **macros** that provides you a way of extending the language you
+program with in ways that you never could with JavaScript.
 
 Here's what a package would look like:
 
@@ -42,8 +46,9 @@ Here's what a package would look like:
   (server-listen! server PORT))
 ```
 
-_(Not really nice way of writing it but it demos language features XD See `hello-compact.eth` for a
-more node.js style version of the above)_
+_(Not really nice way of writing it but it demos language features XD See
+[`examples/hello-compact.eth`](https://github.com/eth-lang/eth-lang/blob/master/examples/hello-compact.eth)
+for a more node.js style version of the above)_
 
 ## running
 
