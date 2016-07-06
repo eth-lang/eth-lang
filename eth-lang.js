@@ -1,8 +1,11 @@
 // globals {{{
+var R = require('ramda');
+
 var GLOBAL = typeof window !== 'undefined' ? window : global;
 GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
 GLOBAL.__eth__installMacro = installMacro;
 var COMPILER_CONTEXT = require('vm').createContext({
+  console: console,
   require: require,
   __eth__installMacro: GLOBAL.__eth__installMacro
 });
@@ -62,29 +65,44 @@ function symbol(name) {
 function isList(v) {
   return v instanceof EthList;
 }
-
 function isArray(v) {
   return !(v instanceof EthList) && Array.isArray(v);
 }
-
 function isObject(v) {
   return !isList(v) && !isArray(v) && v !== null && typeof v === 'object';
 }
-
 function isSymbol(v) {
   return typeof v === 'string' && v.length > 2 && v[0] === '\uFEFF' && v[1] === '\'';
 }
-
 function isKeyword(v) {
   return typeof v === 'string' && v.length > 1 && v[0] === '\uA789';
 }
-
 function isString(v) {
   return !isSymbol(v) && !isKeyword(v) && typeof v === 'string';
 }
-
 function isNumber(v) {
   return typeof v === 'number';
+}
+function isBoolean(v) {
+  return typeof v === 'boolean';
+}
+function isNull(v) {
+  return v === null;
+}
+function isUndefined(v) {
+  return typeof v === 'undefined';
+}
+function isUnquote(v) {
+  return isList(v) && isSymbol(v[0]) && v[0] === symbol('unquote');
+}
+function isUnquoteSplicing(v) {
+  return isList(v) && isSymbol(v[0]) && v[0] === symbol('unquote-splicing');
+}
+function isQuote(v) {
+  return isList(v) && isSymbol(v[0]) && v[0] === symbol('quote');
+}
+function isQuasiQuote(v) {
+  return isList(v) && isSymbol(v[0]) && v[0] === symbol('quasi-quote');
 }
 
 function isSymbolList(v) {
@@ -198,7 +216,7 @@ function tokenizeCode(x) {
   x = x.replace(/'/g, ' \' ');
   x = x.replace(/`/g, ' ` ');
   x = x.replace(/~/g, ' ~ ');
-  x = x.replace(/~@/g, ' ~@ ');
+  x = x.replace(/~ @/g, ' ~@ ');
   x = x.replace(/\(/g, ' ( ');
   x = x.replace(/\)/g, ' ) ');
   x = x.replace(/\[/g, ' [ ');
@@ -323,6 +341,23 @@ function read() {
       : parseInt(token, 10);
   }
 
+  // boolean true/false
+  if (token === 'true') {
+    return true;
+  } else if (token === 'false') {
+    return false;
+  }
+
+  // null
+  if (token === 'null') {
+    return null;
+  }
+
+  // undefined
+  if (token === 'undefined') {
+    return void 0;
+  }
+
   // string "abc"
   if (token.length >= 2 && token[0] === '"' && token[token.length-1] === '"') {
     readerIndex++;
@@ -376,8 +411,24 @@ function expandMacro(state, node) {
   if (isList(node) && node.length > 0 && isSymbol(node[0])) {
     var macro = GLOBAL.__eth__macros[symbolName(node[0])];
     if (macro) {
-      state.foundMacro = true;
-      return macro.apply(null, node.slice(1));
+      // help out a bit error wise over here. marco calls can be quite tricky to debug
+      // as they are calling compiled js functions
+      try {
+        var resultingNode = macro.apply(null, node.slice(1));
+
+        // If the macro did nothing, no need to keep counting it as a macro to expand
+        state.foundMacro = !R.equals(node, resultingNode);
+        if (state.foundMacro) {
+          console.log('A', print(node));
+          console.log('B', print(resultingNode));
+          console.log('\n');
+        }
+
+        return resultingNode;
+      } catch (err) {
+        err.message += ' (when expanding macro: ' + print(node) + ')';
+        throw err;
+      }
     }
   }
   return node;
@@ -388,7 +439,14 @@ function expandMacros(ast) {
   var state = {foundMacro: true};
   while (state.foundMacro) {
     state.foundMacro = false;
-    ast = astMap(expandMacro.bind(null, state), ast);
+    ast = astMap(function(node) {
+      // skip macro expasion if a node was found so that we can progress with expansions
+      // from leaf most nodes to the root
+      if (state.foundMacro) {
+        return node;
+      }
+      return expandMacro(state, node);
+    }, ast);
   }
   return ast;
 }
@@ -470,6 +528,15 @@ function writeList(node) {
     return '(' + UNARY_OPERATORS[calee] + ' ' + write(node[1]) + ')';
   }
 
+  // get a[b]
+  if (calee === 'get') {
+    assert(node, node.length === 3, '"get" needs exactly 2 arguments (key, value), got: ' + (node.length - 1));
+    if (isKeyword(node[1])) {
+      return write(node[2]) + '.' + escapeSymbol(keywordName(node[1]));
+    }
+    return write(node[2]) + '[' + write(node[1]) + ']';
+  }
+
   // def/var
   if (calee === 'def') {
     assert(node, (node.length % 2) === 1, '"def" needs an even number arguments (name & value pairs), got: ' + (node.length - 1));
@@ -499,12 +566,23 @@ function writeList(node) {
       body = node.slice(3);
     }
     assert(node, isSymbolList(params), '"fn" needs it\'s params list to be a list of only symbols');
-    return '(function ' + name + '(' + params.map(write).join(', ') + ') {' + writeBody(body) + '})';
+
+    // handle variable arguments (x y ... ys)
+    var fnPrelude = '';
+    if (params.length > 1 && params[params.length - 2] === symbol('...')) {
+      fnPrelude = write(list(symbol('def'), params[params.length-1],
+        list(symbol('Array.prototype.slice.call'), symbol('arguments'), params.length-2))) + '; ';
+      // now that we are handling ... remove it from params: (x ... xs) -> (x)
+      params = params.slice(0, -2);
+    }
+
+    return 'function ' + name + '(' + params.map(write).join(', ') + ') {'
+      + fnPrelude + writeBody(body) + '}';
   }
 
   // do/block
   if (calee === 'do') {
-    return '(function () {' + writeBody(node.slice(1)) + '})()';
+    return '(function () {' + writeBody(node.slice(1)) + '}.call(this))';
   }
 
   // if
@@ -525,7 +603,13 @@ function writeList(node) {
     }
     return '(function () {if (' + write(node[1]) + ') {'
       + writeBody(thenBranch) + '} else {'
-      + writeBody(elseBranch) + '}})()';
+      + writeBody(elseBranch) + '}}.call(this))';
+  }
+
+  // throw
+  if (calee === 'throw') {
+    assert(node, node.length === 2, '"throw" needs exactly 1 arguments (error), got: ' + (node.length - 1));
+    return '(function () { throw ' + write(node[1]) + '}.call(this))';
   }
 
   // call
@@ -568,14 +652,20 @@ function ethWrite(ast) {
 // eval {{{
 // Eval ast from a given env
 function ethEval(context, ast) {
-  var vm = require('vm').createScript(ethWrite(ast), {
-    filename: 'eval',
-    showErrors: false
-  });
-  if (context === null) {
-    return vm.runInThisContext();
-  } else {
-    return vm.runInContext(context);
+  try {
+    console.log(ethWrite(ast));
+    var vm = require('vm').createScript(ethWrite(ast), {
+      filename: 'eval',
+      showErrors: false
+    });
+    if (context === null) {
+      return vm.runInThisContext();
+    } else {
+      return vm.runInContext(context);
+    }
+  } catch (err) {
+    err.message += ' (evaluating: ' + ethPrint(ast) + ')';
+    throw err;
   }
 }
 // }}}
@@ -621,6 +711,13 @@ var __eth__module = {
   isKeyword: isKeyword,
   isString: isString,
   isNumber: isNumber,
+  isBoolean: isBoolean,
+  isNull: isNull,
+  isUndefined: isUndefined,
+  isUnquote: isUnquote,
+  isUnquoteSplicing: isUnquoteSplicing,
+  isQuote: isQuote,
+  isQuasiQuote: isQuasiQuote,
   isSymbolList: isSymbolList,
   symbolName: symbolName,
   keywordName: keywordName,

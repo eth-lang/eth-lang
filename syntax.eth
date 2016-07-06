@@ -1,11 +1,51 @@
+(import ramda R)
 (import "./eth-lang" eth)
 
+; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
+; unquotes and unquote-splicings
 (defmacro quote (node)
-  (if (eth.symbol? node) (list 'quote node)
-  (if (eth.keyword? node) (list 'quote node)
-  (if (eth.list?) node))))
+  ; Takes a node a unquote it, returning the list of elements to append to the containing list
+  ; ~@a -> a
+  ; ~@[a b c] -> [a b c]
+  ; ~@(a b c) -> [a b c]
+  (fn unquote-splicing-expand (node)
+    (if (eth.isArray node)
+      node
+      (R.map R.identity node)))
 
-(not defmacro defn (name params ... body)
-  (L (S "def") name (L (S "fn") ~name ~params ~@body)))
-  `('def name ('fn ~name ~params ~@body))
+  ; Takes a list/array and applies quoting to it, while honoring unquotes and unquote-splicings
+  ; (unquote a) -> [a]
+  ; (unquote-splicing a) -> a
+  ; a -> [(quote a)]
+  (fn sequence-expand (nodes)
+    (R.reduce (fn (a v) (a.concat v)) [] (R.map (fn (node)
+      (if (eth.unquote? node) [(R.nth 1 node)]
+        (if (eth.unquote-splicing? node)
+          (unquote-splicing-expand (R.nth 1 node))
+          [(eth.list (eth.symbol "quote") node)]))) nodes)))
+
+  (if (eth.symbol? node) (eth.list (eth.symbol "quote") node)
+  (if (eth.keyword? node) (eth.list (eth.symbol "quote") node)
+  (if (eth.string? node) node
+  (if (eth.number? node) node
+  (if (eth.boolean? node) node
+  (if (eth.null? node) node
+  (if (eth.undefined? node) node
+  (if (eth.unquote? node) (R.nth 1 node)
+  (if (eth.unquote-splicing? node)
+    (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
+  (if (R.empty? node) node
+  (if (eth.array? node) (sequence-expand node)
+  (if (eth.object? node) (R.mapObjIndexed (fn (v) (eth.list (eth.symbol "quote") v)))
+  (if (eth.list? node) (do
+    (eth.list (sequence-expand node)))
+  (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (eth.print node))))
+  ))))))))))))))
+
+; For now quote behaves like quasi-quote should, just use that
+(defmacro quasi-quote (node)
+  (eth.list (eth.symbol "quote") node))
+
+(defmacro defn (name params ... body)
+  `(def name (fn ~name ~params ~@body)))
 

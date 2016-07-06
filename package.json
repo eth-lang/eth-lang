@@ -24,7 +24,8 @@
   },
   "homepage": "https://github.com/kiasaki/eth-lang#readme",
   "dependencies": {
-    "promise-polyfill": "5.2.1"
+    "promise-polyfill": "5.2.1",
+    "ramda": "^0.21.0"
   },
   "devDependencies": {
     "watch": "0.19.1"
