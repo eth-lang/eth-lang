@@ -10,131 +10,131 @@
 
 ; types
 
-(def type (x)
+(defn type (x)
   (if (Array.isArray x) :array
     (if (== x null) :null
       (typeof x))))
 
-(def of-type? (t value)
+(defn of-type? (t value)
   (== (type value) t))
 
-(def null? (value)
+(defn null? (value)
   (of-type? :null value))
 
-(def undefined? (value)
+(defn undefined? (value)
   (of-type? :undefined value))
 
-(def boolean? (value)
+(defn boolean? (value)
   (of-type? :boolean value))
 
-(def number? (value)
+(defn number? (value)
   (of-type? :number value))
 
-(def string? (value)
+(defn string? (value)
   (of-type? :string value))
 
-(def object? (value)
+(defn object? (value)
   (of-type? :object value))
 
-(def array? (value)
+(defn array? (value)
   (of-type? :array value))
 
-(def function? (value)
+(defn function? (value)
   (of-type? :function value))
 
 ; basics
 
-(def assert (c ... messages)
+(defn assert (c ... messages)
   (if (! c)
     (throw (Error. (+ "Assertion Error: " (messages.join ""))))
     ()))
 
-(def not (x)
+(defn not (x)
   (! x))
 
-(def apply (f args)
+(defn apply (f args)
   (assert (of-type? :function f) "core: apply: needs it's 1st arg to be a function")
   (f.apply null args))
 
-(def curry (f ... base-args) (fn (... args)
+(defn curry (f ... base-args) (fn (... args)
   (apply f (Array.prototype.concat.call base-args args))))
-(def curry2 () (fn (f) (fn (arg1) (fn (arg2) (f arg1 arg2)))))
-(def curry3 () (fn (f) (fn (arg1) (fn (arg2) (fn (arg3) (f arg1 arg2 arg3))))))
-(def curryN (n f args)
+(defn curry2 () (fn (f) (fn (arg1) (fn (arg2) (f arg1 arg2)))))
+(defn curry3 () (fn (f) (fn (arg1) (fn (arg2) (fn (arg3) (f arg1 arg2 arg3))))))
+(defn curryN (n f args)
   (fn ()
     (set new-args (Array.prototype.slice.call arguments))
-    (let ((merged-args ((. :concat (|| args [])) new-args)))
-        (if (>= (. :length merged-args) n)
+    (let ((merged-args ((get :concat (|| args [])) new-args)))
+        (if (>= (get :length merged-args) n)
           (apply f merged-args)
           (curryN n f merged-args)))))
 
 ; math
 
-(set PI Math.PI)
-(set abs Math.abs)
-(set ceil Math.ceil)
-(set floor Math.floor)
-(set log Math.log)
-(set sin Math.sin)
-(set cos Math.cos)
-(set tan Math.tan)
-(set pow Math.pow)
-(set max Math.max)
-(set min Math.min)
-(set round Math.round)
-(set sqrt Math.sqrt)
-(def inc (x) (+ x 1))
-(def dec (x) (- x 1))
+(def PI Math.PI)
+(def abs Math.abs)
+(def ceil Math.ceil)
+(def floor Math.floor)
+(def log Math.log)
+(def sin Math.sin)
+(def cos Math.cos)
+(def tan Math.tan)
+(def pow Math.pow)
+(def max Math.max)
+(def min Math.min)
+(def round Math.round)
+(def sqrt Math.sqrt)
+(defn inc (x) (+ x 1))
+(defn dec (x) (- x 1))
 
-(def random (x)
+(defn random (x)
   (if x (round (* (Math.random) x)) (Math.random)))
 
-(def even? (x)
+(defn even? (x)
   (== (% x 2) 0))
 
-(def odd? (x)
+(defn odd? (x)
   (== (% x 2) 1))
 
 ; lists
 
-(def len (l)
-  (. :length l))
+(defn len (l)
+  (get :length l))
 
 
-(def head (l)
+(defn head (l)
   (if (> (len l) 0)
-    (. 0 l)
+    (get 0 l)
     null))
 
 
-(def tail (l)
+(defn tail (l)
   (if (> (len l) 0)
     (Array.prototype.slice.call l 1)
     []))
 
 
-(def last (l)
+(defn last (l)
   (if (> (len l) 0)
     (. (dec (len l)) l)
     null))
 
 
-(def concat (l1 l2)
-  (Array.prototype.concat.call(l1, l2)))
+(defn concat (l1 l2)
+  (Array.prototype.concat.call l1 l2))
 (set concat (curryN 2 concat))
 
 
-(def cons (a l)
+(defn cons (a l)
   (concat [a] l))
 (set cons (curryN 2 cons))
 
 
-(def append (a l)
+(defn append (a l)
   (concat l [a]))
 (set append (curryN 2 append))
 
 
-(def map (f iterable)
+(defn map (f iterable)
   (set ret [])
   (while (< (len ret) (len iterable))
     (set (. (len ret) ret) (f (. (len ret) iterable))))
@@ -142,7 +142,7 @@
 (set map (curryN 2 map))
 
 
-(def reduce (f init iterable)
+(defn reduce (f init iterable)
   (set acc init)
   (set i 0)
   (while (< i (len iterable))
@@ -151,7 +151,7 @@
   acc)
 (set reduce (curryN 3 reduce))
 
-(def filter (f iterable)
+(defn filter (f iterable)
   (set ret [])
   (set i 0)
   (while (< i (len iterable))
@@ -163,79 +163,79 @@
 (set filter (curryN 2 filter))
 
 
-(def for-each (f iterable)
+(defn for-each (f iterable)
   (map f iterable)
   ())
 (set for-each (curryN 2 for-each))
 
 
-(def contains (x xs)
+(defn contains (x xs)
   (> (xs.index-of x) -1))
 
 
-(def join (sep xs)
+(defn join (sep xs)
   (xs.join sep))
 (set join (curryN 2 join))
 
 
 ; basic math
 
-(def add ()
+(defn add ()
   (reduce (fn (acc a) (+ acc a)) 0 arguments))
 
-(def sub ()
+(defn sub ()
   (assert (>= (len arguments) 2) "'sub' takes a minimum of 2 arguments")
   (reduce (fn (acc a) (- acc a)) (head arguments) (tail arguments)))
 
-(def mul ()
+(defn mul ()
   (reduce (fn (acc a) (* acc a)) 1 arguments))
 
-(def div ()
+(defn div ()
   (reduce (fn (acc a) (/ acc a)) 1 arguments))
 
-(set mod (curryN 2 (fn (x y) (% x y))))
+(setn mod (curryN 2 (fn (x y) (% x y))))
 
 ; types (continued)
 
-(def string ()
+(defn string ()
   (reduce (fn (acc a) (+ acc a)) "" arguments))
 
-(def array ()
+(defn array ()
   (Array.prototype.slice.call arguments))
 
-(def object (... keys-and-vals)
+(defn object (... keys-and-vals)
   (assert (even? (len keys-and-vals)) "'object' needs a even number of elements")
   (let ((ret {})
         (i 0))
     (while (< i (len keys-and-vals))
       (set (. i keys-and-vals) (. (inc i) keys-and-vals)))))
 
-(def and ()
+(defn and ()
   (assert (>= (len arguments) 2) "'and' takes a minimum of 2 arguments")
   (reduce (fn (a b) (&& a b)) (head arguments) (tail arguments)))
-(def or ()
+(defn or ()
   (assert (>= (len arguments) 2) "'or' takes a minimum of 2 arguments")
   (reduce (fn (a b) (|| a b)) (head arguments) (tail arguments)))
 
-(def print ()
+(defn print ()
   (apply console.log arguments))
 
-(def identity (a)
+(defn identity (a)
   a)
 
-(def always (a)
+(defn always (a)
   (fn ()
     a))
 
 ; json
 
 ; parse a json string to a javascript value
-(def from-json (s)
+(defn from-json (s)
   (JSON.parse s))
 
 ; takes a value to convert to a json string and optionnaly true or the indentation level wanted for
 ; pretty printing
-(def to-json (value pretty-print)
+(defn to-json (value pretty-print)
   (if pretty-print
     (JSON.stringify value null (if (== pretty-print true) 2 pretty-print))
     (JSON.stringify value)))
@@ -243,60 +243,60 @@
 
 ; objects
 
-(def prop-eq (key value)
+(defn prop-eq (key value)
   (fn (obj)
     (== (get key obj) value)))
 
 
-(def prop (key)
+(defn prop (key)
   (fn (obj)
     (get key obj)))
 
 
-(def pick (ks obj)
+(defn pick (ks obj)
   (assert (of-type? :array ks) "eth/core: pick: need an array of keys, got: " (to-json ks))
   (assert (of-type? :object ks) "eth/core: pick: need an object as 2nd argument, got: " (to-json obj))
   (let ((ret {})
-        (set-value (fn (k) (set (. k ret) (get k obj)))))
+        (set-value (fn (k) (set (get k ret) (get k obj)))))
     (for-each set-value ks)))
 
 
-(def keys (o)
+(defn keys (o)
   (Object.keys o))
 
 
-(def values (o)
-  (map (fn (key) (. key o)) (keys o)))
+(defn values (o)
+  (map (fn (key) (get key o)) (keys o)))
 
 
-(def merge (o1 o2)
+(defn merge (o1 o2)
   (let ((ret {})
-        (setter (fn (o) (fn (k) (set (. k ret) (. k o))))))
+        (setter (fn (o) (fn (k) (set (get k ret) (get k o))))))
     (for-each (setter o1) (keys o1))
     (for-each (setter o2) (keys o2))
     ret))
 
 
-(def clone (a)
+(defn clone (a)
   (let ((t (type a)))
     (if (== t "array") (map identity a)
     (if (== t "object") (merge {} a)
     a))))
 
 
-(def assoc (key value obj)
+(defn assoc (key value obj)
   (let ((shallow-copy (clone obj)))
-    (set (. key shallow-copy) value)
+    (set (get key shallow-copy) value)
     shallow-copy))
 
 
-(def get-in (path obj)
+(defn get-in (path obj)
   (if (== (len path) 0)
     obj
     (get-in (tail path) (get (head path) obj))))
 
 
-(def set-in (path value obj)
+(defn set-in (path value obj)
   (if (== (len path) 0)
     value
     (assoc
@@ -305,7 +305,7 @@
       obj)))
 
 
-(def update-in (path update-fn obj)
+(defn update-in (path update-fn obj)
   (set-in path (update-fn (get-in path obj)) obj))
 
 )

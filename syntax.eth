@@ -4,14 +4,18 @@
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
 ; unquotes and unquote-splicings
 (defmacro quote (node)
+  (def L eth.list)
+  (def S eth.symbol)
+
   ; Takes a node a unquote it, returning the list of elements to append to the containing list
   ; ~@a -> a
   ; ~@[a b c] -> [a b c]
   ; ~@(a b c) -> [a b c]
   (fn unquote-splicing-expand (node)
-    (if (eth.isArray node)
+    (if (eth.symbol? node) node
+    (if (eth.array? node)
       node
-      (R.map R.identity node)))
+      (R.map R.identity node))))
 
   ; Takes a list/array and applies quoting to it, while honoring unquotes and unquote-splicings
   ; (unquote a) -> [a]
@@ -19,14 +23,15 @@
   ; a -> [(quote a)]
   (fn sequence-expand (nodes)
     ; TODO make this return .concat ast not call concat now
-    (R.reduce (fn (a v) (a.concat v)) [] (R.map (fn (node)
-      (if (eth.unquote? node) [(R.nth 1 node)]
-        (if (eth.unquote-splicing? node)
-          (unquote-splicing-expand (R.nth 1 node))
-          [(eth.list (eth.symbol "quote") node)]))) nodes)))
+      (eth.apply L (eth.concat [(S ".concat")]
+        (R.map (fn (node)
+          (if (eth.unquote? node) [(R.nth 1 node)]
+            (if (eth.unquote-splicing? node)
+              (unquote-splicing-expand (R.nth 1 node))
+              [(L (S "quote") node)]))) nodes))))
 
-  (if (eth.symbol? node) (eth.list (eth.symbol "quote") node)
-  (if (eth.keyword? node) (eth.list (eth.symbol "quote") node)
+  (if (eth.symbol? node) (L (S "quote") node)
+  (if (eth.keyword? node) (L (S "quote") node)
   (if (eth.string? node) node
   (if (eth.number? node) node
   (if (eth.boolean? node) node
@@ -37,8 +42,8 @@
     (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
   (if (R.empty? node) node
   (if (eth.array? node) (sequence-expand node)
-  (if (eth.object? node) (R.mapObjIndexed (fn (v) (eth.list (eth.symbol "quote") v)))
-  (if (eth.list? node) (R.apply eth.list (sequence-expand node))
+  (if (eth.object? node) (R.mapObjIndexed (fn (v) (L (S "quote") v)))
+  (if (eth.list? node) (L (S "apply") (S "list") (sequence-expand node))
   (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (eth.print node))))
   ))))))))))))))
 

@@ -8,15 +8,21 @@ all:
 %.js: %.eth
 	$(ETH) -c $< >$@
 
-build-stdlib: core.js testing.js
+build-stdlib: testing.js
 	
 build-tests: tests/core.js
 
-build: build-stdlib build-tests
+build-syntax:
+	$(ETH) -c syntax.eth \
+		| sed 's/require("eth\/ast")/require(".\/ast")/' \
+		| sed 's/require("eth\/core")/require(".\/core")/' \
+		>syntax.js
+
+build: build-stdlib build-tests build-syntax
 
 test: build
 	./scripts/test.sh
-	$(NODE) tests/core.js
+	#$(NODE) tests/core.js
 
 test-watch:
 	$(WATCH) "make test" tests
@@ -31,4 +37,4 @@ clean-all: clean
 compiler-repl:
 	node -e 'eth = require("./eth-lang");' -i
 
-.PHONY: all build build-stdlib build-tests test clean compiler-repl
+.PHONY: all build build-stdlib build-tests build-syntax test clean compiler-repl

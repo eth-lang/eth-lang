@@ -1,14 +1,4 @@
 // globals {{{
-var R = require('ramda');
-
-var GLOBAL = typeof window !== 'undefined' ? window : global;
-GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
-GLOBAL.__eth__installMacro = installMacro;
-var COMPILER_CONTEXT = require('vm').createContext({
-  require: require,
-  __eth__installMacro: GLOBAL.__eth__installMacro
-});
-
 var BINARY_OPERATORS = {
   '+': '+',
   '-': '-',
@@ -42,89 +32,44 @@ var MACRO_SYNTAX = {
 };
 
 var READER_EOF = '__eth__reader__eof';
+
+var GLOBAL = typeof window !== 'undefined' ? window : global;
+GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
+GLOBAL.__eth__installMacro = installMacro;
+var COMPILER_CONTEXT = require('vm').createContext({
+  require: require,
+  __eth__installMacro: GLOBAL.__eth__installMacro
+});
+
+var R = require('ramda');
+var core = require('./core');
+
+var ETH_CORE_IMPORTS_AST = [];
 // }}}
 
 // ast {{{
-function EthList(items) {
-  var arr = [];
-  arr.push.apply(arr, items);
-  arr.__proto__ = EthList.prototype;
-  return arr;
-}
-EthList.prototype = new Array();
-
-function list() {
-  return new EthList(Array.prototype.slice.call(arguments));
-}
-
-function symbol(name) {
-  return '\uFEFF\'' + name;
-}
-
-function isList(v) {
-  return v instanceof EthList;
-}
-function isArray(v) {
-  return !(v instanceof EthList) && Array.isArray(v);
-}
-function isObject(v) {
-  return !isList(v) && !isArray(v) && v !== null && typeof v === 'object';
-}
-function isSymbol(v) {
-  return typeof v === 'string' && v.length > 2 && v[0] === '\uFEFF' && v[1] === '\'';
-}
-function isKeyword(v) {
-  return typeof v === 'string' && v.length > 1 && v[0] === '\uA789';
-}
-function isString(v) {
-  return !isSymbol(v) && !isKeyword(v) && typeof v === 'string';
-}
-function isNumber(v) {
-  return typeof v === 'number';
-}
-function isBoolean(v) {
-  return typeof v === 'boolean';
-}
-function isNull(v) {
-  return v === null;
-}
-function isUndefined(v) {
-  return typeof v === 'undefined';
-}
-function isUnquote(v) {
-  return isList(v) && isSymbol(v[0]) && v[0] === symbol('unquote');
-}
-function isUnquoteSplicing(v) {
-  return isList(v) && isSymbol(v[0]) && v[0] === symbol('unquote-splicing');
-}
-function isQuote(v) {
-  return isList(v) && isSymbol(v[0]) && v[0] === symbol('quote');
-}
-function isQuasiQuote(v) {
-  return isList(v) && isSymbol(v[0]) && v[0] === symbol('quasi-quote');
-}
-
-function isSymbolList(v) {
-  if (!isList(v)) {
-    return false;
-  }
-  return v.reduce(function(a, s) { return a && isSymbol(s); }, true);
-}
-
-function symbolName(v) {
-  return v.slice(2);
-}
-
-function keywordName(v) {
-  return v.slice(1);
-}
-
-function name(v) {
-  if (isSymbol(v)) return symbolName(v);
-  if (isKeyword(v)) return keywordName(v);
-  if (isString(v)) return v;
-  throw new Error('name: unhandle name type, got:' + v);
-}
+var EthList = require('./ast').EthList;
+var list = require('./ast').list;
+var symbol = require('./ast').symbol;
+var keyword = require('./ast').keyword;
+var isList = require('./ast').isList;
+var isArray = require('./ast').isArray;
+var isObject = require('./ast').isObject;
+var isSymbol = require('./ast').isSymbol;
+var isKeyword = require('./ast').isKeyword;
+var isString = require('./ast').isString;
+var isNumber = require('./ast').isNumber;
+var isBoolean = require('./ast').isBoolean;
+var isNull = require('./ast').isNull;
+var isUndefined = require('./ast').isUndefined;
+var isUnquote = require('./ast').isUnquote;
+var isUnquoteSplicing = require('./ast').isUnquoteSplicing;
+var isQuote = require('./ast').isQuote;
+var isQuasiQuote = require('./ast').isQuasiQuote;
+var isSymbolList = require('./ast').isSymbolList;
+var symbolName = require('./ast').symbolName;
+var keywordName = require('./ast').keywordName;
+var name = require('./ast').name;
 // }}}
 
 // helpers {{{
@@ -166,6 +111,7 @@ function escapeString(str) {
 }
 
 function escapeSymbol(name) {
+  if (name === '...') return name;
   if (name === '@') return 'this';
   if (name[0] === '@') return 'this.' + escapeSymbol(name.slice(1));
   if (name.endsWith('.')) return 'new ' + escapeSymbol(name.slice(0, -1));
@@ -342,18 +288,22 @@ function read() {
 
   // boolean true/false
   if (token === 'true') {
+    readerIndex++;
     return true;
   } else if (token === 'false') {
+    readerIndex++;
     return false;
   }
 
   // null
   if (token === 'null') {
+    readerIndex++;
     return null;
   }
 
   // undefined
   if (token === 'undefined') {
+    readerIndex++;
     return void 0;
   }
 
@@ -607,9 +557,16 @@ function writeList(node) {
   }
 
   // call
-  var isValidCalee = isSymbol(node[0]) || (isQuote(node[0]) && isSymbol(node[0][1]));
+  var isValidCalee = isSymbol(node[0]) || (isQuote(node[0]) && isSymbol(node[0][1]))
+    || (isList(node[0]) && isSymbol(node[0][0]) && node[0][0] === symbol('get'));
   if (!isValidCalee) {
     throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
+  }
+  if (calee[0] === '.' && node.length >= 2) {
+    // (.concat [1] 2 [3 4]) -> ((get :concat [1]) 2 [3 4])
+    return write(apply(list,
+      concat([list(symbol('get'), keyword(calee.slice(1)), node[1])], node.slice(2))
+    ));
   }
   return write(node[0]) + '(' + node.slice(1).map(write).join(', ') + ')';
 }
@@ -625,13 +582,22 @@ function write(node) {
     return '"' + escapeSymbol(keywordName(node)) + '"';
   }
   if (isList(node) && isSymbol(node[0]) && node[0] === symbol('quote') && isKeyword(node[1])) {
-    return '"' + escapeSymbol(keywordName(node[1])) + '"';
+    return '"' + escapeString(node[1]) + '"';
   }
   if (isSymbol(node)) {
     return escapeSymbol(symbolName(node));
   }
+  if (isNull(node)) {
+    return 'null';
+  }
+  if (isUndefined(node)) {
+    return 'undefined';
+  }
+  if (isBoolean(node)) {
+    return node ? 'true' : 'false';
+  }
   if (isList(node) && isSymbol(node[0]) && node[0] === symbol('quote') && isSymbol(node[1])) {
-    return escapeSymbol(symbolName(node[1]));
+    return '"' + escapeString(node[1]) + '"';
   }
   if (isObject(node)) {
     return '{' + Object.keys(node).map(function(k) {
@@ -649,7 +615,8 @@ function write(node) {
 
 // Write out transpiled JS code
 function ethWrite(ast) {
-  return ast.map(write).join('\n').replace(/;/g, ';\n  ').replace(/{/g, '{\n  ') + '\n';
+  ast = [].concat(ETH_CORE_IMPORTS_AST, ast);
+  return ast.map(write).join(';').replace(/;/g, ';\n  ').replace(/{/g, '{\n  ') + '\n';
 }
 // }}}
 
@@ -657,7 +624,13 @@ function ethWrite(ast) {
 // Eval ast from a given env
 function ethEval(context, ast) {
   try {
-    var vm = require('vm').createScript(ethWrite(ast), {
+    // quite hacky, in the eval context, we are inside of the eth module, we need to require ./core
+    // instead of eth/core by name
+    var code = ethWrite(ast)
+      .replace(/require\("eth\/ast"\)/g, 'require("./ast")')
+      .replace(/require\("eth\/core"\)/g, 'require("./core")');
+
+    var vm = require('vm').createScript(code, {
       filename: 'eval',
       showErrors: false
     });
@@ -704,28 +677,28 @@ function ethPrint(ast) {
 }
 // }}}
 
-var __eth__module = {
-  list: list,
-  symbol: symbol,
-  isList: isList,
-  isArray: isArray,
-  isObject: isObject,
-  isSymbol: isSymbol,
-  isKeyword: isKeyword,
-  isString: isString,
-  isNumber: isNumber,
-  isBoolean: isBoolean,
-  isNull: isNull,
-  isUndefined: isUndefined,
-  isUnquote: isUnquote,
-  isUnquoteSplicing: isUnquoteSplicing,
-  isQuote: isQuote,
-  isQuasiQuote: isQuasiQuote,
-  isSymbolList: isSymbolList,
-  symbolName: symbolName,
-  keywordName: keywordName,
-  name: name,
+// module and loading syntax + core {{{
+// require syntax macros
+require('./syntax');
 
+// make sure macro install call don't fail outside of the compiler
+ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__installMacro (|| __eth__installMacro (fn ())))')[0]);
+
+// import all ast functions
+R.forEach(function(astFunction) {
+  ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(astFunction),
+    list(symbol('get'), keyword(astFunction), list(symbol('require'), 'eth/ast'))
+  ));
+}, R.keys(require('./core')));
+
+// import all std lib functions
+R.forEach(function(coreFunction) {
+  ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(coreFunction),
+    list(symbol('get'), keyword(coreFunction), list(symbol('require'), 'eth/core'))
+  ));
+}, R.keys(core));
+
+var __eth__module = R.mergeAll([{}, require('./ast'), {
   assert: assert,
   escapeSymbol: escapeSymbol,
   apply: apply,
@@ -735,11 +708,11 @@ var __eth__module = {
   eval: ethEval,
   print: ethPrint,
   write: ethWrite,
-};
+}]);
 if (module && module.exports) {
   module.exports = __eth__module;
 }
 if (typeof window !== 'undefined') {
   window['eth'] = __eth__module;
 }
-
+// }}}
