@@ -71,7 +71,8 @@ You can compile files to JavaScript using:
 
 ```
 $ eth -c file.eth
-(+ 3 5)
+// ... eth prelude ...
+3 + 5;
 ```
 
 Or run them right away using (for production use it's better to compile & run with `node`):
@@ -97,7 +98,8 @@ Eth Usage:
 | data type | eth | js | description |
 |---|---|---|---|
 | **comment** | `; comment` | ` ` | Eth only has single line comments and the don't appear in compiled code |
-| **null** | `null` | `null` | Null is simply written null (`()` also evaluates to `null`) |
+| **null** | `null` | `null` | Null is simply written "null" (`()` also evaluates to `null`) |
+| **undefined** | `undefined` | `undefined` | Undefined is simply written "undefined" |
 | **boolean** | `true` | `true` | Booleans are the same as in JavaScript |
 | **string** | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
 | **number** | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
@@ -144,29 +146,31 @@ The following **unary** operators also work:
 
 ### `fn`
 
-`fn` is the built-in for creating anonymous functions. It translates to JavaScript's `function() {}`
-syntax. It always needs a list of symbol as 2nd argument and a body, hence, the simplest function
-you could write would look like: `(fn () ())` (or `function() { return null; }` in JS).
+`fn` is the built-in for creating functions. It translates to JavaScript's `function() {}`
+syntax.
 
 You can pass as much expressions you want after the arguments list and they will and be evaluated
-sequentially with the last element being returned.
+sequentially with the last element being returned, a bit like the `do` built-in does.
 
-`fn` supports the `...` variable arguments operator as before last argument name to signify you
-want the following argument name to equal all extra arguments supplied to the function.
+`fn` supports the `...` variable arguments operator as before last argument to signify you
+want the following argument name to be assigned to all extra arguments supplied to the function.
 
 ```cljs
+(fn ()) ; -> function() { return (void 0); }
 (fn () (random 100)) ; -> function() { return random(100); }
 (fn (x) x) ; -> function(x) { return x; }
 (fn (x y) (+ x y)) ; -> function(x, y) { return x + y; }
 (fn (x ... xs) xs) ; -> function(x) { var xs = Array.prototype.slice.call(arguments, 1); return xs; }
 (fn () (read) (stall) (compute)) ; -> function() { read(); stall(); return compute(); }
+(fn identity (a) a) ; -> function identity(a) { return a; }
 ```
 
 ### `do`
 
 `do` is the built-in for sequential execution (block creation) as every expression in `eth` must be
-a value (except `def` and few others), this one comes especially handy when you want a branch of
-an `if` to do more than 1 thing.
+an expression / return a value (except `def` and few others).
+
+This one comes especially handy when you want the branch of an `if` to do more than 1 thing.
 
 ```cljs
 (do (x) (y) (z)) ; -> x(); y(); return z();
@@ -197,50 +201,25 @@ an `if` to do more than 1 thing.
 
 ## standard library
 
-**basics**
+The standard library is, at it's core, composed of all the functions in [Ramda.js](http://ramdajs.com/).
+`ramda` is a realy library packed with small utility functions that all have a well designed functionnal
+api.
 
-| function | description |
-|---|---|
-| `(assert condition ^bool message ^string)` | Throws an assertion error if `cond` is falsy |
-| `(apply f ^function args ^array)` | Call function with given arguments array |
-| `(curry f ^function ...args ^any)` | Returns a function that when called will call the given function with the given `args` concatenated with the call's arguments |
-| `(curry2 f ^function)` | Returns a function that must be called 2 times with 1 argument before it call the given function with those |
-| `(curry3 f ^function)` | Returns a function that must be called 3 times with 1 argument before it call the given function with those |
-| `(curryN n ^number f ^function)` | Returns a function that can be called any number of time with any number of arguments until `n` arguments have been given, at this point it will call the given `f` |
+If you are interested in functional programming and using `eth` I then strongly encorage you pass by
+ramda's awesome [documentation](http://ramdajs.com/0.21.0/docs/) and read the introductary post
+[Why Ramda?](http://fr.umio.us/why-ramda/).
 
-**math**
-
-| function | description |
-|---|---|
-| `(add ...a ^number)` | Sums all the given numbers |
-| `(sub a ^number ...as ^number)` | Substracts the given numbers from the first one |
-| `(mul ...a ^number)` | Multiples all the given numbers together |
-| `(div ...a ^number)` | Divides all the given numbers together |
-| `(mod a ^number b ^number)` | Returns the reminder of the division of `a` with `b` |
-| `PI ^number` | PI Constant |
-| `(abs a ^number)` | Returns the absolute of a number |
-| `(ceil a ^number)` | Returns the smallest integer greater than or equal to a number |
-| `(floor a ^number)` | Returns the largest integer less than or equal to a number |
-| `(log a ^number)` | Returns the natural logarithm of a number |
-| `(sin a ^number)` | Returns the sine of a number |
-| `(cos a ^number)` | Returns the cosine of a number |
-| `(tan a ^number)` | Returns the tangent of a number |
-| `(pow base ^number exp ^number)` | Returns base to the exponent power (b^e) |
-| `(max a ^number b ^number)` | Returns the largest of 2 given numbers |
-| `(min a ^number b ^number)` | Returns the smallest of 2 given numbers |
-| `(round a ^number)` | Returns the value of a number rounded to the nearest integer |
-| `(sqrt a ^number)` | Returns the positive square root of a number |
-| `(inc a ^number)` | Returns `a` with 1 added to it |
-| `(dec a ^number)` | Returns `a` with 1 substracted from it |
-| `(random n ^number?)` | With no arguments return a number from 0 to 1. When given a number returns a pseudo-random number from 0 to `n` |
+In adition to the functions from `ramda`, `eth` defined a few more useful function like `to-json`,
+`print`, `assert` and more. They are all listed below.
 
 ```
-not
-even? odd?
-len head tail last concat cons append map reduce filter for-each contains
-string array object type and or
-print identity
-keys values merge clone assoc get-in set-in update-in
+to-json from-json
+print assert
+get-in
+set-in
+type of-type?
+null? undefined? boolean? number? string? keyword? symbol? list? array? object? function?
+string array object
 ```
 
 ## using eth for your next project

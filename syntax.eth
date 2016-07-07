@@ -22,7 +22,6 @@
   ; (unquote-splicing a) -> a
   ; a -> [(quote a)]
   (fn sequence-expand (nodes)
-    ; TODO make this return .concat ast not call concat now
       (eth.apply L (eth.concat [(S ".concat")]
         (R.map (fn (node)
           (if (eth.unquote? node) [(R.nth 1 node)]
@@ -52,5 +51,8 @@
   (eth.list (eth.symbol "quote") node))
 
 (defmacro defn (name params ... body)
+  `(def name (fn ~name ~params ~@body)))
+
+(defmacro package (name params ... body)
   `(def name (fn ~name ~params ~@body)))
 
