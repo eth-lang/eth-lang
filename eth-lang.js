@@ -38,6 +38,7 @@ GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
 GLOBAL.__eth__installMacro = installMacro;
 var COMPILER_CONTEXT = require('vm').createContext({
   require: require,
+  global: GLOBAL,
   __eth__installMacro: GLOBAL.__eth__installMacro
 });
 
@@ -682,14 +683,15 @@ function ethPrint(ast) {
 require('./syntax');
 
 // make sure macro install call don't fail outside of the compiler
-ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__installMacro (|| __eth__installMacro (fn ())))')[0]);
+ETH_CORE_IMPORTS_AST.push(ethRead('(def GLOBAL (if (!= (typeof window) "undefined") window global))')[0]);
+ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__installMacro (|| GLOBAL.__eth__installMacro (fn ())))')[0]);
 
 // import all ast functions
 R.forEach(function(astFunction) {
   ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(astFunction),
     list(symbol('get'), keyword(astFunction), list(symbol('require'), 'eth/ast'))
   ));
-}, R.keys(require('./core')));
+}, R.keys(require('./ast')));
 
 // import all std lib functions
 R.forEach(function(coreFunction) {

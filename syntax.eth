@@ -1,19 +1,19 @@
 (import ramda R)
-(import "./eth-lang" eth)
+(import "./ast" ast)
 
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
 ; unquotes and unquote-splicings
 (defmacro quote (node)
-  (def L eth.list)
-  (def S eth.symbol)
+  (def L ast.list)
+  (def S ast.symbol)
 
   ; Takes a node a unquote it, returning the list of elements to append to the containing list
   ; ~@a -> a
   ; ~@[a b c] -> [a b c]
   ; ~@(a b c) -> [a b c]
   (fn unquote-splicing-expand (node)
-    (if (eth.symbol? node) node
-    (if (eth.array? node)
+    (if (ast.symbol? node) node
+    (if (ast.array? node)
       node
       (R.map R.identity node))))
 
@@ -22,37 +22,41 @@
   ; (unquote-splicing a) -> a
   ; a -> [(quote a)]
   (fn sequence-expand (nodes)
-      (eth.apply L (eth.concat [(S ".concat")]
+      (R.apply L (.concat [(S ".concat")]
         (R.map (fn (node)
-          (if (eth.unquote? node) [(R.nth 1 node)]
-            (if (eth.unquote-splicing? node)
+          (if (ast.unquote? node) [(R.nth 1 node)]
+            (if (ast.unquote-splicing? node)
               (unquote-splicing-expand (R.nth 1 node))
               [(L (S "quote") node)]))) nodes))))
 
-  (if (eth.symbol? node) (L (S "quote") node)
-  (if (eth.keyword? node) (L (S "quote") node)
-  (if (eth.string? node) node
-  (if (eth.number? node) node
-  (if (eth.boolean? node) node
-  (if (eth.null? node) node
-  (if (eth.undefined? node) node
-  (if (eth.unquote? node) (R.nth 1 node)
-  (if (eth.unquote-splicing? node)
+  (if (ast.symbol? node) (L (S "quote") node)
+  (if (ast.keyword? node) (L (S "quote") node)
+  (if (ast.string? node) node
+  (if (ast.number? node) node
+  (if (ast.boolean? node) node
+  (if (ast.null? node) node
+  (if (ast.undefined? node) node
+  (if (ast.unquote? node) (R.nth 1 node)
+  (if (ast.unquote-splicing? node)
     (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
   (if (R.empty? node) node
-  (if (eth.array? node) (sequence-expand node)
-  (if (eth.object? node) (R.mapObjIndexed (fn (v) (L (S "quote") v)))
-  (if (eth.list? node) (L (S "apply") (S "list") (sequence-expand node))
-  (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (eth.print node))))
+  (if (ast.array? node) (sequence-expand node)
+  (if (ast.object? node) (R.mapObjIndexed (fn (v) (L (S "quote") v)))
+  (if (ast.list? node) (L (S "apply") (S "list") (sequence-expand node))
+  (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (ast.print node))))
   ))))))))))))))
 
 ; For now quote behaves like quasi-quote should, just use that
 (defmacro quasi-quote (node)
-  (eth.list (eth.symbol "quote") node))
+  (ast.list (ast.symbol "quote") node))
 
 (defmacro defn (name params ... body)
   `(def name (fn ~name ~params ~@body)))
 
+(defmacro let (definitions ... body)
+  `(do ~@(map (fn (d) (prepend 'def d)) definitions) ~@body))
+
 (defmacro package (name params ... body)
+  ; WIP
   `(def name (fn ~name ~params ~@body)))
 

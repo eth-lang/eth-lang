@@ -1,241 +1,34 @@
-var __eth__installMacro = (__eth__installMacro || function () {
+var GLOBAL = (function () {
+  if (((typeof window) !== "undefined")) {
+  return window;
+  } else {
+  return global;
+  }}.call(this));
+  var __eth__installMacro = (GLOBAL.__eth__installMacro || function () {
   return (void 0);
   });
-  var F = require("./ast").F;
-  var T = require("./ast").T;
-  var __ = require("./ast").__;
-  var add = require("./ast").add;
-  var addIndex = require("./ast").addIndex;
-  var adjust = require("./ast").adjust;
-  var all = require("./ast").all;
-  var allPass = require("./ast").allPass;
-  var allUniq = require("./ast").allUniq;
-  var always = require("./ast").always;
-  var and = require("./ast").and;
-  var any = require("./ast").any;
-  var anyPass = require("./ast").anyPass;
-  var ap = require("./ast").ap;
-  var aperture = require("./ast").aperture;
-  var append = require("./ast").append;
-  var apply = require("./ast").apply;
-  var applySpec = require("./ast").applySpec;
-  var assoc = require("./ast").assoc;
-  var assocPath = require("./ast").assocPath;
-  var binary = require("./ast").binary;
-  var bind = require("./ast").bind;
-  var both = require("./ast").both;
-  var call = require("./ast").call;
-  var chain = require("./ast").chain;
-  var clamp = require("./ast").clamp;
-  var clone = require("./ast").clone;
-  var comparator = require("./ast").comparator;
-  var complement = require("./ast").complement;
-  var compose = require("./ast").compose;
-  var composeK = require("./ast").composeK;
-  var composeP = require("./ast").composeP;
-  var concat = require("./ast").concat;
-  var cond = require("./ast").cond;
-  var construct = require("./ast").construct;
-  var constructN = require("./ast").constructN;
-  var contains = require("./ast").contains;
-  var converge = require("./ast").converge;
-  var countBy = require("./ast").countBy;
-  var curry = require("./ast").curry;
-  var curryN = require("./ast").curryN;
-  var dec = require("./ast").dec;
-  var defaultTo = require("./ast").defaultTo;
-  var difference = require("./ast").difference;
-  var differenceWith = require("./ast").differenceWith;
-  var dissoc = require("./ast").dissoc;
-  var dissocPath = require("./ast").dissocPath;
-  var divide = require("./ast").divide;
-  var drop = require("./ast").drop;
-  var dropLast = require("./ast").dropLast;
-  var dropLastWhile = require("./ast").dropLastWhile;
-  var dropRepeats = require("./ast").dropRepeats;
-  var dropRepeatsWith = require("./ast").dropRepeatsWith;
-  var dropWhile = require("./ast").dropWhile;
-  var either = require("./ast").either;
-  var empty = require("./ast").empty;
-  var eqBy = require("./ast").eqBy;
-  var eqProps = require("./ast").eqProps;
-  var equals = require("./ast").equals;
-  var evolve = require("./ast").evolve;
-  var filter = require("./ast").filter;
-  var find = require("./ast").find;
-  var findIndex = require("./ast").findIndex;
-  var findLast = require("./ast").findLast;
-  var findLastIndex = require("./ast").findLastIndex;
-  var flatten = require("./ast").flatten;
-  var flip = require("./ast").flip;
-  var forEach = require("./ast").forEach;
-  var fromPairs = require("./ast").fromPairs;
-  var groupBy = require("./ast").groupBy;
-  var groupWith = require("./ast").groupWith;
-  var gt = require("./ast").gt;
-  var gte = require("./ast").gte;
-  var has = require("./ast").has;
-  var hasIn = require("./ast").hasIn;
-  var head = require("./ast").head;
-  var identical = require("./ast").identical;
-  var identity = require("./ast").identity;
-  var ifElse = require("./ast").ifElse;
-  var inc = require("./ast").inc;
-  var indexBy = require("./ast").indexBy;
-  var indexOf = require("./ast").indexOf;
-  var init = require("./ast").init;
-  var insert = require("./ast").insert;
-  var insertAll = require("./ast").insertAll;
-  var intersection = require("./ast").intersection;
-  var intersectionWith = require("./ast").intersectionWith;
-  var intersperse = require("./ast").intersperse;
-  var into = require("./ast").into;
-  var invert = require("./ast").invert;
-  var invertObj = require("./ast").invertObj;
-  var invoker = require("./ast").invoker;
-  var is = require("./ast").is;
-  var isArrayLike = require("./ast").isArrayLike;
-  var isEmpty = require("./ast").isEmpty;
-  var isNil = require("./ast").isNil;
-  var join = require("./ast").join;
-  var juxt = require("./ast").juxt;
-  var keys = require("./ast").keys;
-  var keysIn = require("./ast").keysIn;
-  var last = require("./ast").last;
-  var lastIndexOf = require("./ast").lastIndexOf;
-  var length = require("./ast").length;
-  var lens = require("./ast").lens;
-  var lensIndex = require("./ast").lensIndex;
-  var lensPath = require("./ast").lensPath;
-  var lensProp = require("./ast").lensProp;
-  var lift = require("./ast").lift;
-  var liftN = require("./ast").liftN;
-  var lt = require("./ast").lt;
-  var lte = require("./ast").lte;
-  var map = require("./ast").map;
-  var mapAccum = require("./ast").mapAccum;
-  var mapAccumRight = require("./ast").mapAccumRight;
-  var mapObjIndexed = require("./ast").mapObjIndexed;
-  var match = require("./ast").match;
-  var mathMod = require("./ast").mathMod;
-  var max = require("./ast").max;
-  var maxBy = require("./ast").maxBy;
-  var mean = require("./ast").mean;
-  var median = require("./ast").median;
-  var memoize = require("./ast").memoize;
-  var merge = require("./ast").merge;
-  var mergeAll = require("./ast").mergeAll;
-  var mergeWith = require("./ast").mergeWith;
-  var mergeWithKey = require("./ast").mergeWithKey;
-  var min = require("./ast").min;
-  var minBy = require("./ast").minBy;
-  var modulo = require("./ast").modulo;
-  var multiply = require("./ast").multiply;
-  var nAry = require("./ast").nAry;
-  var negate = require("./ast").negate;
-  var none = require("./ast").none;
-  var not = require("./ast").not;
-  var nth = require("./ast").nth;
-  var nthArg = require("./ast").nthArg;
-  var objOf = require("./ast").objOf;
-  var of = require("./ast").of;
-  var omit = require("./ast").omit;
-  var once = require("./ast").once;
-  var or = require("./ast").or;
-  var over = require("./ast").over;
-  var pair = require("./ast").pair;
-  var partial = require("./ast").partial;
-  var partialRight = require("./ast").partialRight;
-  var partition = require("./ast").partition;
-  var path = require("./ast").path;
-  var pathEq = require("./ast").pathEq;
-  var pathOr = require("./ast").pathOr;
-  var pathSatisfies = require("./ast").pathSatisfies;
-  var pick = require("./ast").pick;
-  var pickAll = require("./ast").pickAll;
-  var pickBy = require("./ast").pickBy;
-  var pipe = require("./ast").pipe;
-  var pipeK = require("./ast").pipeK;
-  var pipeP = require("./ast").pipeP;
-  var pluck = require("./ast").pluck;
-  var prepend = require("./ast").prepend;
-  var product = require("./ast").product;
-  var project = require("./ast").project;
-  var prop = require("./ast").prop;
-  var propEq = require("./ast").propEq;
-  var propIs = require("./ast").propIs;
-  var propOr = require("./ast").propOr;
-  var propSatisfies = require("./ast").propSatisfies;
-  var props = require("./ast").props;
-  var range = require("./ast").range;
-  var reduce = require("./ast").reduce;
-  var reduceBy = require("./ast").reduceBy;
-  var reduceRight = require("./ast").reduceRight;
-  var reduced = require("./ast").reduced;
-  var reject = require("./ast").reject;
-  var remove = require("./ast").remove;
-  var repeat = require("./ast").repeat;
-  var replace = require("./ast").replace;
-  var reverse = require("./ast").reverse;
-  var scan = require("./ast").scan;
-  var sequence = require("./ast").sequence;
-  var set = require("./ast").set;
-  var slice = require("./ast").slice;
-  var sort = require("./ast").sort;
-  var sortBy = require("./ast").sortBy;
-  var split = require("./ast").split;
-  var splitAt = require("./ast").splitAt;
-  var splitEvery = require("./ast").splitEvery;
-  var splitWhen = require("./ast").splitWhen;
-  var subtract = require("./ast").subtract;
-  var sum = require("./ast").sum;
-  var symmetricDifference = require("./ast").symmetricDifference;
-  var symmetricDifferenceWith = require("./ast").symmetricDifferenceWith;
-  var tail = require("./ast").tail;
-  var take = require("./ast").take;
-  var takeLast = require("./ast").takeLast;
-  var takeLastWhile = require("./ast").takeLastWhile;
-  var takeWhile = require("./ast").takeWhile;
-  var tap = require("./ast").tap;
-  var test = require("./ast").test;
-  var times = require("./ast").times;
-  var toLower = require("./ast").toLower;
-  var toPairs = require("./ast").toPairs;
-  var toPairsIn = require("./ast").toPairsIn;
-  var toString = require("./ast").toString;
-  var toUpper = require("./ast").toUpper;
-  var transduce = require("./ast").transduce;
-  var transpose = require("./ast").transpose;
-  var traverse = require("./ast").traverse;
-  var trim = require("./ast").trim;
-  var tryCatch = require("./ast").tryCatch;
-  var type = require("./ast").type;
-  var unapply = require("./ast").unapply;
-  var unary = require("./ast").unary;
-  var uncurryN = require("./ast").uncurryN;
-  var unfold = require("./ast").unfold;
-  var union = require("./ast").union;
-  var unionWith = require("./ast").unionWith;
-  var uniq = require("./ast").uniq;
-  var uniqBy = require("./ast").uniqBy;
-  var uniqWith = require("./ast").uniqWith;
-  var unless = require("./ast").unless;
-  var unnest = require("./ast").unnest;
-  var until = require("./ast").until;
-  var update = require("./ast").update;
-  var useWith = require("./ast").useWith;
-  var values = require("./ast").values;
-  var valuesIn = require("./ast").valuesIn;
-  var view = require("./ast").view;
-  var when = require("./ast").when;
-  var where = require("./ast").where;
-  var whereEq = require("./ast").whereEq;
-  var without = require("./ast").without;
-  var wrap = require("./ast").wrap;
-  var xprod = require("./ast").xprod;
-  var zip = require("./ast").zip;
-  var zipObj = require("./ast").zipObj;
-  var zipWith = require("./ast").zipWith;
+  var EthList = require("./ast").EthList;
+  var list = require("./ast").list;
+  var symbol = require("./ast").symbol;
+  var keyword = require("./ast").keyword;
+  var isList = require("./ast").isList;
+  var isArray = require("./ast").isArray;
+  var isObject = require("./ast").isObject;
+  var isSymbol = require("./ast").isSymbol;
+  var isKeyword = require("./ast").isKeyword;
+  var isString = require("./ast").isString;
+  var isNumber = require("./ast").isNumber;
+  var isBoolean = require("./ast").isBoolean;
+  var isNull = require("./ast").isNull;
+  var isUndefined = require("./ast").isUndefined;
+  var isUnquote = require("./ast").isUnquote;
+  var isUnquoteSplicing = require("./ast").isUnquoteSplicing;
+  var isQuote = require("./ast").isQuote;
+  var isQuasiQuote = require("./ast").isQuasiQuote;
+  var isSymbolList = require("./ast").isSymbolList;
+  var symbolName = require("./ast").symbolName;
+  var keywordName = require("./ast").keywordName;
+  var name = require("./ast").name;
   var F = require("./core").F;
   var T = require("./core").T;
   var __ = require("./core").__;
@@ -471,18 +264,21 @@ var __eth__installMacro = (__eth__installMacro || function () {
   var zip = require("./core").zip;
   var zipObj = require("./core").zipObj;
   var zipWith = require("./core").zipWith;
+  var print = require("./core").print;
+  var fromJson = require("./core").fromJson;
+  var toJson = require("./core").toJson;
   var R = require("ramda");
-  var eth = require("./eth-lang");
+  var ast = require("./ast");
   __eth__installMacro("quote", function (node) {
-  var L = eth.list;
-   var S = eth.symbol;
+  var L = ast.list;
+   var S = ast.symbol;
    function unquoteSplicingExpand(node) {
   return (function () {
-  if (eth.isSymbol(node)) {
+  if (ast.isSymbol(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isArray(node)) {
+  if (ast.isArray(node)) {
   return node;
   } else {
   return R.map(R.identity, node);
@@ -490,13 +286,13 @@ var __eth__installMacro = (__eth__installMacro || function () {
   }}.call(this));
   };
    function sequenceExpand(nodes) {
-  return eth.apply(L, eth.concat([S(".concat")], R.map(function (node) {
+  return R.apply(L, [S(".concat")].concat(R.map(function (node) {
   return (function () {
-  if (eth.isUnquote(node)) {
+  if (ast.isUnquote(node)) {
   return [R.nth(1, node)];
   } else {
   return (function () {
-  if (eth.isUnquoteSplicing(node)) {
+  if (ast.isUnquoteSplicing(node)) {
   return unquoteSplicingExpand(R.nth(1, node));
   } else {
   return [L(S("quote"), node)];
@@ -505,39 +301,39 @@ var __eth__installMacro = (__eth__installMacro || function () {
   }, nodes)));
   };
    return (function () {
-  if (eth.isSymbol(node)) {
+  if (ast.isSymbol(node)) {
   return L(S("quote"), node);
   } else {
   return (function () {
-  if (eth.isKeyword(node)) {
+  if (ast.isKeyword(node)) {
   return L(S("quote"), node);
   } else {
   return (function () {
-  if (eth.isString(node)) {
+  if (ast.isString(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isNumber(node)) {
+  if (ast.isNumber(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isBoolean(node)) {
+  if (ast.isBoolean(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isNull(node)) {
+  if (ast.isNull(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isUndefined(node)) {
+  if (ast.isUndefined(node)) {
   return node;
   } else {
   return (function () {
-  if (eth.isUnquote(node)) {
+  if (ast.isUnquote(node)) {
   return R.nth(1, node);
   } else {
   return (function () {
-  if (eth.isUnquoteSplicing(node)) {
+  if (ast.isUnquoteSplicing(node)) {
   return (function () {
    throw new Error("Illegal use of `~@` expression, can only be present in a list")}.call(this));
   } else {
@@ -546,21 +342,21 @@ var __eth__installMacro = (__eth__installMacro || function () {
   return node;
   } else {
   return (function () {
-  if (eth.isArray(node)) {
+  if (ast.isArray(node)) {
   return sequenceExpand(node);
   } else {
   return (function () {
-  if (eth.isObject(node)) {
+  if (ast.isObject(node)) {
   return R.mapObjIndexed(function (v) {
   return L(S("quote"), v);
   });
   } else {
   return (function () {
-  if (eth.isList(node)) {
+  if (ast.isList(node)) {
   return L(S("apply"), S("list"), sequenceExpand(node));
   } else {
   return (function () {
-   throw new Error(("Unhandled ast node type given to 'quote', got: " + eth.print(node)))}.call(this));
+   throw new Error(("Unhandled ast node type given to 'quote', got: " + ast.print(node)))}.call(this));
   }}.call(this));
   }}.call(this));
   }}.call(this));
@@ -576,9 +372,19 @@ var __eth__installMacro = (__eth__installMacro || function () {
   }}.call(this));
   });
   __eth__installMacro("quasi-quote", function (node) {
-  return eth.list(eth.symbol("quote"), node);
+  return ast.list(ast.symbol("quote"), node);
   });
   __eth__installMacro("defn", function (name, params) {
+  var body = Array.prototype.slice.call(arguments, 2);
+  return apply(list, ["﻿'def"].concat(["﻿'name"], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
+  });
+  __eth__installMacro("let", function (definitions) {
+  var body = Array.prototype.slice.call(arguments, 1);
+  return apply(list, ["﻿'do"].concat(map(function (d) {
+  return prepend("﻿'def", d);
+  }, definitions), body));
+  });
+  __eth__installMacro("package", function (name, params) {
   var body = Array.prototype.slice.call(arguments, 2);
   return apply(list, ["﻿'def"].concat(["﻿'name"], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
   })

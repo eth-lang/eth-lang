@@ -1,4 +1,4 @@
-<p align="center">
+<p align="center" style="text-align: center;">
   <img src="https://raw.githubusercontent.com/eth-lang/eth-lang/master/scripts/logo.png" alt="eth lang logo" />
   <h1>eth lang</h1>
   <i>A fun, experimental and simple lisp that compiles to JavaScript.</i>

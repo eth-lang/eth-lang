@@ -2,7 +2,6 @@
                       run new-run
                       assert-equal assert-throws)
 
-(import "./core" (..))
 (import "./promise" promise)
 
 ; reporting
@@ -15,10 +14,10 @@
 (def color-green "\x1b[32m")
 (def color-reset "\x1b[0m")
 
-(def print-test-error (e)
+(defn print-test-error (e)
   (print color-red "In test:" e.name "\n" color-reset e.error "\n"))
 
-(def report (name err)
+(defn report (name err)
   (if err
     (do
       (set failed-count (inc failed-count))
@@ -28,7 +27,7 @@
       (set passed-count (inc passed-count))
       (print color-green "✔" name color-reset))))
 
-(def report-summary ()
+(defn report-summary ()
   (print "")
   (if (> (len test-errors) 0)
     (do (for-each print-test-error test-errors) (print "\n"))
@@ -41,22 +40,22 @@
 
 ; scopes
 
-(def new-scope ()
+(defn new-scope ()
   {:test []
    :before []
    :after []
    :before-each []
    :after-each []})
 
-(def current-scope (new-scope))
+(defn current-scope (new-scope))
 
-(def new-run ()
+(defn new-run ()
   (set current-scope (new-scope)))
 
 
 ; running
 
-(def run-fn (report? test)
+(defn run-fn (report? test)
   (let ((p-result
           (try (fn () (let ((result (test.body)))
                         (if (if result (of-type? :function result.then) false)
@@ -74,18 +73,18 @@
               (string "error in before or after for '" test.name "': " err.message) err))))))
     (promise.then p-result success failure)))
 
-(def run-list (report? before-list after-list fn-list)
+(defn run-list (report? before-list after-list fn-list)
   (promise.then (promise.all (map (curry run-fn false) before-list))
     (fn () (promise.then (promise.all (map (curry run-fn report?) fn-list))
       (fn () (promise.all (map (curry run-fn false) after-list)))))))
 
 
-(def run-scope (scope)
+(defn run-scope (scope)
   (promise.then (run-list false [] [] scope.before)
     (fn () (promise.then (run-list true scope.before-each scope.after-each scope.test)
       (fn () (promise.then (run-list false [] [] scope.after)))))))
 
-(def run ()
+(defn run ()
   (print "Running" (len current-scope.test) "tests...\n")
   (promise.then (run-scope current-scope)
     (fn () (report-summary))))
@@ -93,24 +92,24 @@
 
 ; api
 
-(def append-to-scope-key (key value)
+(defn append-to-scope-key (key value)
   (set current-scope (update-in [key] (append value) current-scope)))
 
-(def test (name f) (append-to-scope-key :test {:name name :body f}))
-(def before (curry append-to-scope-key :before))
-(def after (curry append-to-scope-key :after))
-(def before-each (curry append-to-scope-key :before-each))
-(def after-each (curry append-to-scope-key :after-each))
+(defn test (name f) (append-to-scope-key :test {:name name :body f}))
+(defn before (curry append-to-scope-key :before))
+(defn after (curry append-to-scope-key :after))
+(defn before-each (curry append-to-scope-key :before-each))
+(defn after-each (curry append-to-scope-key :after-each))
 
 
 ; assertions
 
-(def assert-equal (a b)
+(defn assert-equal (a b)
   (if (!= (to-json a) (to-json b))
     (assert false (to-json a) " is not equal to " (to-json b))
     ()))
 
-(def assert-throws (f message)
+(defn assert-throws (f message)
   (let ((threw false))
     (try f (fn () (set threw true)))
     (if (! threw)
