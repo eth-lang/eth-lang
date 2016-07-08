@@ -614,10 +614,34 @@ function write(node) {
   throw new Error('write: unhandled ast node type: ' + print(node));
 }
 
+function indent(jsCode) {
+  var out = '';
+  var indentWidth = '';
+  for (var i = 0; i < jsCode.length; i++) {
+    if (jsCode[i] === '}') {
+      indentWidth = indentWidth.slice(0, -2);
+      out += '\n' + indentWidth;
+    }
+
+    out += jsCode[i];
+
+    if (jsCode[i] === '{') {
+      out += '\n' + indentWidth;
+      indentWidth += '  ';
+    }
+    if (jsCode[i] === ';') {
+      if (jsCode[i + 1] !== '}') {
+        out += '\n' + indentWidth;
+      }
+    }
+  }
+  return out;
+}
+
 // Write out transpiled JS code
 function ethWrite(ast) {
   ast = [].concat(ETH_CORE_IMPORTS_AST, ast);
-  return ast.map(write).join(';').replace(/;/g, ';\n  ').replace(/{/g, '{\n  ') + '\n';
+  return indent(ast.map(write).join(';'));
 }
 // }}}
 
