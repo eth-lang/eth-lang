@@ -26,8 +26,11 @@
   <div class="repl">
     <div class="repl__code">
       <label>eth source code</label>
-      <pre class="repl__code__code"><textarea id="ethCode">(print "Hello there!")
-(+ 5 3)</textarea></pre>
+      <pre class="repl__code__code"><textarea id="ethCode">; amazing!
+(defn add (... xs)
+  (reduce (fn (acc x) (+ acc x)) 0 xs))
+
+(add 1 2 3 4)</textarea></pre>
     </div>
 
     <div class="repl__output">

@@ -88,6 +88,8 @@ function assert(node, cond, message) {
 function unescapeString(str) {
   var escapes = {b: '\b', f: '\f', n: '\n', r: '\r', t: '\t'};
 
+  str = str.replace('\\"', "\"");
+
   return str.replace(/\\x([a-f0-9]{2})/i, function (_, hexAsciiCode) {
     // Handle "hex" 256 ascii codes
     return String.fromCharCode(parseInt(hexAsciiCode, 16));
@@ -106,8 +108,8 @@ function unescapeString(str) {
 }
 
 function escapeString(str) {
-  str = str.replace('"', '\\"');
   str = str.replace('\\', '\\\\');
+  str = str.replace('"', '\\"');
   str = str.replace('\b', '\\b');
   str = str.replace('\f', '\\f');
   str = str.replace('\n', '\\n');
@@ -164,6 +166,7 @@ function concat(l1, l2) {
 
 // tokenize {{{
 function tokenizeCode(x) {
+  x = x.replace(/;[^\n]+\n/g, '');
   x = x.replace(/'/g, ' \' ');
   x = x.replace(/`/g, ' ` ');
   x = x.replace(/~/g, ' ~ ');
@@ -195,9 +198,6 @@ function tokenizePart(x, i) {
 function tokenize(source) {
   // Replace exacped quote for later (so the don't interfer with the string split)
   source = source.replace('\\"', '!backquote!');
-
-  // String comments
-  source = source.replace(/;[^\n]+\n/g, '');
 
   // Split on '"' and parse strings, or expressions depending if we are within
   // quotes or not
@@ -643,19 +643,23 @@ function write(node) {
 function indent(jsCode) {
   var out = '';
   var indentWidth = '';
+  var inString = false;
   for (var i = 0; i < jsCode.length; i++) {
-    if (jsCode[i] === '}') {
+    if (jsCode[i] === '}' && !inString) {
       indentWidth = indentWidth.slice(0, -2);
       out += '\n' + indentWidth;
     }
 
     out += jsCode[i];
+    if (jsCode[i] === '"' && jsCode[i-1] !== '\\') {
+      inString = !inString;
+    }
 
-    if (jsCode[i] === '{') {
+    if (jsCode[i] === '{' && !inString) {
       indentWidth += '  ';
       out += '\n' + indentWidth;
     }
-    if (jsCode[i] === ';') {
+    if (jsCode[i] === ';' && !inString) {
       if (jsCode[i + 1] !== '}') {
         out += '\n' + indentWidth;
       }
