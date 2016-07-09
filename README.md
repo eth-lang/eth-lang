@@ -5,17 +5,6 @@
   <i>A fun, productive and simple lisp that compiles to JavaScript.</i>
 </p>
 <p align="center">
-  <a href="https://circleci.com/gh/eth-lang/eth-lang">
-    <img alt="circleci build status" src="https://img.shields.io/circleci/project/eth-lang/eth-lang/master.svg" />
-  </a>
-  <a href="https://www.npmjs.com/package/eth">
-    <img alt="npm version" src="https://img.shields.io/npm/v/eth.svg" />
-  </a>
-  <a href="https://github.com/eth-lang/eth-lang/blob/master/LICENSE">
-    <img alt="license" src="https://img.shields.io/npm/l/eth.svg" />
-  </a>
-</p>
-<p align="center">
   <a href="https://github.com/eth-lang/eth-lang#intro">intro</a>
   &nbsp;|&nbsp;
   <a href="https://github.com/eth-lang/eth-lang#running">running</a>
@@ -29,6 +18,17 @@
   <a href="https://github.com/eth-lang/eth-lang#using-eth-for-your-next-project">using eth for a project</a>
   &nbsp;|&nbsp;
   <a href="https://github.com/eth-lang/eth-lang#developing">developing</a>
+</p>
+<p align="center">
+  <a href="https://circleci.com/gh/eth-lang/eth-lang">
+    <img alt="circleci build status" src="https://img.shields.io/circleci/project/eth-lang/eth-lang/master.svg" />
+  </a>
+  <a href="https://www.npmjs.com/package/eth">
+    <img alt="npm version" src="https://img.shields.io/npm/v/eth.svg" />
+  </a>
+  <a href="https://github.com/eth-lang/eth-lang/blob/master/LICENSE">
+    <img alt="license" src="https://img.shields.io/npm/l/eth.svg" />
+  </a>
 </p>
 
 ## intro
@@ -133,13 +133,13 @@ Eth Usage:
 | **symbol** | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
 | **list** | `(a b c)` | `a(b, c)` | Lists denote function application when evaluated |
 | **array** | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in JavaScript except that the commas are omitted |
-| **object** | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in JavaScript except that the commas (`,`) and colons (`:`) are omitted |
+| **object** | `{a 1 :x 2}` | `{a: 1, 'x': 2}` | Object are the same as in JavaScript except that the commas (`,`) and colons (`:`) are omitted |
 
 ## special syntax
 
 | eth | js | description |
 |---|---|---|
-| `a.b` | `a.b` | Having dots in a symbol will translate to the equivalent in JavaScript, no need to use `(. :b a)` all over the place |
+| `a.b` | `a.b` | Having dots in a symbol will translate to the equivalent in JavaScript, no need to use `(get :b a)` all over the place |
 | `@` | `this` | The `@` symbol simply translates `this` |
 | `@prop` | `this.prop` | The `@` symbol followed by letter translate to getting a property of `this` |
 | `some-fn` | `someFn` | `-` is not a valid in JavaScript but often used in lisp so symbols containing them are camel cased instead |

@@ -451,8 +451,9 @@ installMacro('defmacro', function (name, params) {
 
 // write {{{
 function isValidCalee(node) {
-  return isSymbol(node) || (isQuote(node) && isSymbol(node[1]))
-    || (isList(node) && isSymbol(node[0]) && node[0] === symbol('get'))
+  return isSymbol(node)
+    || (isQuote(node) && isSymbol(node[1]))
+    || (isList(node) && isSymbol(node[0]) && node[0] === symbol('get'));
 }
 
 function writeBody(body) {
@@ -476,17 +477,17 @@ function writeList(node) {
   }
 
   // binary opreator
-  if (BINARY_OPERATORS[calee]) {
-    assert(node, node.length === 3, 'binary operator "' + BINARY_OPERATORS[calee]
+  if (isSymbol(node[0]) && BINARY_OPERATORS[symbolName(node[0])]) {
+    assert(node, node.length === 3, 'binary operator "' + BINARY_OPERATORS[symbolName(node[0])]
       + '" needs exactly 2 arguments, got: ' + print(node));
-    return '(' + [write(node[1]), BINARY_OPERATORS[calee], write(node[2])].join(' ') + ')';
+    return '(' + [write(node[1]), BINARY_OPERATORS[symbolName(node[0])], write(node[2])].join(' ') + ')';
   }
 
   // unary operator
-  if (UNARY_OPERATORS[calee]) {
-    assert(node, node.length === 2, 'unary operator "' + UNARY_OPERATORS[calee]
+  if (isSymbol(node[0]) && UNARY_OPERATORS[symbolName(node[0])]) {
+    assert(node, node.length === 2, 'unary operator "' + UNARY_OPERATORS[symbolName(node[0])]
       + '" needs exactly 1 arguments, got: ' + print(node));
-    return '(' + UNARY_OPERATORS[calee] + ' ' + write(node[1]) + ')';
+    return '(' + UNARY_OPERATORS[symbolName(node[0])] + ' ' + write(node[1]) + ')';
   }
 
   // get a[b]
@@ -537,8 +538,8 @@ function writeList(node) {
       params = params.slice(0, -2);
     }
 
-    return 'function ' + name + '(' + params.map(write).join(', ') + ') {'
-      + fnPrelude + writeBody(body) + '}';
+    return '(function ' + name + '(' + params.map(write).join(', ') + ') {'
+      + fnPrelude + writeBody(body) + '})';
   }
 
   // do/block
@@ -573,9 +574,15 @@ function writeList(node) {
     return '(function () {throw ' + write(node[1]) + '}.call(this))';
   }
 
-  // call
-  if (!isValidCalee(node[0])) {
-    throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
+  // try
+  if (calee === 'try') {
+    assert(node, node.length === 3, '"try" needs exactly 2 arguments (body, catch), got: ' + (node.length - 1));
+    return '(function () {try {return ' + write(list(node[1])) + ';} catch (e) {return ' + write(list(node[2], symbol('e'))) + ';}}.call(this))';
+  }
+
+  // function call
+  if (isList(node[0]) && isSymbol(node[0][0]) && node[0][0] === symbol('def')) {
+    throw new Error('lists need their first arguments to be a callable, got: ' + print(node[0]));
   }
   if (calee[0] === '.' && node.length >= 2) {
     // (.concat [1] 2 [3 4]) -> ((get :concat [1]) 2 [3 4])

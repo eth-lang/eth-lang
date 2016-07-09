@@ -6,17 +6,12 @@ all:
 	$(ETH)
 
 %.js: %.eth
-	$(ETH) -c $< >$@
-
-build-stdlib: testing.js
-	
-build-syntax:
-	$(ETH) -c syntax.eth \
+	$(ETH) -c $< \
 		| sed 's/require("eth\/ast")/require(".\/ast")/' \
 		| sed 's/require("eth\/core")/require(".\/core")/' \
-		>syntax.js
+		>$@
 
-build: build-stdlib build-syntax
+build: syntax.js testing.js
 
 test: build
 	./scripts/test.sh
@@ -29,8 +24,8 @@ clean:
 	rm -f tests/*.js
 
 clean-all: clean
+	rm -f syntax.js
 	rm -f testing.js
-	rm -f core.js
 
 compiler-repl:
 	node -e 'eth = require("./eth-lang");' -i

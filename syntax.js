@@ -5,9 +5,9 @@ var GLOBAL = (function () {
     return global;
   }
 }.call(this));
-var __eth__installMacro = (GLOBAL.__eth__installMacro || function () {
+var __eth__installMacro = (GLOBAL.__eth__installMacro || (function () {
   return (void 0);
-});
+}));
 var EthList = require("./ast").EthList;
 var list = require("./ast").list;
 var symbol = require("./ast").symbol;
@@ -265,15 +265,19 @@ var xprod = require("./core").xprod;
 var zip = require("./core").zip;
 var zipObj = require("./core").zipObj;
 var zipWith = require("./core").zipWith;
+var assert = require("./core").assert;
 var print = require("./core").print;
 var fromJson = require("./core").fromJson;
 var toJson = require("./core").toJson;
+var getIn = require("./core").getIn;
+var setIn = require("./core").setIn;
+var updateIn = require("./core").updateIn;
 var R = require("ramda");
 var ast = require("./ast");
-__eth__installMacro("quote", function (node) {
+__eth__installMacro("quote", (function (node) {
   var L = ast.list;
   var S = ast.symbol;
-  function unquoteSplicingExpand(node) {
+  var unquoteSplicingExpand = (function (node) {
     return (function () {
       if (ast.isSymbol(node)) {
         return node;
@@ -287,9 +291,9 @@ __eth__installMacro("quote", function (node) {
         }.call(this));
       }
     }.call(this));
-  };
-  function sequenceExpand(nodes) {
-    return R.apply(L, [S(".concat")].concat(R.map(function (node) {
+  });
+  var sequenceExpand = (function (nodes) {
+    return R.apply(L, [S(".concat")].concat(R.map((function (node) {
       return (function () {
         if (ast.isUnquote(node)) {
           return [R.nth(1, node)];
@@ -303,8 +307,8 @@ __eth__installMacro("quote", function (node) {
           }.call(this));
         }
       }.call(this));
-    }, nodes)));
-  };
+    }), nodes)));
+  });
   return (function () {
     if (ast.isSymbol(node)) {
       return L(S("quote"), node);
@@ -353,9 +357,9 @@ __eth__installMacro("quote", function (node) {
                                             } else {
                                               return (function () {
                                                 if (ast.isObject(node)) {
-                                                  return R.mapObjIndexed(function (v) {
+                                                  return R.mapObjIndexed((function (v) {
                                                     return L(S("quote"), v);
-                                                  });
+                                                  }));
                                                 } else {
                                                   return (function () {
                                                     if (ast.isList(node)) {
@@ -390,26 +394,26 @@ __eth__installMacro("quote", function (node) {
       }.call(this));
     }
   }.call(this));
-});
-__eth__installMacro("quasi-quote", function (node) {
+}));
+__eth__installMacro("quasi-quote", (function (node) {
   return ast.list(ast.symbol("quote"), node);
-});
-__eth__installMacro("defn", function (name, params) {
+}));
+__eth__installMacro("defn", (function (name, params) {
   var body = Array.prototype.slice.call(arguments, 2);
   return apply(list, ["﻿'def"].concat([name], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
-});
-__eth__installMacro("let", function (definitions) {
+}));
+__eth__installMacro("let", (function (definitions) {
   var body = Array.prototype.slice.call(arguments, 1);
-  return apply(list, ["﻿'do"].concat(map(function (d) {
+  return apply(list, ["﻿'do"].concat(map((function (d) {
     return prepend("﻿'def", d);
-  }, definitions), body));
-});
-__eth__installMacro("export", function (name, value) {
+  }), definitions), body));
+}));
+__eth__installMacro("export", (function (name, value) {
   return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([name], ["﻿'exports"]))], [value]));
-});
-__eth__installMacro("package", function (name, exports) {
+}));
+__eth__installMacro("package", (function (name, exports) {
   var body = Array.prototype.slice.call(arguments, 2);
-  return apply(list, ["﻿'do"].concat(body, map(function (e) {
+  return apply(list, ["﻿'do"].concat(body, map((function (e) {
     return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(e)], ["﻿'exports"]))], [e]));
-  }, exports), [apply(list, ["﻿'void"].concat([0]))]));
-})
+  }), exports), [apply(list, ["﻿'void"].concat([0]))]));
+}))

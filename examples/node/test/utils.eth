@@ -7,9 +7,9 @@
 (new-run)
 
 (test "utils: create-good-message: returns a string" (fn ()
-  (assert-equal :string (type (create-good-message)))))
+  (assert-equal :string (typeof (create-good-message)))))
 
 (test "utils: create-good-message: returns a good message" (fn ()
-  (assert (> (len (create-good-message)) 10) "message is good")))
+  (assert (> (length (create-good-message)) 10) "message is good")))
 
 (run))

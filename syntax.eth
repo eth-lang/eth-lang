@@ -11,23 +11,23 @@
   ; ~@a -> a
   ; ~@[a b c] -> [a b c]
   ; ~@(a b c) -> [a b c]
-  (fn unquote-splicing-expand (node)
+  (def unquote-splicing-expand (fn (node)
     (if (ast.symbol? node) node
     (if (ast.array? node)
       node
-      (R.map R.identity node))))
+      (R.map R.identity node)))))
 
   ; Takes a list/array and applies quoting to it, while honoring unquotes and unquote-splicings
   ; (unquote a) -> [a]
   ; (unquote-splicing a) -> a
   ; a -> [(quote a)]
-  (fn sequence-expand (nodes)
+  (def sequence-expand (fn (nodes)
       (R.apply L (.concat [(S ".concat")]
         (R.map (fn (node)
           (if (ast.unquote? node) [(R.nth 1 node)]
             (if (ast.unquote-splicing? node)
               (unquote-splicing-expand (R.nth 1 node))
-              [(L (S "quote") node)]))) nodes))))
+              [(L (S "quote") node)]))) nodes)))))
 
   (if (ast.symbol? node) (L (S "quote") node)
   (if (ast.keyword? node) (L (S "quote") node)
