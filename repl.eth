@@ -1,0 +1,36 @@
+(package repl ()
+
+(def eth window.eth)
+
+; mock a usable node.js/webpack environment
+
+(def debounce-delay 350)
+(def debounce-handle null)
+
+(defn set-content (id content)
+  (set (get :inner-text (document.get-element-by-id id)) content))
+
+(defn compile (value)
+  (try
+    (fn ()
+      (let ((ast (eth.read "repl" (+ ":__repl__start" value)))
+            (js-code (eth.write ast))
+            (relevant-js-code (.slice (get 1 (split "__repl__start" js-code)) 3)))
+        (set-content :eth-output-code relevant-js-code)
+        (set-content :eth-output-result (eval js-code))))
+    (fn (err)
+      (set-content :eth-output-code "")
+      (set-content :eth-output-result err.message))))
+
+(defn handle-change (e)
+  (if debounce-handle (clear-timeout debounce-handle))
+  (let ((run (fn ()
+               (set debounce-handle null)
+               (compile e.target.value))))
+    (set debounce-handle (set-timeout run  debounce-delay))))
+
+(set (get :onkeyup (document.get-element-by-id :eth-code)) handle-change)
+
+(compile (get :value (document.get-element-by-id :eth-code)))
+
+)
