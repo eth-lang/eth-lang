@@ -288,11 +288,12 @@ var updateIn = ethCore.updateIn;
       try {
         return (function () {
           return (function () {
-            var ast = eth.read("repl", (":__repl__start" + value));
+            var ast = eth.read("repl", (":__repl__start undefined " + value));
             var jsCode = eth.write(ast);
-            var relevantJsCode = split("__repl__start", jsCode)[1].slice(3);
-            setContent("ethOutputCode", relevantJsCode);
-            return setContent("ethOutputResult", eval(jsCode));
+            var skipN = length("\";\nundefined;");
+            var relevantJsCode = split("__repl__start", jsCode)[1].slice(skipN);
+            setContent("ethOutputCode", relevantJsCode.trim());
+            return setContent("ethOutputResult", toJson(eval(jsCode)));
           }.call(this));
         })();
       } catch (e) {
