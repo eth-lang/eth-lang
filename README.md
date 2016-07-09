@@ -1,10 +1,20 @@
-<p align="center" style="text-align: center;">
+<p align="center">
   <img src="https://raw.githubusercontent.com/eth-lang/eth-lang/master/scripts/logo.png" alt="eth lang logo" />
-  <h1>eth lang</h1>
-  <i>A fun, experimental and simple lisp that compiles to JavaScript.</i>
 </p>
-
-[![CircleCI Build Status](https://img.shields.io/circleci/project/kiasaki/eth-lang/master.svg)](https://circleci.com/gh/kiasaki/eth-lang)
+<p align="center">
+  <i>A fun, productive and simple lisp that compiles to JavaScript.</i>
+</p>
+<p align="center">
+  <a href="https://circleci.com/gh/kiasaki/eth-lang">
+    <img alt="circleci build status" src="https://img.shields.io/circleci/project/kiasaki/eth-lang/master.svg" />
+  </a>
+  <a href="https://www.npmjs.com/package/eth">
+    <img alt="npm version" src="https://img.shields.io/npm/v/eth.svg" />
+  </a>
+  <a href="https://github.com/eth-lang/eth-lang/blob/master/LICENSE">
+    <img alt="license" src="https://img.shields.io/npm/l/eth.svg" />
+  </a>
+</p>
 
 ## intro
 
