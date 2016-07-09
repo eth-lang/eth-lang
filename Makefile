@@ -40,7 +40,7 @@ clean-all: clean
 compiler-repl:
 	node -e 'eth = require("./eth");' -i
 
-push-website: build
+push-website:
 	git subtree push --prefix website/ origin gh-pages
 
 .PHONY: all build build-stdlib build-tests build-syntax test clean compiler-repl push-website
