@@ -290,9 +290,7 @@ var updateIn = ethCore.updateIn;
           return (function () {
             var ast = eth.read("repl", (":__repl__start" + value));
             var jsCode = eth.write(ast);
-            var _ = print(split("__repl__start", jsCode));
             var relevantJsCode = split("__repl__start", jsCode)[1].slice(3);
-            print(jsCode);
             setContent("ethOutputCode", relevantJsCode);
             return setContent("ethOutputResult", eval(jsCode));
           }.call(this));
