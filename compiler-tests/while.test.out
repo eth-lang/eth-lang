@@ -1,8 +1,0 @@
-(function() { var __eth__result; while (true) {
-  __eth__result = doSomething();
-} return __eth__result; })();
-(function() { var __eth__result; while ((i < 5)) {
-  show(5);
-  __eth__result = i = (i + 1);
-} return __eth__result; })();
-

@@ -252,18 +252,19 @@ function read() {
   // object {}
   if (readerTokens[readerIndex] === '{') {
     node = {};
-    var lastKey;
+    var lastKey = null;
     readList('object', '}', function(childNode) {
-      if (((readerIndex - startIndex) % 2) === 0) {
+      if (lastKey === null) {
         // keep key
         lastKey = childNode;
       } else {
         // set value to key
         node[lastKey] = childNode;
+        lastKey = null;
       }
     });
-    if (((readerIndex - startIndex) % 2) !== 0) {
-      throw readerError(readerTokens, startIndex, "object literal given an un even amount of keys and values starting at:");
+    if (lastKey !== null) {
+      throw readerError(readerTokens, startIndex, "object literal given an un even amount of keys and values starting at: ");
     }
     return node;
   }
@@ -439,12 +440,17 @@ installMacro('defmacro', function (name, params) {
 // }}}
 
 // write {{{
+function isValidCalee(node) {
+  return isSymbol(node) || (isQuote(node) && isSymbol(node[1]))
+    || (isList(node) && isSymbol(node[0]) && node[0] === symbol('get'))
+}
+
 function writeBody(body) {
   if (body.length === 0) {
     return 'return (void 0);';
   }
-  return body.slice(0, -1).map(write).join('; ')
-    + (body.length > 1 ? '; ' : '') + 'return '
+  return body.slice(0, -1).map(write).join(';')
+    + (body.length > 1 ? ';' : '') + 'return '
     + write(body[body.length - 1]) + ';';
 }
 
@@ -490,13 +496,13 @@ function writeList(node) {
       assert(node, isSymbol(node[i]), '"def" needs it\'s name arguments to be symbols, got: ' + print(node[i]));
       assignments.push(write(node[i]) + ' = ' + write(node[i+1]));
     }
-    return 'var ' + assignments.join(',\n    ');
+    return 'var ' + assignments.join(',');
   }
 
   // set/=
   if (calee === 'set') {
     assert(node, node.length === 3, '"set" needs exactly 2 arguments (name, value), got: ' + (node.length - 1));
-    assert(node, isSymbol(node[1]), '"set" needs it\'s first argument to be a symbol, got: ' + print(node[1]));
+    assert(node, isValidCalee(node[1]), '"set" needs it\'s first argument to be assignable, got: ' + print(node[1]));
     return write(node[1]) + ' = ' + write(node[2]);
   }
 
@@ -554,13 +560,11 @@ function writeList(node) {
   // throw
   if (calee === 'throw') {
     assert(node, node.length === 2, '"throw" needs exactly 1 arguments (error), got: ' + (node.length - 1));
-    return '(function () { throw ' + write(node[1]) + '}.call(this))';
+    return '(function () {throw ' + write(node[1]) + '}.call(this))';
   }
 
   // call
-  var isValidCalee = isSymbol(node[0]) || (isQuote(node[0]) && isSymbol(node[0][1]))
-    || (isList(node[0]) && isSymbol(node[0][0]) && node[0][0] === symbol('get'));
-  if (!isValidCalee) {
+  if (!isValidCalee(node[0])) {
     throw new Error('lists need their first arguments to be a symbol, got: ' + print(node[0]));
   }
   if (calee[0] === '.' && node.length >= 2) {
@@ -626,8 +630,8 @@ function indent(jsCode) {
     out += jsCode[i];
 
     if (jsCode[i] === '{') {
-      out += '\n' + indentWidth;
       indentWidth += '  ';
+      out += '\n' + indentWidth;
     }
     if (jsCode[i] === ';') {
       if (jsCode[i + 1] !== '}') {

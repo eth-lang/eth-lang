@@ -1,5 +1,0 @@
-; vim: set ft=eth:
-
-(while true (do-something))
-
-(while (< i 5) (show 5) (set i (+ i 1)))

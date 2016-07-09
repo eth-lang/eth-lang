@@ -1,12 +1,12 @@
 var GLOBAL = (function () {
-if (((typeof window) !== "undefined")) {
-  return window;
+  if (((typeof window) !== "undefined")) {
+    return window;
   } else {
-  return global;
+    return global;
   }
 }.call(this));
 var __eth__installMacro = (GLOBAL.__eth__installMacro || function () {
-return (void 0);
+  return (void 0);
 });
 var EthList = require("./ast").EthList;
 var list = require("./ast").list;
@@ -271,98 +271,98 @@ var toJson = require("./core").toJson;
 var R = require("ramda");
 var ast = require("./ast");
 __eth__installMacro("quote", function (node) {
-var L = ast.list;
-   var S = ast.symbol;
-   function unquoteSplicingExpand(node) {
-  return (function () {
-    if (ast.isSymbol(node)) {
-      return node;
+  var L = ast.list;
+  var S = ast.symbol;
+  function unquoteSplicingExpand(node) {
+    return (function () {
+      if (ast.isSymbol(node)) {
+        return node;
       } else {
-      return (function () {
-        if (ast.isArray(node)) {
-          return node;
+        return (function () {
+          if (ast.isArray(node)) {
+            return node;
           } else {
-          return R.map(R.identity, node);
+            return R.map(R.identity, node);
           }
         }.call(this));
       }
     }.call(this));
   };
-   function sequenceExpand(nodes) {
-  return R.apply(L, [S(".concat")].concat(R.map(function (node) {
-    return (function () {
-      if (ast.isUnquote(node)) {
-        return [R.nth(1, node)];
+  function sequenceExpand(nodes) {
+    return R.apply(L, [S(".concat")].concat(R.map(function (node) {
+      return (function () {
+        if (ast.isUnquote(node)) {
+          return [R.nth(1, node)];
         } else {
-        return (function () {
-          if (ast.isUnquoteSplicing(node)) {
-            return unquoteSplicingExpand(R.nth(1, node));
+          return (function () {
+            if (ast.isUnquoteSplicing(node)) {
+              return unquoteSplicingExpand(R.nth(1, node));
             } else {
-            return [L(S("quote"), node)];
+              return [L(S("quote"), node)];
             }
           }.call(this));
         }
       }.call(this));
     }, nodes)));
   };
-   return (function () {
-  if (ast.isSymbol(node)) {
-    return L(S("quote"), node);
+  return (function () {
+    if (ast.isSymbol(node)) {
+      return L(S("quote"), node);
     } else {
-    return (function () {
-      if (ast.isKeyword(node)) {
-        return L(S("quote"), node);
+      return (function () {
+        if (ast.isKeyword(node)) {
+          return L(S("quote"), node);
         } else {
-        return (function () {
-          if (ast.isString(node)) {
-            return node;
+          return (function () {
+            if (ast.isString(node)) {
+              return node;
             } else {
-            return (function () {
-              if (ast.isNumber(node)) {
-                return node;
+              return (function () {
+                if (ast.isNumber(node)) {
+                  return node;
                 } else {
-                return (function () {
-                  if (ast.isBoolean(node)) {
-                    return node;
+                  return (function () {
+                    if (ast.isBoolean(node)) {
+                      return node;
                     } else {
-                    return (function () {
-                      if (ast.isNull(node)) {
-                        return node;
+                      return (function () {
+                        if (ast.isNull(node)) {
+                          return node;
                         } else {
-                        return (function () {
-                          if (ast.isUndefined(node)) {
-                            return node;
+                          return (function () {
+                            if (ast.isUndefined(node)) {
+                              return node;
                             } else {
-                            return (function () {
-                              if (ast.isUnquote(node)) {
-                                return R.nth(1, node);
+                              return (function () {
+                                if (ast.isUnquote(node)) {
+                                  return R.nth(1, node);
                                 } else {
-                                return (function () {
-                                  if (ast.isUnquoteSplicing(node)) {
-                                    return (function () {
-                                       throw new Error("Illegal use of `~@` expression, can only be present in a list")
+                                  return (function () {
+                                    if (ast.isUnquoteSplicing(node)) {
+                                      return (function () {
+                                        throw new Error("Illegal use of `~@` expression, can only be present in a list")
                                       }.call(this));
                                     } else {
-                                    return (function () {
-                                      if (R.isEmpty(node)) {
-                                        return node;
+                                      return (function () {
+                                        if (R.isEmpty(node)) {
+                                          return node;
                                         } else {
-                                        return (function () {
-                                          if (ast.isArray(node)) {
-                                            return sequenceExpand(node);
+                                          return (function () {
+                                            if (ast.isArray(node)) {
+                                              return sequenceExpand(node);
                                             } else {
-                                            return (function () {
-                                              if (ast.isObject(node)) {
-                                                return R.mapObjIndexed(function (v) {
-                                                  return L(S("quote"), v);
+                                              return (function () {
+                                                if (ast.isObject(node)) {
+                                                  return R.mapObjIndexed(function (v) {
+                                                    return L(S("quote"), v);
                                                   });
                                                 } else {
-                                                return (function () {
-                                                  if (ast.isList(node)) {
-                                                    return L(S("apply"), S("list"), sequenceExpand(node));
+                                                  return (function () {
+                                                    if (ast.isList(node)) {
+                                                      return L(S("apply"), S("list"), sequenceExpand(node));
                                                     } else {
-                                                    return (function () {
-                                                       throw new Error(("Unhandled ast node type given to 'quote', got: " + ast.print(node)))
+                                                      return (function () {
+                                                        throw new Error(("Unhandled ast node type given to 'quote', got: " + ast.print(node)))
                                                       }.call(this));
                                                     }
                                                   }.call(this));
@@ -392,19 +392,24 @@ var L = ast.list;
   }.call(this));
 });
 __eth__installMacro("quasi-quote", function (node) {
-return ast.list(ast.symbol("quote"), node);
+  return ast.list(ast.symbol("quote"), node);
 });
 __eth__installMacro("defn", function (name, params) {
-var body = Array.prototype.slice.call(arguments, 2);
-  return apply(list, ["﻿'def"].concat(["﻿'name"], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
+  var body = Array.prototype.slice.call(arguments, 2);
+  return apply(list, ["﻿'def"].concat([name], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
 });
 __eth__installMacro("let", function (definitions) {
-var body = Array.prototype.slice.call(arguments, 1);
+  var body = Array.prototype.slice.call(arguments, 1);
   return apply(list, ["﻿'do"].concat(map(function (d) {
-  return prepend("﻿'def", d);
+    return prepend("﻿'def", d);
   }, definitions), body));
 });
-__eth__installMacro("package", function (name, params) {
-var body = Array.prototype.slice.call(arguments, 2);
-  return apply(list, ["﻿'def"].concat(["﻿'name"], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
+__eth__installMacro("export", function (name, value) {
+  return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([name], ["﻿'exports"]))], [value]));
+});
+__eth__installMacro("package", function (name, exports) {
+  var body = Array.prototype.slice.call(arguments, 2);
+  return apply(list, ["﻿'do"].concat(body, map(function (e) {
+    return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(e)], ["﻿'exports"]))], [e]));
+  }, exports), [apply(list, ["﻿'void"].concat([0]))]));
 })

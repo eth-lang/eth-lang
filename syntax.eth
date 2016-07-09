@@ -51,12 +51,14 @@
   (ast.list (ast.symbol "quote") node))
 
 (defmacro defn (name params ... body)
-  `(def name (fn ~name ~params ~@body)))
+  `(def ~name (fn ~name ~params ~@body)))
 
 (defmacro let (definitions ... body)
   `(do ~@(map (fn (d) (prepend 'def d)) definitions) ~@body))
 
-(defmacro package (name params ... body)
-  ; WIP
-  `(def name (fn ~name ~params ~@body)))
+(defmacro export (name value)
+  `(set (get ~name exports) ~value))
+
+(defmacro package (name exports ... body)
+  `(do ~@body ~@(map (fn (e) `(export ~(keyword e) ~e)) exports) (void 0)))
 

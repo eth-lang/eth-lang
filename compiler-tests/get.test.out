@@ -1,7 +1,0 @@
-console.log("asd");
-console.log("asd");
-fnName = "asd";
-obj[fnName](123);
-obj["asd"](123);
-arr[0];
-

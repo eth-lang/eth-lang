@@ -1,3 +1,0 @@
-(export "asd" 1)
-(export asd-asd 1)
-(export :asd-asd 1)

@@ -11,10 +11,16 @@ function list() {
 }
 
 function symbol(name) {
+  if (isKeyword(name)) {
+    name = keywordName(name);
+  }
   return '\uFEFF\'' + name;
 }
 
 function keyword(name) {
+  if (isSymbol(name)) {
+    name = symbolName(name);
+  }
   return '\uA789' + name;
 }
 

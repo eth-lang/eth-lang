@@ -10,7 +10,7 @@ all:
 
 build-stdlib: testing.js
 	
-build-tests: tests/core.js
+build-tests:
 
 build-syntax:
 	$(ETH) -c syntax.eth \

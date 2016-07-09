@@ -96,10 +96,10 @@
   (set current-scope (update-in [key] (append value) current-scope)))
 
 (defn test (name f) (append-to-scope-key :test {:name name :body f}))
-(defn before (curry append-to-scope-key :before))
-(defn after (curry append-to-scope-key :after))
-(defn before-each (curry append-to-scope-key :before-each))
-(defn after-each (curry append-to-scope-key :after-each))
+(def before (curry append-to-scope-key :before))
+(def after (curry append-to-scope-key :after))
+(def before-each (curry append-to-scope-key :before-each))
+(def after-each (curry append-to-scope-key :after-each))
 
 
 ; assertions
