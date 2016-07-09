@@ -1,4 +1,3 @@
-(import ramda R)
 (import "./ast" ast)
 
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
@@ -15,18 +14,18 @@
     (if (ast.symbol? node) node
     (if (ast.array? node)
       node
-      (R.map R.identity node)))))
+      (map identity node)))))
 
   ; Takes a list/array and applies quoting to it, while honoring unquotes and unquote-splicings
   ; (unquote a) -> [a]
   ; (unquote-splicing a) -> a
   ; a -> [(quote a)]
   (def sequence-expand (fn (nodes)
-      (R.apply L (.concat [(S ".concat")]
-        (R.map (fn (node)
-          (if (ast.unquote? node) [(R.nth 1 node)]
+      (apply L (.concat [(S ".concat")]
+        (map (fn (node)
+          (if (ast.unquote? node) [(nth 1 node)]
             (if (ast.unquote-splicing? node)
-              (unquote-splicing-expand (R.nth 1 node))
+              (unquote-splicing-expand (nth 1 node))
               [(L (S "quote") node)]))) nodes)))))
 
   (if (ast.symbol? node) (L (S "quote") node)
@@ -36,12 +35,12 @@
   (if (ast.boolean? node) node
   (if (ast.null? node) node
   (if (ast.undefined? node) node
-  (if (ast.unquote? node) (R.nth 1 node)
+  (if (ast.unquote? node) (nth 1 node)
   (if (ast.unquote-splicing? node)
     (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
-  (if (R.empty? node) node
+  (if (empty? node) node
   (if (ast.array? node) (sequence-expand node)
-  (if (ast.object? node) (R.mapObjIndexed (fn (v) (L (S "quote") v)))
+  (if (ast.object? node) (mapObjIndexed (fn (v) (L (S "quote") v)))
   (if (ast.list? node) (L (S "apply") (S "list") (sequence-expand node))
   (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (ast.print node))))
   ))))))))))))))
@@ -57,8 +56,16 @@
   `(do ~@(map (fn (d) (prepend 'def d)) definitions) ~@body))
 
 (defmacro export (name value)
-  `(set (get ~name exports) ~value))
+  `(set (get ~name __eth__module) ~value))
 
 (defmacro package (name exports ... body)
-  `(do ~@body ~@(map (fn (e) `(export ~(keyword e) ~e)) exports) (void 0)))
+  `(do
+    (def __eth__module {})
+    ~@body
+    ~@(map (fn (e) `(export ~(keyword e) ~e)) exports)
+    (if (!= (typeof module) "undefined")
+      (set (get :exports module) __eth__module))
+    (if (!= (typeof window) "undefined")
+      (set (get ~(keyword name) window) __eth__module))
+    (void 0)))
 

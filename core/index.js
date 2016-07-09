@@ -89,4 +89,9 @@ core.map = core.curryN(2, function(f, xs) {
   return result;
 });
 
-module.exports = core;
+if (module && module.exports) {
+  module.exports = core;
+}
+if (typeof window !== 'undefined') {
+  window['eth/core'] = core;
+}

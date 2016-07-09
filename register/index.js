@@ -1,5 +1,5 @@
 var readFileSync = require('fs').readFileSync;
-var eth = require('../eth-lang');
+var eth = require('../eth');
 
 var compilePath = function(path) {
   var source = readFileSync(path, 'utf8');

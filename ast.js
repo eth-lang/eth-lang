@@ -89,7 +89,7 @@ function name(v) {
   throw new Error('name: unhandle name type, got:' + v);
 }
 
-module.exports = {
+var __eth__module = {
   EthList: EthList,
   list: list,
   symbol: symbol,
@@ -113,3 +113,10 @@ module.exports = {
   keywordName: keywordName,
   name: name,
 };
+
+if (module && module.exports) {
+  module.exports = __eth__module;
+}
+if (typeof window !== 'undefined') {
+  window['eth/ast'] = __eth__module;
+}

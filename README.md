@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/eth-lang/eth-lang/master/scripts/logo.png" alt="eth lang logo" />
+  <img src="https://raw.githubusercontent.com/eth-lang/eth-lang/master/website/logo.png" alt="eth lang logo" />
 </p>
 <p align="center">
   <i>A fun, productive and simple lisp that compiles to JavaScript.</i>
@@ -40,8 +40,9 @@ and ecosystem but within the lisp syntax you've come to love. Most things you ca
 in JavaScript directly translate to `eth`.
 
 The Lisp syntax being more expressive than JavaScript aided by a few more concepts like
-everything being an expression, **currying** and **function composition** it becomes easy to get
-all of the goodies ES6 packs and more.
+everything being an expression, <strong>currying</strong>, <strong>function composition</strong>
+and a <strong>good standard library</strong> <code>eth</strong> becomes a very attractive
+alternative to the shiny feature bloated ES6 and it friend Babel.
 
 As `eth` is a lisp, it has this property called [homoiconicity](https://en.wikipedia.org/wiki/Homoiconicity)
 that basically means it's syntax is closely related to it's program's structure. This makes
@@ -407,7 +408,7 @@ commiting changes and have a line that looks like `"main": "build/index.js"` in 
 
 ## developing
 
-**The compiler** for the language is all in `eth-lang.js` and is still way under 1000 lines.
+**The compiler** for the language is all in `eth.js` and is still way under 1000 lines.
 
 **The repl/cli tool** is implemented in `bin/eth`.
 

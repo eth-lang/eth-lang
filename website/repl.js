@@ -8,29 +8,29 @@ var GLOBAL = (function () {
 var __eth__installMacro = (GLOBAL.__eth__installMacro || (function () {
   return (void 0);
 }));
-var EthList = require("./ast").EthList;
-var list = require("./ast").list;
-var symbol = require("./ast").symbol;
-var keyword = require("./ast").keyword;
-var isList = require("./ast").isList;
-var isArray = require("./ast").isArray;
-var isObject = require("./ast").isObject;
-var isSymbol = require("./ast").isSymbol;
-var isKeyword = require("./ast").isKeyword;
-var isString = require("./ast").isString;
-var isNumber = require("./ast").isNumber;
-var isBoolean = require("./ast").isBoolean;
-var isNull = require("./ast").isNull;
-var isUndefined = require("./ast").isUndefined;
-var isUnquote = require("./ast").isUnquote;
-var isUnquoteSplicing = require("./ast").isUnquoteSplicing;
-var isQuote = require("./ast").isQuote;
-var isQuasiQuote = require("./ast").isQuasiQuote;
-var isSymbolList = require("./ast").isSymbolList;
-var symbolName = require("./ast").symbolName;
-var keywordName = require("./ast").keywordName;
-var name = require("./ast").name;
-var ethCore = require("./core");
+var EthList = require("eth/ast").EthList;
+var list = require("eth/ast").list;
+var symbol = require("eth/ast").symbol;
+var keyword = require("eth/ast").keyword;
+var isList = require("eth/ast").isList;
+var isArray = require("eth/ast").isArray;
+var isObject = require("eth/ast").isObject;
+var isSymbol = require("eth/ast").isSymbol;
+var isKeyword = require("eth/ast").isKeyword;
+var isString = require("eth/ast").isString;
+var isNumber = require("eth/ast").isNumber;
+var isBoolean = require("eth/ast").isBoolean;
+var isNull = require("eth/ast").isNull;
+var isUndefined = require("eth/ast").isUndefined;
+var isUnquote = require("eth/ast").isUnquote;
+var isUnquoteSplicing = require("eth/ast").isUnquoteSplicing;
+var isQuote = require("eth/ast").isQuote;
+var isQuasiQuote = require("eth/ast").isQuasiQuote;
+var isSymbolList = require("eth/ast").isSymbolList;
+var symbolName = require("eth/ast").symbolName;
+var keywordName = require("eth/ast").keywordName;
+var name = require("eth/ast").name;
+var ethCore = require("eth/core");
 var F = ethCore.F;
 var T = ethCore.T;
 var __ = ethCore.__;
@@ -273,149 +273,69 @@ var toJson = ethCore.toJson;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
-var ast = require("./ast");
-__eth__installMacro("quote", (function (node) {
-  var L = ast.list;
-  var S = ast.symbol;
-  var unquoteSplicingExpand = (function (node) {
+(function () {
+  var __eth__module = {
+    
+  };
+  var eth = window.eth;
+  var debounceDelay = 350;
+  var debounceHandle = null;
+  var setContent = (function setContent(id, content) {
+    return document.getElementById(id).innerText = content;
+  });
+  var compile = (function compile(value) {
     return (function () {
-      if (ast.isSymbol(node)) {
-        return node;
-      } else {
+      try {
         return (function () {
-          if (ast.isArray(node)) {
-            return node;
-          } else {
-            return map(identity, node);
-          }
-        }.call(this));
+          return (function () {
+            var ast = eth.read("repl", (":__repl__start" + value));
+            var jsCode = eth.write(ast);
+            var _ = print(split("__repl__start", jsCode));
+            var relevantJsCode = split("__repl__start", jsCode)[1].slice(3);
+            print(jsCode);
+            setContent("ethOutputCode", relevantJsCode);
+            return setContent("ethOutputResult", eval(jsCode));
+          }.call(this));
+        })();
+      } catch (e) {
+        return (function (err) {
+          setContent("ethOutputCode", "");
+          return setContent("ethOutputResult", err.message);
+        })(e);
       }
     }.call(this));
   });
-  var sequenceExpand = (function (nodes) {
-    return apply(L, [S(".concat")].concat(map((function (node) {
-      return (function () {
-        if (ast.isUnquote(node)) {
-          return [nth(1, node)];
-        } else {
-          return (function () {
-            if (ast.isUnquoteSplicing(node)) {
-              return unquoteSplicingExpand(nth(1, node));
-            } else {
-              return [L(S("quote"), node)];
-            }
-          }.call(this));
-        }
-      }.call(this));
-    }), nodes)));
+  var handleChange = (function handleChange(e) {
+    (function () {
+      if (debounceHandle) {
+        return clearTimeout(debounceHandle);
+      } else {
+        return (void 0);
+      }
+    }.call(this));
+    return (function () {
+      var run = (function () {
+        debounceHandle = null;
+        return compile(e.target.value);
+      });
+      return debounceHandle = setTimeout(run, debounceDelay);
+    }.call(this));
   });
-  return (function () {
-    if (ast.isSymbol(node)) {
-      return L(S("quote"), node);
+  document.getElementById("ethCode").onkeyup = handleChange;
+  compile(document.getElementById("ethCode").value);
+  (function () {
+    if (((typeof module) !== "undefined")) {
+      return module.exports = __eth__module;
     } else {
-      return (function () {
-        if (ast.isKeyword(node)) {
-          return L(S("quote"), node);
-        } else {
-          return (function () {
-            if (ast.isString(node)) {
-              return node;
-            } else {
-              return (function () {
-                if (ast.isNumber(node)) {
-                  return node;
-                } else {
-                  return (function () {
-                    if (ast.isBoolean(node)) {
-                      return node;
-                    } else {
-                      return (function () {
-                        if (ast.isNull(node)) {
-                          return node;
-                        } else {
-                          return (function () {
-                            if (ast.isUndefined(node)) {
-                              return node;
-                            } else {
-                              return (function () {
-                                if (ast.isUnquote(node)) {
-                                  return nth(1, node);
-                                } else {
-                                  return (function () {
-                                    if (ast.isUnquoteSplicing(node)) {
-                                      return (function () {
-                                        throw new Error("Illegal use of `~@` expression, can only be present in a list")
-                                      }.call(this));
-                                    } else {
-                                      return (function () {
-                                        if (isEmpty(node)) {
-                                          return node;
-                                        } else {
-                                          return (function () {
-                                            if (ast.isArray(node)) {
-                                              return sequenceExpand(node);
-                                            } else {
-                                              return (function () {
-                                                if (ast.isObject(node)) {
-                                                  return mapObjIndexed((function (v) {
-                                                    return L(S("quote"), v);
-                                                  }));
-                                                } else {
-                                                  return (function () {
-                                                    if (ast.isList(node)) {
-                                                      return L(S("apply"), S("list"), sequenceExpand(node));
-                                                    } else {
-                                                      return (function () {
-                                                        throw new Error(("Unhandled ast node type given to 'quote', got: " + ast.print(node)))
-                                                      }.call(this));
-                                                    }
-                                                  }.call(this));
-                                                }
-                                              }.call(this));
-                                            }
-                                          }.call(this));
-                                        }
-                                      }.call(this));
-                                    }
-                                  }.call(this));
-                                }
-                              }.call(this));
-                            }
-                          }.call(this));
-                        }
-                      }.call(this));
-                    }
-                  }.call(this));
-                }
-              }.call(this));
-            }
-          }.call(this));
-        }
-      }.call(this));
+      return (void 0);
     }
   }.call(this));
-}));
-__eth__installMacro("quasi-quote", (function (node) {
-  return ast.list(ast.symbol("quote"), node);
-}));
-__eth__installMacro("defn", (function (name, params) {
-  var body = Array.prototype.slice.call(arguments, 2);
-  return apply(list, ["﻿'def"].concat([name], [apply(list, ["﻿'fn"].concat([name], [params], body))]));
-}));
-__eth__installMacro("let", (function (definitions) {
-  var body = Array.prototype.slice.call(arguments, 1);
-  return apply(list, ["﻿'do"].concat(map((function (d) {
-    return prepend("﻿'def", d);
-  }), definitions), body));
-}));
-__eth__installMacro("export", (function (name, value) {
-  return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([name], ["﻿'__eth__module"]))], [value]));
-}));
-__eth__installMacro("package", (function (name, exports) {
-  var body = Array.prototype.slice.call(arguments, 2);
-  return apply(list, ["﻿'do"].concat([apply(list, ["﻿'def"].concat(["﻿'__eth__module"], [{
-    
-  }]))], body, map((function (e) {
-    return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(e)], ["﻿'__eth__module"]))], [e]));
-  }), exports), [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'module"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat(["꞉exports"], ["﻿'module"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'window"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(name)], ["﻿'window"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'void"].concat([0]))]));
-}))
+  (function () {
+    if (((typeof window) !== "undefined")) {
+      return window.repl = __eth__module;
+    } else {
+      return (void 0);
+    }
+  }.call(this));
+  return (void 0);
+}.call(this))

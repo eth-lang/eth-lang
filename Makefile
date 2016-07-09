@@ -1,5 +1,6 @@
 ETH := ./bin/eth
 WATCH := ./node_modules/.bin/watch
+WEBPACK := ./node_modules/.bin/webpack
 NODE := node
 
 all:
@@ -17,7 +18,11 @@ testing/index.js: testing/index.eth
 		| sed 's/require("eth\/core")/require("..\/core")/' \
 		>$@
 
-build: syntax.js testing/index.js
+build-repl:
+	eth -c website/repl.eth >website/repl.js
+
+build: syntax.js testing/index.js build-repl
+	$(WEBPACK) -p
 
 test: build
 	# $(NODE) tests/core.js
@@ -33,6 +38,9 @@ clean-all: clean
 	rm -f testing/index.js
 
 compiler-repl:
-	node -e 'eth = require("./eth-lang");' -i
+	node -e 'eth = require("./eth");' -i
 
-.PHONY: all build build-stdlib build-tests build-syntax test clean compiler-repl
+push-website: build
+	git subtree push --prefix website/ origin gh-pages
+
+.PHONY: all build build-stdlib build-tests build-syntax test clean compiler-repl push-website

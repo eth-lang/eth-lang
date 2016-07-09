@@ -34,13 +34,18 @@ var MACRO_SYNTAX = {
 var READER_EOF = '__eth__reader__eof';
 
 var GLOBAL = typeof window !== 'undefined' ? window : global;
+
 GLOBAL.__eth__macros = GLOBAL.__eth__macros || {};
 GLOBAL.__eth__installMacro = installMacro;
-var COMPILER_CONTEXT = require('vm').createContext({
-  require: require,
-  global: GLOBAL,
-  __eth__installMacro: GLOBAL.__eth__installMacro
-});
+
+var COMPILER_CONTEXT;
+if (typeof window === 'undefined') {
+  COMPILER_CONTEXT = require('vm').createContext({
+    require: require,
+    global: GLOBAL,
+    __eth__installMacro: GLOBAL.__eth__installMacro
+  });
+}
 
 var R = require('ramda');
 var core = require('./core');
@@ -739,13 +744,15 @@ R.forEach(function(astFunction) {
 }, R.keys(require('./ast')));
 
 // import all std lib functions
+ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol('ethCore'), list(symbol('require'), 'eth/core')));
 R.forEach(function(coreFunction) {
   ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(coreFunction),
-    list(symbol('get'), keyword(coreFunction), list(symbol('require'), 'eth/core'))
+    list(symbol('get'), keyword(coreFunction), symbol('ethCore'))
   ));
 }, R.keys(core));
 
-var __eth__module = R.mergeAll([{}, require('./ast'), {
+var ethAst = require('./ast');
+var __eth__module = R.mergeAll([{}, ethAst, {
   assert: assert,
   escapeSymbol: escapeSymbol,
   apply: apply,
@@ -760,6 +767,9 @@ if (module && module.exports) {
   module.exports = __eth__module;
 }
 if (typeof window !== 'undefined') {
-  window['eth'] = __eth__module;
+  window.eth = __eth__module;
+  window.require = function(moduleName) {
+    return window[moduleName];
+  };
 }
 // }}}

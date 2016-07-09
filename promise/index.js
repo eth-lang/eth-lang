@@ -1,6 +1,6 @@
 var Promise = require('promise-polyfill');
 
-module.exports = {
+var __eth__module = {
   create: function(fn) {
     return new Promise(fn);
   },
@@ -13,3 +13,9 @@ module.exports = {
   all: Promise.all,
   race: Promise.race,
 };
+if (module && module.exports) {
+  module.exports = __eth__module;
+}
+if (typeof window !== 'undefined') {
+  window['eth/promise'] = __eth__module;
+}

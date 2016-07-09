@@ -9,7 +9,7 @@
   "scripts": {
     "test": "make test",
     "preversion": "make test",
-    "version": "make build && make clean && git add -A *.js",
+    "version": "make build && make clean && git add -A *.js testing/index.js",
     "postversion": "npm publish && git push && git push --tags"
   },
   "repository": {
@@ -25,9 +25,10 @@
   "homepage": "https://github.com/kiasaki/eth-lang#readme",
   "dependencies": {
     "promise-polyfill": "5.2.1",
-    "ramda": "^0.21.0"
+    "ramda": "0.21.0"
   },
   "devDependencies": {
-    "watch": "0.19.1"
+    "watch": "0.19.1",
+    "webpack": "^2.1.0-beta.15"
   }
 }
