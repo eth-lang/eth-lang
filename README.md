@@ -40,9 +40,9 @@ and ecosystem but within the lisp syntax you've come to love. Most things you ca
 in JavaScript directly translate to `eth`.
 
 The Lisp syntax being more expressive than JavaScript aided by a few more concepts like
-everything being an expression, <strong>currying</strong>, <strong>function composition</strong>
-and a <strong>good standard library</strong> <code>eth</strong> becomes a very attractive
-alternative to the shiny feature bloated ES6 and it friend Babel.
+everything being an expression, **currying**, **function composition** and a **good standard
+library** `eth` becomes a very attractive alternative to the shiny feature bloated ES6 and it
+friend Babel.
 
 As `eth` is a lisp, it has this property called [homoiconicity](https://en.wikipedia.org/wiki/Homoiconicity)
 that basically means it's syntax is closely related to it's program's structure. This makes
