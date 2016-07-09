@@ -203,21 +203,78 @@ This one comes especially handy when you want the branch of an `if` to do more t
 (if c (do (a) (b)) ()) ; -> if (c) { a(); return b(); } else { return null; }
 ```
 
+### `if`
+
+`if` maps to JavaScript ifs with the difference that they are expressions not statements, and,
+hence, can be used as values. For example: `(set x (if (> 5 y) 10 0))` or `(add 10 (if (> 5 y) 5 y))`.
+
+```cljs
+(if false 0 1) ; -> if (false) { return 0; } else { return 1; }
+(if (! value) (do (x) (y) (z))) ; -> if (!value) { x(); y(); return z(); } else { return undefined; }
+```
+
+### `get`
+
+```cljs
+(get :key obj) ; -> obj.key
+(get :other-key? obj) ; -> obj.isOtherKey
+(get "key" obj) ; -> obj["key"]
+(get key obj) ; -> obj[key]
+```
+
+### `set`
+
+```cljs
+(set x 5) ; -> x = 5
+(set (get :key obj) 5) ; -> obj.key = 5
+```
+
+### `def`
+
+```cljs
+(def x 5) ; -> var x = 5
+(def x 5 y 6) ; -> var x = 5, y = 6
+```
+
+### `throw`
+
+```cljs
+(throw (Error. "!")) ; -> throw new Error("!")
+```
+
+### `try`
+
+```cljs
+(print (try throwingFunction (fn (err) (.message err)))) ; -> console.log(try { return throwingFunction(); } catch(e) { return (function(err) { return err.message; })(err)
+```
+
+### `package`
+
+```cljs
+(package name (inc dec) ...) ; -> /* ... */ module.exports.inc = inc; module.exports.dec = dec
+```
+
+### `import`
+
+```cljs
+(import http) ; -> var http = require("http")
+(import util u) ; -> var u = require("util")
+(import http (METHODS create-server)) ; -> var METHODS = require("http").METHODS; var createServer = require("http").createServer
+```
+
+### `export`
+
+```cljs
+(export add my-add) ; -> module.exports.add = myAdd;
+```
+
+### `defn`
+
 ### other built-ins
 
 | eth | js | description |
 |---|---|---|
-| `(if (< a b) a b)` | `if (a < b) { return a; } else { return b; }` | Returns the value of the then branch if the given condition is truthy or the else branch if not |
-| `(while (< i 5) (set i (+ i 1)))` | `while (i < 5) { i = i + 1; }` | Executes the given body until the condition is falsy, returning the value of the last expression in the body at the end |
-| `(throw (Error. "!"))` | `throw new Error('!')` | Takes one argument and throws it as an exception |
-| `(set x 5)` | `x = 5` | Assignment |
-| `(set (. "x" obj) 5)` | `obj["x"] = 5` | Assignment to object property |
 | `(= x 5)` | `x = 5` | Assignment alternate syntax |
-| `(get :y obj) | `obj.y` | Dereferencing using a know symbol |
-| `(get x obj)` | `obj[x]` | Dereferencing by value  |
-| `(get "$%!" obj)` | `obj["$%!"]` | Dereferencing by value (using a string) |
-| `(. :y obj)` | `obj.y` | Dereferencing alternate syntax |
-| `(def add (x y) (+ x y))` | `add = function(x y) { return x + y; }` | Defines a new function and assign it to a variable |
 | `(let ((a 1) (b (+ a 1))) b)` | `a = 1; b = a + 1; return b;` | Defines variables in given definition list then evaluate it's body returning the last expression's value |
 | `(package adder (add) (def add ...))` | `add = ...; exports.add = add; window.adder = {add: add};` | Defines a package using a given name and list of exported symbols, it will run it's body in a new closure and export (on the `window` in the brower or using `module.exports` in node) the specified exported symbols |
 | `(import http)` | `http = require('http')` | Named import |
@@ -340,7 +397,7 @@ commiting changes and have a line that looks like `"main": "build/index.js"` in 
 
 **The repl/cli tool** is implemented in `bin/eth`.
 
-**The standard library** is written in `eth` and is located in the `core.js` file.
+**The standard library** is written in `eth` and is located in the `core/index.js` file.
 
 To run the test suite simply run:
 
