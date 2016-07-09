@@ -11,11 +11,16 @@ all:
 		| sed 's/require("eth\/core")/require(".\/core")/' \
 		>$@
 
-build: syntax.js testing.js
+testing/index.js: testing/index.eth
+	$(ETH) -c $< \
+		| sed 's/require("eth\/ast")/require("..\/ast")/' \
+		| sed 's/require("eth\/core")/require("..\/core")/' \
+		>$@
+
+build: syntax.js testing/index.js
 
 test: build
-	./scripts/test.sh
-	#$(NODE) tests/core.js
+	# $(NODE) tests/core.js
 
 test-watch:
 	$(WATCH) "make test" tests
@@ -25,7 +30,7 @@ clean:
 
 clean-all: clean
 	rm -f syntax.js
-	rm -f testing.js
+	rm -f testing/index.js
 
 compiler-repl:
 	node -e 'eth = require("./eth-lang");' -i

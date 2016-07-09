@@ -1,4 +1,4 @@
-var ast = require('./ast');
+var ast = require('../ast');
 var core = require('ramda');
 
 core.assert = function assert(condition, message) {

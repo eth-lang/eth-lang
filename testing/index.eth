@@ -2,7 +2,7 @@
                       run new-run
                       assert-equal assert-throws)
 
-(import "./promise" promise)
+(import "../promise" promise)
 
 ; reporting
 

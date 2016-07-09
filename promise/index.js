@@ -13,6 +13,3 @@ module.exports = {
   all: Promise.all,
   race: Promise.race,
 };
-if (typeof window !== 'undefined') {
-  window['eth/promise'] = module.exports;
-}
