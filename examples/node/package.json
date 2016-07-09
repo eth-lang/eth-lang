@@ -1,0 +1,20 @@
+{
+  "name": "eth-examples-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "eth": "^1.6.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "make test",
+    "start": "make run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}

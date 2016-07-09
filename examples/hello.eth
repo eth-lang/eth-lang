@@ -1,19 +1,19 @@
-(package hello-world (server-create server-listen)
+(package hello-world (server-create server-listen!)
 
 (import http (create-server))
 (import util u)
 
-(set PORT 1337)
+(def PORT 1337)
 
-(def server-create (message)
+(defn server-create (message)
   (create-server (fn (req res)
     (res.write-head 200 {"Content-Type" "text/plain"})
     (res.end message))))
 
-(def server-listen (server port)
+(defn server-listen! (server port)
   (let ((started (fn () (console.log (u.format "Started listenning on port" port)))))
-    ((. :listen server) port started)))
+    ((get :listen server) port started)))
 
-(set server (server-create "Hello homoiconicity, expresiveness and fun times!"))
+(def server (server-create "Hello homoiconicity, expresiveness and fun times!"))
 
-(server-listen server PORT))
+(server-listen! server PORT))

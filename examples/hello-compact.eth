@@ -1,8 +1,8 @@
 (import http (create-server))
 
-(set port 1337)
+(def port 1337)
 
-(set server (create-server (fn (req res)
+(def server (create-server (fn (req res)
               (res.write-head 200 {"Content-Type" "text/plain"})
               (res.end "Hello homoiconicity, expresiveness and fun times!"))))
 

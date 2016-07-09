@@ -5,8 +5,8 @@
   <i>A fun, productive and simple lisp that compiles to JavaScript.</i>
 </p>
 <p align="center">
-  <a href="https://circleci.com/gh/kiasaki/eth-lang">
-    <img alt="circleci build status" src="https://img.shields.io/circleci/project/kiasaki/eth-lang/master.svg" />
+  <a href="https://circleci.com/gh/eth-lang/eth-lang">
+    <img alt="circleci build status" src="https://img.shields.io/circleci/project/eth-lang/eth-lang/master.svg" />
   </a>
   <a href="https://www.npmjs.com/package/eth">
     <img alt="npm version" src="https://img.shields.io/npm/v/eth.svg" />
@@ -15,6 +15,21 @@
     <img alt="license" src="https://img.shields.io/npm/l/eth.svg" />
   </a>
 </p>
+<p align="center">
+  <a href="https://github.com/eth-lang/eth-lang#intro">intro</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#running">running</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#language-syntax">syntax</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#language-built-ins">built-ins</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#standard-library">standard library</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#using-eth-for-your-next-project">using eth for a project</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/eth-lang/eth-lang#developing">developing</a>
+</p>
 
 ## intro
 
@@ -22,7 +37,7 @@ _WARNING! This is highly experimental tech, use at your own risk and perils ;)_
 
 `eth` is a simple lisp that aims to give you the full power of the JavaScript language
 and ecosystem but within the lisp syntax you've come to love. Most things you can write
-in javascript directly translate to `eth`.
+in JavaScript directly translate to `eth`.
 
 The Lisp syntax being more expressive than JavaScript aided by a few more concepts like
 everything being an expression, **currying** and **function composition** it becomes easy to get
@@ -36,23 +51,22 @@ program with in ways that you never could with JavaScript.
 Here's what a package would look like:
 
 ```clj
-(package hello-world (server-create server-listen)
-  (import eth/core (..))
-  (import http)
+(package hello-world (server-create server-listen!)
+  (import http (create-server))
   (import util u)
 
-  (set PORT 1337)
+  (def PORT 1337)
 
-  (def server-create (message ... extra-messages)
-    (http.create-server (fn (req res)
+  (defn server-create (message ... extra-messages)
+    (create-server (fn (req res)
       (res.write-head 200 {"Content-Type" "text/plain"})
       (res.end (apply u.format (cons message extra-message))))))
 
-  (def server-listen! (server port)
+  (defn server-listen! (server port)
     (let (started (fn () (console.log (u.format "Started listenning on port " port))))
-      ((. :listen server) port started)))
+      ((get :listen server) port started)))
 
-  (set server (server-create "Hello homoiconicity, expresiveness and fun times" "!" "!"))
+  (def server (server-create "Hello homoiconicity, expresiveness and fun times" "!" "!!"))
 
   ; And here we go!
   (server-listen! server PORT))
@@ -102,7 +116,7 @@ Eth Usage:
   eth file.eth                   compile and run file
   eth [-h|--help]                show this message
   eth [-c|--compile] file.eth    compile file to JS
-  eth [-a|--ast] file.eth        show file AST/tokens
+  eth [-a|--ast] file.eth        show file's expanded AST/tokens
 ```
 
 ## language syntax
@@ -115,8 +129,8 @@ Eth Usage:
 | **boolean** | `true` | `true` | Booleans are the same as in JavaScript |
 | **string** | `"asd"` | `'asd'` | Strings are always double quoted and support multiline/new lines |
 | **number** | `-1.23` | `-1.23` | Numbers are the same as in JavaScript |
-| **symbol** | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
 | **keyword** | `:app-state?` | `'isAppState'` | Keywords are just a nice way of defining constants or object keys. In reality they are just JS strings. But, they get all the same "special syntax" rules of symbols applied to them |
+| **symbol** | `name` | `name` | Symbols represent variables, they will mostly be have like in JavaScript but see "Special Syntax" for the few special ways you can use them |
 | **list** | `(a b c)` | `a(b, c)` | Lists denote function application when evaluated |
 | **array** | `[1 2 3]` | `[1, 2, 3]` | Arrays are the same as in JavaScript except that the commas are omitted |
 | **object** | `{a 1 b 2}` | `{a: 1, b: 2}` | Object are the same as in JavaScript except that the commas (`,`) and colons (`:`) are omitted |
@@ -231,7 +245,7 @@ get-in
 set-in
 type of-type?
 null? undefined? boolean? number? string? keyword? symbol? list? array? object? function?
-string array object
+string array object keyword symbol list
 ```
 
 ## using eth for your next project
@@ -276,7 +290,7 @@ Here a simple `Makefile` that looks like the following can come in super handy:
 ```make
 ETH := node_modules/.bin/eth
 
-FILES = server.js models.js routes.js
+FILES = models.js routes.js server.js
 TEST_FILES = test/models.js test/routes.js
 
 default: run
@@ -284,10 +298,10 @@ default: run
 %.js: %.eth
     $(ETH) -c $< >$@
 
+build: $(FILES) $(TEST_FILES)
+
 run: build
   node server.js
-
-build: $(FILES) $(TEST_FILES)
 
 test: build
     node -r ./test/models.js ./test/routes.js
@@ -326,8 +340,7 @@ commiting changes and have a line that looks like `"main": "build/index.js"` in 
 
 **The repl/cli tool** is implemented in `bin/eth`.
 
-**The standard library** is written in `eth` and is located in the `core.eth` file. If you make changes to
-the standard library you can recompile the `.js` file for use in `npm` using the `make build` command.
+**The standard library** is written in `eth` and is located in the `core.js` file.
 
 To run the test suite simply run:
 
@@ -335,6 +348,14 @@ To run the test suite simply run:
 make test
 ```
 
+## contributing
+
+If you find any bugs, please report them, and if you have a bit more time bug fix pull requests
+are always the best.
+
+If you to add a new feature and help shape the language in something great you love contributions
+from anyone are welcomed.
+
 ## license
 
-See `LICENSE` file.
+See [`LICENSE`](https://github.com/eth-lang/eth-lang/blob/master/LICENSE) file.

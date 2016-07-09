@@ -1,6 +1,6 @@
-(package node/utils (create-good-message)
+(package eth/examples/node/utils (create-good-message)
 
-(def create-good-message ()
+(defn create-good-message ()
   "Hello homoiconicity, expresiveness and fun times!")
 
 )

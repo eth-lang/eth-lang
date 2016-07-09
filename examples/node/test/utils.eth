@@ -1,7 +1,6 @@
-(package node/test/utils ()
+(package eth/examples/node/test/utils ()
 
-(import "../../../core" (..))
-(import "../../../testing" (new-run run test assert-equal))
+(import eth/testing (new-run run test assert-equal))
 
 (import "../utils" (create-good-message))
 

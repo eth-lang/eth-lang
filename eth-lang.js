@@ -329,9 +329,15 @@ function read() {
 // Read source and follows requires converting it all to ast
 function ethRead(filename, sourceCode) {
   if (!sourceCode && sourceCode !== '' && filename) {
-    sourceCode = filename;
+    sourceCode = filename || '';
     filename = 'unknown';
   }
+
+  // return early if we got no code
+  if (sourceCode === '' || sourceCode === '\n') {
+    return [];
+  }
+
   // tokenize & read ast
   readerIndex = 0;
   readerTokens = tokenize(sourceCode);
@@ -412,7 +418,7 @@ installMacro('import', function (package, aliasOrImports) {
     var defNodes = [symbol('def')];
     for (var i = 0; i < aliasOrImports.length; i++) {
       defNodes.push(aliasOrImports[i]);
-      defNodes.push(list('get', list(symbol('require'), name(package)), aliasOrImports[i]));
+      defNodes.push(list(symbol('get'), keyword(aliasOrImports[i]), list(symbol('require'), name(package))));
     }
     node = apply(list, defNodes);
   } else {
@@ -421,7 +427,11 @@ installMacro('import', function (package, aliasOrImports) {
 
   // here we want to have access to those imports right away (for other macros), hence
   // let's write out that ast and eval it now
-  ethEval(COMPILER_CONTEXT, [node]);
+  try {
+    ethEval(COMPILER_CONTEXT, [node]);
+  } catch(e) {
+    console.error('warning: failed to require import "' + name(package) + '" while compiling file, you wont get any macros that where in that module.');
+  }
 
   return node;
 });
@@ -656,8 +666,8 @@ function ethEval(context, ast) {
     // quite hacky, in the eval context, we are inside of the eth module, we need to require ./core
     // instead of eth/core by name
     var code = ethWrite(ast)
-      .replace(/require\("eth\/ast"\)/g, 'require("./ast")')
-      .replace(/require\("eth\/core"\)/g, 'require("./core")');
+      .replace(/require\("eth\/ast"\)/g, 'require("' + __dirname + '/ast")')
+      .replace(/require\("eth\/core"\)/g, 'require("' + __dirname + '/core")');
 
     var vm = require('vm').createScript(code, {
       filename: 'eval',

@@ -10,15 +10,13 @@ all:
 
 build-stdlib: testing.js
 	
-build-tests:
-
 build-syntax:
 	$(ETH) -c syntax.eth \
 		| sed 's/require("eth\/ast")/require(".\/ast")/' \
 		| sed 's/require("eth\/core")/require(".\/core")/' \
 		>syntax.js
 
-build: build-stdlib build-tests build-syntax
+build: build-stdlib build-syntax
 
 test: build
 	./scripts/test.sh

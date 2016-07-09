@@ -1,6 +1,6 @@
-ETH := ../../bin/eth
+ETH := ./node_modules/.bin/eth
 
-FILES = server.js utils.js
+FILES = utils.js server.js
 TEST_FILES = test/utils.js
 
 default: run
@@ -8,10 +8,10 @@ default: run
 %.js: %.eth
 	$(ETH) -c $< >$@
 
+build: $(FILES) $(TEST_FILES)
+
 run: build
 	node server.js
-
-build: $(FILES) $(TEST_FILES)
 
 test: build
 	node ./test/utils.js

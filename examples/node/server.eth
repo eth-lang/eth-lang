@@ -1,14 +1,15 @@
-(package node ()
+(package eth/example/node/server ()
 
 (import http (create-server))
 (import "./utils" (create-good-message))
 
-(set port 1337)
+(def port 1337)
 
-(set server (create-server (fn (req res)
-              (res.write-head 200 {"Content-Type" "text/plain"})
-              (res.end (create-good-message)))))
+(def server (create-server (fn (req res)
+               (res.write-head 200 {"Content-Type" "text/plain"})
+               (res.end (create-good-message)))))
 
-(server.listen port (fn () (console.log "Started listenning on port" port)))
+(server.listen port (fn ()
+  (console.log "Started listenning on port" port)))
 
 )
