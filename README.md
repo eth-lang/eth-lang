@@ -48,6 +48,20 @@ that basically means it's syntax is closely related to it's program's structure.
 it possible to implement **macros** that provides you a way of extending the language you
 program with in ways that you never could with JavaScript.
 
+### features
+
+Here little feature list, because people looove lists:
+
+- **Simple** - _few basic constructs, no complex break, for, labels & statements vs. expression_
+- **Safe** - _an entire class of errors can be eliminated by embracing functional progaming, less mutations and higher-order constructs_
+- **Featureful** - _JS always missed a good standard library, eth enables you to be productive with just eth installed_
+- **Still JavaScript** - _eth's goal very much is to embrace the JS ecosystem but simply provide an alternate syntax for it_
+- **Readable Output** - _the code resulting from compilation is indented and quite close to the source lisp code_
+- **Powerful Macros** - _add new language features and syntax yourself anytime_
+- **Code as Data** - _AST is just JS values, enables macros and esier to reason about source code structure_
+
+### example
+
 Here's what a package would look like:
 
 ```clj
@@ -84,7 +98,7 @@ You'll want to start by installing `eth` using `npm`:
 npm install --global eth
 ```
 
-There a repl you can start with:
+There a **repl** you can start with:
 
 ```
 $ eth
@@ -93,7 +107,7 @@ eth> (+ 3 5)
 eth>
 ```
 
-You can compile files to JavaScript using:
+You can **compile** files to JavaScript using:
 
 ```
 $ eth -c file.eth
@@ -101,7 +115,7 @@ $ eth -c file.eth
 3 + 5;
 ```
 
-Or run them right away using (for production use it's better to compile & run with `node`):
+Or **run** them right away using (for production use it's better to compile & run with `node`):
 
 ```
 $ eth file.eth

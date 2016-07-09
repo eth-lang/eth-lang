@@ -9,7 +9,7 @@ core.assert = function assert(condition, message) {
 
 core.print = function print() {
   var args = Array.prototype.slice.call(arguments);
-  console.log.apply(console.log, args);
+  console.log.apply(console, args);
 };
 
 core.fromJson = function fromJson(string) {
