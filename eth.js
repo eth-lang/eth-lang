@@ -43,7 +43,9 @@ if (typeof window === 'undefined') {
   COMPILER_CONTEXT = require('vm').createContext({
     require: require,
     global: GLOBAL,
-    __eth__installMacro: GLOBAL.__eth__installMacro
+    __eth__installMacro: GLOBAL.__eth__installMacro,
+    'eth/ast': require('./ast'),
+    'eth/core': require('./core')
   });
 }
 
@@ -399,14 +401,14 @@ installMacro('import', function (package, aliasOrImports) {
   var node;
   if (!aliasOrImports) {
     assert(package, isSymbol(package), 'import: package name needs to be a symbol when importing and not aliasing');
-    node = list(symbol('def'), package, list(symbol('require'), name(package)));
+    node = list(symbol('def'), package, list(symbol('__eth__import'), name(package)));
   } else if (isSymbol(aliasOrImports)) {
-    node = list(symbol('def'), aliasOrImports, list(symbol('require'), name(package)));
+    node = list(symbol('def'), aliasOrImports, list(symbol('__eth__import'), name(package)));
   } else if (isSymbolList(aliasOrImports)) {
     var defNodes = [symbol('def')];
     for (var i = 0; i < aliasOrImports.length; i++) {
       defNodes.push(aliasOrImports[i]);
-      defNodes.push(list(symbol('get'), keyword(aliasOrImports[i]), list(symbol('require'), name(package))));
+      defNodes.push(list(symbol('get'), keyword(aliasOrImports[i]), list(symbol('__eth__import'), name(package))));
     }
     node = apply(list, defNodes);
   } else {
@@ -668,8 +670,8 @@ function ethEval(context, ast) {
     // quite hacky, in the eval context, we are inside of the eth module, we need to require ./core
     // instead of eth/core by name
     var code = ethWrite(ast)
-      .replace(/require\("eth\/ast"\)/g, 'require("' + __dirname + '/ast")')
-      .replace(/require\("eth\/core"\)/g, 'require("' + __dirname + '/core")');
+      .replace(/__eth__import\("eth\/ast"\)/g, '__eth__import("' + __dirname + '/ast")')
+      .replace(/__eth__import\("eth\/core"\)/g, '__eth__import("' + __dirname + '/core")');
 
     var vm = require('vm').createScript(code, {
       filename: 'eval',
@@ -722,19 +724,21 @@ function ethPrint(ast) {
 // require syntax macros
 require('./syntax');
 
-// make sure macro install call don't fail outside of the compiler
-ETH_CORE_IMPORTS_AST.push(ethRead('(def GLOBAL (if (!= (typeof window) "undefined") window global))')[0]);
-ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__installMacro (|| GLOBAL.__eth__installMacro (fn ())))')[0]);
+// make sure macro install calls don't fail outside of the compiler
+ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__global (if (!= (typeof window) "undefined") window global))')[0]);
+ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__installMacro (|| __eth__global.__eth__installMacro (fn ())))')[0]);
+ETH_CORE_IMPORTS_AST.push(ethRead('(def __eth__import (fn (module-name) (if (in module-name __eth__global) (get module-name __eth__global) (require module-name))))')[0]);
 
 // import all ast functions
+ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol('ethAst'), list(symbol('__eth__import'), 'eth/ast')));
 R.forEach(function(astFunction) {
   ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(astFunction),
-    list(symbol('get'), keyword(astFunction), list(symbol('require'), 'eth/ast'))
+    list(symbol('get'), keyword(astFunction), symbol('ethAst'))
   ));
 }, R.keys(require('./ast')));
 
 // import all std lib functions
-ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol('ethCore'), list(symbol('require'), 'eth/core')));
+ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol('ethCore'), list(symbol('__eth__import'), 'eth/core')));
 R.forEach(function(coreFunction) {
   ETH_CORE_IMPORTS_AST.push(list(symbol('def'), symbol(coreFunction),
     list(symbol('get'), keyword(coreFunction), symbol('ethCore'))

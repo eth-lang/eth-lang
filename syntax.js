@@ -1,38 +1,48 @@
-var GLOBAL = (function () {
+var __eth__global = (function () {
   if (((typeof window) !== "undefined")) {
     return window;
   } else {
     return global;
   }
 }.call(this));
-var __eth__installMacro = (GLOBAL.__eth__installMacro || (function () {
+var __eth__installMacro = (__eth__global.__eth__installMacro || (function () {
   return (void 0);
 }));
-var EthList = require("./ast").EthList;
-var list = require("./ast").list;
-var symbol = require("./ast").symbol;
-var keyword = require("./ast").keyword;
-var isList = require("./ast").isList;
-var isArray = require("./ast").isArray;
-var isObject = require("./ast").isObject;
-var isSymbol = require("./ast").isSymbol;
-var isKeyword = require("./ast").isKeyword;
-var isString = require("./ast").isString;
-var isNumber = require("./ast").isNumber;
-var isBoolean = require("./ast").isBoolean;
-var isNull = require("./ast").isNull;
-var isUndefined = require("./ast").isUndefined;
-var isUnquote = require("./ast").isUnquote;
-var isUnquoteSplicing = require("./ast").isUnquoteSplicing;
-var isQuote = require("./ast").isQuote;
-var isQuasiQuote = require("./ast").isQuasiQuote;
-var isSymbolList = require("./ast").isSymbolList;
-var symbolName = require("./ast").symbolName;
-var keywordName = require("./ast").keywordName;
-var name = require("./ast").name;
-var astMapNode = require("./ast").astMapNode;
-var astMap = require("./ast").astMap;
-var ethCore = require("./core");
+var __eth__import = (function (moduleName) {
+  return (function () {
+    if ((moduleName in __eth__global)) {
+      return __eth__global[moduleName];
+    } else {
+      return require(moduleName);
+    }
+  }.call(this));
+});
+var ethAst = __eth__import("./ast");
+var EthList = ethAst.EthList;
+var list = ethAst.list;
+var symbol = ethAst.symbol;
+var keyword = ethAst.keyword;
+var isList = ethAst.isList;
+var isArray = ethAst.isArray;
+var isObject = ethAst.isObject;
+var isSymbol = ethAst.isSymbol;
+var isKeyword = ethAst.isKeyword;
+var isString = ethAst.isString;
+var isNumber = ethAst.isNumber;
+var isBoolean = ethAst.isBoolean;
+var isNull = ethAst.isNull;
+var isUndefined = ethAst.isUndefined;
+var isUnquote = ethAst.isUnquote;
+var isUnquoteSplicing = ethAst.isUnquoteSplicing;
+var isQuote = ethAst.isQuote;
+var isQuasiQuote = ethAst.isQuasiQuote;
+var isSymbolList = ethAst.isSymbolList;
+var symbolName = ethAst.symbolName;
+var keywordName = ethAst.keywordName;
+var name = ethAst.name;
+var astMapNode = ethAst.astMapNode;
+var astMap = ethAst.astMap;
+var ethCore = __eth__import("./core");
 var F = ethCore.F;
 var T = ethCore.T;
 var __ = ethCore.__;
@@ -278,7 +288,7 @@ var regexpFind = ethCore.regexpFind;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
-var ast = require("./ast");
+var ast = __eth__import("./ast");
 __eth__installMacro("quote", (function (node) {
   var L = ast.list;
   var S = ast.symbol;
@@ -426,7 +436,7 @@ __eth__installMacro("package", (function (name, exports) {
 }));
 __eth__installMacro("\\", (function () {
   var body = Array.prototype.slice.call(arguments, 0);
-  return apply(list, ["﻿'fn"].concat([null], astMapNode((function (node) {
+  return apply(list, ["﻿'fn"].concat([null], [apply(list, astMapNode((function (node) {
     return (function () {
       if (isSymbol(node)) {
         var symName = symbolName(node);
@@ -448,5 +458,5 @@ __eth__installMacro("\\", (function () {
         return node;
       }
     }.call(this));
-  }), body)));
+  }), body).concat())]));
 }))

@@ -70,7 +70,7 @@
     (void 0)))
 
 (defmacro \ (... body)
-  `(fn () ~@(ast-map-node (fn (node)
+  `(fn () (~@(ast-map-node (fn (node)
     (if (symbol? node)
       (let ((sym-name (symbol-name node))
             (sym-arg? (regexp-find "^\#\d$" sym-name)))
@@ -79,4 +79,4 @@
           (if sym-arg?
             `(get ~(- (parse-int (.slice sym-name 1)) 1) arguments)
             node)))
-      node)) body)))
+      node)) body))))

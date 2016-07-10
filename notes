@@ -1,0 +1,30 @@
+files
+
+- ast
+
+- read
+- expand
+- optimize
+- write
+- beautify
+
+- compile
+- eval
+- syntax
+
+- core
+- async
+- testing
+
+optimize
+
+- let can be faltenned when at first level of blocks
+  - except if vars it declares override child ast vars
+- do can be faltenned when at first level of blocks
+  - except if it uses def
+
+?
+
+- should `def` only be allowed at the top level
+  - how would that work with package
+  - that would be against giving the full power of js to the user

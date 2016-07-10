@@ -8,20 +8,20 @@ all:
 
 testing/index.js: testing/index.eth
 	$(ETH) -c $< \
-		| sed 's/require("eth\/ast")/require("..\/ast")/' \
-		| sed 's/require("eth\/core")/require("..\/core")/' \
+		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
+		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
 		>$@
 
 tests/%.js: tests/%.eth
 	$(ETH) -c $< \
-		| sed 's/require("eth\/ast")/require("..\/ast")/' \
-		| sed 's/require("eth\/core")/require("..\/core")/' \
+		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
+		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
 		>$@
 
 %.js: %.eth
 	$(ETH) -c $< \
-		| sed 's/require("eth\/ast")/require(".\/ast")/' \
-		| sed 's/require("eth\/core")/require(".\/core")/' \
+		| sed 's/__eth__import("eth\/ast")/__eth__import(".\/ast")/' \
+		| sed 's/__eth__import("eth\/core")/__eth__import(".\/core")/' \
 		>$@
 
 website/%.js: website/%.eth
