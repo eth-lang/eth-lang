@@ -1,6 +1,6 @@
 {
   "name": "eth",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A fun, experimental and simple lisp transpiler for JavaScript.",
   "main": "eth-lang.js",
   "bin": {
