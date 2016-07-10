@@ -1,38 +1,50 @@
-var GLOBAL = (function () {
+var __eth__global = (function () {
   if (((typeof window) !== "undefined")) {
     return window;
   } else {
     return global;
   }
 }.call(this));
-var __eth__installMacro = (GLOBAL.__eth__installMacro || (function () {
+var __eth__installMacro = (__eth__global.__eth__installMacro || (function () {
   return (void 0);
 }));
-var EthList = require("eth/ast").EthList;
-var list = require("eth/ast").list;
-var symbol = require("eth/ast").symbol;
-var keyword = require("eth/ast").keyword;
-var isList = require("eth/ast").isList;
-var isArray = require("eth/ast").isArray;
-var isObject = require("eth/ast").isObject;
-var isSymbol = require("eth/ast").isSymbol;
-var isKeyword = require("eth/ast").isKeyword;
-var isString = require("eth/ast").isString;
-var isNumber = require("eth/ast").isNumber;
-var isBoolean = require("eth/ast").isBoolean;
-var isNull = require("eth/ast").isNull;
-var isUndefined = require("eth/ast").isUndefined;
-var isUnquote = require("eth/ast").isUnquote;
-var isUnquoteSplicing = require("eth/ast").isUnquoteSplicing;
-var isQuote = require("eth/ast").isQuote;
-var isQuasiQuote = require("eth/ast").isQuasiQuote;
-var isSymbolList = require("eth/ast").isSymbolList;
-var symbolName = require("eth/ast").symbolName;
-var keywordName = require("eth/ast").keywordName;
-var name = require("eth/ast").name;
-var astMapNode = require("eth/ast").astMapNode;
-var astMap = require("eth/ast").astMap;
-var ethCore = require("eth/core");
+var __eth__import = (function (moduleName) {
+  return (function () {
+    if ((moduleName in __eth__global)) {
+      return __eth__global[moduleName];
+    } else {
+      return require(moduleName);
+    }
+  }.call(this));
+});
+var ethAst = __eth__import("eth/ast");
+var EthList = ethAst.EthList;
+var list = ethAst.list;
+var symbol = ethAst.symbol;
+var keyword = ethAst.keyword;
+var string = ethAst.string;
+var isList = ethAst.isList;
+var isArray = ethAst.isArray;
+var isObject = ethAst.isObject;
+var isSymbol = ethAst.isSymbol;
+var isKeyword = ethAst.isKeyword;
+var isString = ethAst.isString;
+var isNumber = ethAst.isNumber;
+var isBoolean = ethAst.isBoolean;
+var isNull = ethAst.isNull;
+var isUndefined = ethAst.isUndefined;
+var isUnquote = ethAst.isUnquote;
+var isUnquoteSplicing = ethAst.isUnquoteSplicing;
+var isQuote = ethAst.isQuote;
+var isQuasiQuote = ethAst.isQuasiQuote;
+var isSymbolList = ethAst.isSymbolList;
+var symbolName = ethAst.symbolName;
+var keywordName = ethAst.keywordName;
+var name = ethAst.name;
+var astMapNode = ethAst.astMapNode;
+var astMap = ethAst.astMap;
+var gensym = ethAst.gensym;
+var ethCore = __eth__import("eth/core");
 var F = ethCore.F;
 var T = ethCore.T;
 var __ = ethCore.__;
@@ -272,6 +284,8 @@ var assert = ethCore.assert;
 var print = ethCore.print;
 var fromJson = ethCore.fromJson;
 var toJson = ethCore.toJson;
+var isPair = ethCore.isPair;
+var isOdd = ethCore.isOdd;
 var regexp = ethCore.regexp;
 var regexpMatch = ethCore.regexpMatch;
 var regexpFind = ethCore.regexpFind;
@@ -286,9 +300,10 @@ var updateIn = ethCore.updateIn;
   var debounceDelay = 350;
   var debounceHandle = null;
   var setContent = (function setContent(id, content) {
-    return document.getElementById(id).innerText = content;
+    return (document.getElementById(id).innerText = content);
   });
   var compile = (function compile(value) {
+    setContent("ethOutputCode", "");
     return (function () {
       try {
         return (function () {
@@ -303,7 +318,6 @@ var updateIn = ethCore.updateIn;
         })();
       } catch (e) {
         return (function (err) {
-          setContent("ethOutputCode", "");
           return setContent("ethOutputResult", err.message);
         })(e);
       }
@@ -319,24 +333,24 @@ var updateIn = ethCore.updateIn;
     }.call(this));
     return (function () {
       var run = (function () {
-        debounceHandle = null;
+        (debounceHandle = null);
         return compile(e.target.value);
       });
-      return debounceHandle = setTimeout(run, debounceDelay);
+      return (debounceHandle = setTimeout(run, debounceDelay));
     }.call(this));
   });
-  document.getElementById("ethCode").onkeyup = handleChange;
+  (document.getElementById("ethCode").onkeyup = handleChange);
   compile(document.getElementById("ethCode").value);
   (function () {
     if (((typeof module) !== "undefined")) {
-      return module.exports = __eth__module;
+      return (module.exports = __eth__module);
     } else {
       return (void 0);
     }
   }.call(this));
   (function () {
-    if (((typeof window) !== "undefined")) {
-      return window.repl = __eth__module;
+    if (((typeof __eth__global) !== "undefined")) {
+      return (__eth__global["repl"] = __eth__module);
     } else {
       return (void 0);
     }
