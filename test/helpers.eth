@@ -1,0 +1,12 @@
+(package eth/test/helpers ()
+
+(import "../testing" (new-run run test assert assert-equal))
+(import "../helpers" helpers)
+
+(new-run)
+
+(test "helpers: list-pair-values" (fn ()
+  (assert-equal (helpers.list-pair-values '(a 1 b 2)) ['a 'b])))
+
+(run)
+)

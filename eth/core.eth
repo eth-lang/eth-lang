@@ -1,0 +1,6 @@
+(package eth/core (print)
+
+  (defn print (... args)
+    (.apply console.log console args))
+
+)

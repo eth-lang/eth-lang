@@ -1,11 +1,11 @@
-(package eth/compiler/reader (read)
+(package eth/reader (read)
 
 ;; helpers
 
-(def newline? (ch)
+(defn newline? (ch)
   (== ch "\n"))
 
-(def reader-error (reader message)
+(defn reader-error (reader message)
   "Create and throws a new reader error that include file and position information"
   (let ((text (string message "\nline:" reader.line "\ncolumn:" reader.column))
         (error (SyntaxError text reader.filename)))
@@ -17,14 +17,14 @@
 
 ;; reader
 
-(def create-reader (filename source)
+(defn create-reader (filename source)
   "Create a reader object that keeps track of a position in a source file"
   {:lines (split "\n" source)
    :filename filename
    :column -1
    :line 0})
 
-(def peek-char (reader)
+(defn peek-char (reader)
   "Returns the next char to be read (or nil) but doesn't advance the current position"
   (let ((line (get reader.line reader.lines))
         (next-column (inc reader.column)))
@@ -32,7 +32,7 @@
       undefined
       (or (get next-column line) "\n"))))
 
-(def read-char (reader)
+(defn read-char (reader)
   "Returns the next char for the reader and advances it's position"
   (let ((ch (peek-char reader)))
     (if (newline? ch)
