@@ -6,12 +6,6 @@ NODE := node
 all:
 	$(ETH)
 
-%.js: %.eth
-	$(ETH) -c $< \
-		| sed 's/require("eth\/ast")/require(".\/ast")/' \
-		| sed 's/require("eth\/core")/require(".\/core")/' \
-		>$@
-
 testing/index.js: testing/index.eth
 	$(ETH) -c $< \
 		| sed 's/require("eth\/ast")/require("..\/ast")/' \
@@ -24,10 +18,16 @@ tests/%.js: tests/%.eth
 		| sed 's/require("eth\/core")/require("..\/core")/' \
 		>$@
 
+%.js: %.eth
+	$(ETH) -c $< \
+		| sed 's/require("eth\/ast")/require(".\/ast")/' \
+		| sed 's/require("eth\/core")/require(".\/core")/' \
+		>$@
+
 website/%.js: website/%.eth
 	eth -c $< >$@
 
-website/eth.js: eth.js syntax.js
+website/eth.js: eth.js syntax.js core/index.js
 	$(WEBPACK) -p
 
 build: syntax.js testing/index.js \

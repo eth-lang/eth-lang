@@ -1,7 +1,15 @@
+general:
+  branches:
+    ignore:
+      - gh-pages
+
 machine:
   node:
     version: 5.5.0
+  pre:
+    - sudo apt-get update
+    - sudo apt-get install -y make
 
 test:
   override:
-    - make test
+    - make clean-all test
