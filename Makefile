@@ -18,14 +18,24 @@ testing/index.js: testing/index.eth
 		| sed 's/require("eth\/core")/require("..\/core")/' \
 		>$@
 
-build-repl:
-	eth -c website/repl.eth >website/repl.js
+tests/%.js: tests/%.eth
+	$(ETH) -c $< \
+		| sed 's/require("eth\/ast")/require("..\/ast")/' \
+		| sed 's/require("eth\/core")/require("..\/core")/' \
+		>$@
 
-build: syntax.js testing/index.js build-repl
+website/%.js: website/%.eth
+	eth -c $< >$@
+
+website/eth.js: eth.js syntax.js
 	$(WEBPACK) -p
 
+build: syntax.js testing/index.js \
+  tests/core.js \
+  website/repl.js website/eth.js
+
 test: build
-	# $(NODE) tests/core.js
+	$(NODE) tests/core.js
 
 test-watch:
 	$(WATCH) "make test" tests

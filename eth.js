@@ -76,6 +76,8 @@ var isSymbolList = require('./ast').isSymbolList;
 var symbolName = require('./ast').symbolName;
 var keywordName = require('./ast').keywordName;
 var name = require('./ast').name;
+var astMapNode = require('./ast').astMapNode;
+var astMap = require('./ast').astMap;
 // }}}
 
 // helpers {{{
@@ -134,25 +136,6 @@ function escapeSymbol(name) {
   return name.replace(/-(.)/g, function(_, groupOne) {
     return groupOne.toUpperCase();
   });
-}
-
-function astMapNode(callback, node) {
-  if (isList(node) || isArray(node)) {
-    for (var i = 0; i < node.length; i++) {
-      node[i] = astMapNode(callback, node[i]);
-    }
-  }
-  if (isObject(node)) {
-    var keys = Object.keys(node);
-    for (var i = 0; i < keys.length; i++) {
-      node[keys[i]] = astMapNode(callback, node[keys[i]]);
-    }
-  }
-  return callback(node);
-}
-
-function astMap(callback, ast) {
-  return ast.map(astMapNode.bind(null, callback));
 }
 
 function apply(fn, args) {
@@ -532,6 +515,9 @@ function writeList(node) {
       params = node[2];
       body = node.slice(3);
     }
+    if (params === null) {
+      params = list();
+    }
     assert(node, isSymbolList(params), '"fn" needs it\'s params list to be a list of only symbols');
 
     // handle variable arguments (x y ... ys)
@@ -651,7 +637,7 @@ function indent(jsCode) {
     }
 
     out += jsCode[i];
-    if (jsCode[i] === '"' && jsCode[i-1] !== '\\') {
+    if (jsCode[i] === '"' && (jsCode[i-1] !== '\\' || (jsCode[i-1] === '\\' &&jsCode[i-2] === '\\' ))) {
       inString = !inString;
     }
 

@@ -30,6 +30,8 @@ var isSymbolList = require("./ast").isSymbolList;
 var symbolName = require("./ast").symbolName;
 var keywordName = require("./ast").keywordName;
 var name = require("./ast").name;
+var astMapNode = require("./ast").astMapNode;
+var astMap = require("./ast").astMap;
 var ethCore = require("./core");
 var F = ethCore.F;
 var T = ethCore.T;
@@ -270,6 +272,9 @@ var assert = ethCore.assert;
 var print = ethCore.print;
 var fromJson = ethCore.fromJson;
 var toJson = ethCore.toJson;
+var regexp = ethCore.regexp;
+var regexpMatch = ethCore.regexpMatch;
+var regexpFind = ethCore.regexpFind;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
@@ -338,18 +343,18 @@ __eth__installMacro("quote", (function (node) {
                               return node;
                             } else {
                               return (function () {
-                                if (ast.isUnquote(node)) {
-                                  return nth(1, node);
+                                if (isEmpty(node)) {
+                                  return node;
                                 } else {
                                   return (function () {
-                                    if (ast.isUnquoteSplicing(node)) {
-                                      return (function () {
-                                        throw new Error("Illegal use of `~@` expression, can only be present in a list")
-                                      }.call(this));
+                                    if (ast.isUnquote(node)) {
+                                      return nth(1, node);
                                     } else {
                                       return (function () {
-                                        if (isEmpty(node)) {
-                                          return node;
+                                        if (ast.isUnquoteSplicing(node)) {
+                                          return (function () {
+                                            throw new Error("Illegal use of `~@` expression, can only be present in a list")
+                                          }.call(this));
                                         } else {
                                           return (function () {
                                             if (ast.isArray(node)) {
@@ -417,5 +422,31 @@ __eth__installMacro("package", (function (name, exports) {
     
   }]))], body, map((function (e) {
     return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(e)], ["﻿'__eth__module"]))], [e]));
-  }), exports), [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'module"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat(["꞉exports"], ["﻿'module"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'window"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(name)], ["﻿'window"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'void"].concat([0]))]));
+  }), exports), [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'module"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat(["꞉exports"], ["﻿'module"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'window"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([symbolName(name)], ["﻿'window"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'void"].concat([0]))]));
+}));
+__eth__installMacro("\\", (function () {
+  var body = Array.prototype.slice.call(arguments, 0);
+  return apply(list, ["﻿'fn"].concat([null], astMapNode((function (node) {
+    return (function () {
+      if (isSymbol(node)) {
+        var symName = symbolName(node);
+        var isSymArg = regexpFind("^#\\d$", symName);
+        return (function () {
+          if ((symName === "#")) {
+            return apply(list, ["﻿'get"].concat([0], ["﻿'arguments"]));
+          } else {
+            return (function () {
+              if (isSymArg) {
+                return apply(list, ["﻿'get"].concat([(parseInt(symName.slice(1)) - 1)], ["﻿'arguments"]));
+              } else {
+                return node;
+              }
+            }.call(this));
+          }
+        }.call(this));
+      } else {
+        return node;
+      }
+    }.call(this));
+  }), body)));
 }))

@@ -20,6 +20,22 @@ core.toJson = function toJson(value) {
   return JSON.stringify(value);
 };
 
+core.regexp = function regexp(re, options) {
+  if (re instanceof RegExp) {
+    return re;
+  }
+  return new RegExp(re, options || 'g');
+};
+
+core.regexpMatch = function regexpMatch(re, string) {
+  return core.regexp(re).exec(string) || undefined;
+};
+
+core.regexpFind = function regexpFind(re, string) {
+  var match = core.regexp(re).exec(string);
+  return match ? core.head(match) : undefined;
+};
+
 // Like `assoc` but still returns array when passed numeric keys
 function arraySafeAssoc(key, value, target) {
     core.assert(

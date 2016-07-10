@@ -1,0 +1,19 @@
+(package eth/tests/core ()
+
+(import "../testing" (new-run run test assert assert-equal))
+(import "../core" core)
+
+(new-run)
+
+(test "print: calls console.log right" (fn ()
+  (let ((_log console.log)
+        (given-args null)
+        (fake-log (fn (... args) (set given-args args))))
+  (set console.log fake-log)
+  (core.print "Mess" 1 2)
+  (set console.log _log)
+  (assert-equal given-args ["Mess" 1 2]))))
+
+(run)
+
+)

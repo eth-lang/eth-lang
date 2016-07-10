@@ -35,10 +35,10 @@
   (if (ast.boolean? node) node
   (if (ast.null? node) node
   (if (ast.undefined? node) node
+  (if (empty? node) node
   (if (ast.unquote? node) (nth 1 node)
   (if (ast.unquote-splicing? node)
     (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
-  (if (empty? node) node
   (if (ast.array? node) (sequence-expand node)
   (if (ast.object? node) (mapObjIndexed (fn (v) (L (S "quote") v)))
   (if (ast.list? node) (L (S "apply") (S "list") (sequence-expand node))
@@ -66,6 +66,17 @@
     (if (!= (typeof module) "undefined")
       (set (get :exports module) __eth__module))
     (if (!= (typeof window) "undefined")
-      (set (get ~(keyword name) window) __eth__module))
+      (set (get ~(symbol-name name) window) __eth__module))
     (void 0)))
 
+(defmacro \ (... body)
+  `(fn () ~@(ast-map-node (fn (node)
+    (if (symbol? node)
+      (let ((sym-name (symbol-name node))
+            (sym-arg? (regexp-find "^\#\d$" sym-name)))
+        (if (== sym-name "#")
+          `(get 0 arguments)
+          (if sym-arg?
+            `(get ~(- (parse-int (.slice sym-name 1)) 1) arguments)
+            node)))
+      node)) body)))

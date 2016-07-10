@@ -89,6 +89,25 @@ function name(v) {
   throw new Error('name: unhandle name type, got:' + v);
 }
 
+function astMapNode(callback, node) {
+  if (isList(node) || isArray(node)) {
+    for (var i = 0; i < node.length; i++) {
+      node[i] = astMapNode(callback, node[i]);
+    }
+  }
+  if (isObject(node)) {
+    var keys = Object.keys(node);
+    for (var i = 0; i < keys.length; i++) {
+      node[keys[i]] = astMapNode(callback, node[keys[i]]);
+    }
+  }
+  return callback(node);
+}
+
+function astMap(callback, ast) {
+  return ast.map(astMapNode.bind(null, callback));
+}
+
 var __eth__module = {
   EthList: EthList,
   list: list,
@@ -112,6 +131,8 @@ var __eth__module = {
   symbolName: symbolName,
   keywordName: keywordName,
   name: name,
+  astMapNode: astMapNode,
+  astMap: astMap,
 };
 
 if (module && module.exports) {
