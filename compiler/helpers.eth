@@ -1,0 +1,11 @@
+(package eth/compiler/helpers (list-pair-values list-odd-values)
+
+(defn list-pair-values (l)
+  (apply list ((add-index reduce) (fn (acc val i)
+    (if (pair? i) (append val acc) acc)) [] l)))
+
+(defn list-odd-values (l)
+  (apply list ((add-index reduce) (fn (acc val i)
+    (if (odd? i) (append val acc) acc)) [] l)))
+
+)

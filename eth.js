@@ -51,6 +51,8 @@ if (typeof window === 'undefined') {
 
 var R = require('ramda');
 var core = require('./core');
+var ast = require('./ast');
+var helpers = require('./compiler/helpers');
 
 var ETH_CORE_IMPORTS_AST = [];
 // }}}

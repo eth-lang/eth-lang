@@ -27,13 +27,14 @@ website/%.js: website/%.eth
 website/eth.js: eth.js syntax.js core/index.js
 	$(WEBPACK) -p
 
-build: syntax.js testing/index.js \
+build: compiler/helpers.js \
+  syntax.js testing/index.js \
   test/reader.js test/core.js \
   website/repl.js website/eth.js
 
 test: build
-	$(NODE) test/reader.js
-	$(NODE) test/core.js
+	$(NODE) -r ./ast -r ./core test/reader.js
+	$(NODE) -r ./ast -r ./core test/core.js
 
 test-watch:
 	$(WATCH) "make test" tests

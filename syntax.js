@@ -293,6 +293,7 @@ var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
 var ast = __eth__import("eth/ast");
+var listPairValues = __eth__import("eth/compiler/helpers").listPairValues,listOddValues = __eth__import("eth/compiler/helpers").listOddValues;
 __eth__installMacro("quote", (function (node) {
   var L = ast.list;
   var S = ast.symbol;
@@ -440,64 +441,48 @@ __eth__installMacro("package", (function (name, exports) {
 }));
 __eth__installMacro("\\", (function () {
   var body = Array.prototype.slice.call(arguments, 0);
-  return apply(list, ["﻿'fn"].concat([null], [apply(list, astMapNode((function (node) {
-    return (function () {
-      if (isSymbol(node)) {
-        var symName = symbolName(node);
-        var isSymArg = regexpFind("^#\\d$", symName);
-        return (function () {
-          if ((symName === "#")) {
-            return apply(list, ["﻿'get"].concat([0], ["﻿'arguments"]));
-          } else {
-            return (function () {
-              if (isSymArg) {
-                return apply(list, ["﻿'get"].concat([(parseInt(symName.slice(1)) - 1)], ["﻿'arguments"]));
-              } else {
-                return node;
-              }
-            }.call(this));
-          }
-        }.call(this));
-      } else {
-        return node;
-      }
-    }.call(this));
-  }), body).concat())]));
-}));
-__eth__installMacro("loop", (function (defs) {
-  var body = Array.prototype.slice.call(arguments, 1);
-  var getPairValues = (function getPairValues(l) {
-    return apply(list, addIndex(reduce)((function (acc, val, i) {
-      return (function () {
-        if (isPair(i)) {
-          return append(val, acc);
-        } else {
-          return acc;
-        }
-      }.call(this));
-    }), [], l));
-  });
-  var getOddValues = (function getOddValues(l) {
-    return apply(list, addIndex(reduce)((function (acc, val, i) {
-      return (function () {
-        if (isOdd(i)) {
-          return append(val, acc);
-        } else {
-          return acc;
-        }
-      }.call(this));
-    }), [], l));
-  });
+  "Returns a function that calls it's first body node with the rest of it's body, replacing\n  # for the first argument and #n with argument n (where is starts at 1 and caps at 9)";
   return (function () {
-    var loopId = gensym();
-    return apply(list, [apply(list, ["﻿'fn"].concat([loopId], [getPairValues(defs)], astMapNode((function (node) {
+    var argsSym = gensym();
+    return apply(list, ["﻿'fn"].concat([null], [apply(list, ["﻿'def"].concat([argsSym], ["﻿'arguments"]))], [apply(list, astMapNode((function (node) {
       return (function () {
-        if ((isSymbol(node) && (node === symbol("recur")))) {
-          return loopId;
+        if (isSymbol(node)) {
+          return (function () {
+            if ((node === "﻿'#")) {
+              return apply(list, ["﻿'get"].concat([0], [argsSym]));
+            } else {
+              var symName = symbolName(node);
+              var isSymArg = regexpFind("^#\\d$", symName);
+              return (function () {
+                if (isSymArg) {
+                  return apply(list, ["﻿'get"].concat([dec(parseInt(symName.slice(1)))], [argsSym]));
+                } else {
+                  return node;
+                }
+              }.call(this));
+            }
+          }.call(this));
         } else {
           return node;
         }
       }.call(this));
-    }), body)))].concat(getOddValues(defs)));
+    }), body).concat())]));
+  }.call(this));
+}));
+__eth__installMacro("loop", (function (defs) {
+  var body = Array.prototype.slice.call(arguments, 1);
+  "Provided with definitions (like let) will run it's body, if `recur` is called, the body\n  executes again from the start but with the definitions values updated to match the args given to;  recur;  (defn reduce (f init list);    (loop (acc init;           list list);      (if (empty? list);        acc;        (recur (f acc (head list)) (tail list)))))";
+  return (function () {
+    var loopId = gensym();
+    return apply(list, [apply(list, ["﻿'fn"].concat([loopId], [listPairValues(defs)], astMapNode((function () {
+      var _gs_1 = arguments;
+      return (function () {
+        if ((_gs_1[0] === "﻿'recur")) {
+          return loopId;
+        } else {
+          return _gs_1[0];
+        }
+      }.call(this));
+    }), body)))].concat(listOddValues(defs)));
   }.call(this));
 }))

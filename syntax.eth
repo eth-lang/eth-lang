@@ -1,4 +1,5 @@
 (import "eth/ast" ast)
+(import "eth/compiler/helpers" (list-pair-values list-odd-values))
 
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
 ; unquotes and unquote-splicings
@@ -70,31 +71,34 @@
     (void 0)))
 
 (defmacro \ (... body)
-  `(fn () (~@(ast-map-node (fn (node)
-    (if (symbol? node)
-      (let ((sym-name (symbol-name node))
-            (sym-arg? (regexp-find "^\#\d$" sym-name)))
-        (if (== sym-name "#")
-          `(get 0 arguments)
-          (if sym-arg?
-            `(get ~(- (parse-int (.slice sym-name 1)) 1) arguments)
-            node)))
-      node)) body))))
+  "Returns a function that calls it's first body node with the rest of it's body, replacing
+  # for the first argument and #n with argument n (where is starts at 1 and caps at 9)"
+  (let ((args-sym (gensym)))
+    `(fn ()
+      (def ~args-sym arguments)
+      (~@(ast-map-node (fn (node)
+        (if (symbol? node)
+          (if (== node '#)
+            `(get 0 ~args-sym)
+            (let ((sym-name (symbol-name node))
+                  (sym-arg? (regexp-find "^\#\d$" sym-name)))
+                (if sym-arg?
+                  `(get ~(dec (parse-int (.slice sym-name 1))) ~args-sym)
+                  node)))
+        node)) body)))))
 
 (defmacro loop (defs ... body)
-  (defn get-pair-values (l)
-    (apply list ((add-index reduce) (fn (acc val i)
-      (if (pair? i) (append val acc) acc)) [] l)))
-  (defn get-odd-values (l)
-    (apply list ((add-index reduce) (fn (acc val i)
-      (if (odd? i) (append val acc) acc)) [] l)))
+  "Provided with definitions (like let) will run it's body, if `recur` is called, the body
+  executes again from the start but with the definitions values updated to match the args given to
+  recur
 
+  (defn reduce (f init list)
+    (loop (acc init
+           list list)
+      (if (empty? list)
+        acc
+        (recur (f acc (head list)) (tail list)))))"
   (let ((loop-id (gensym)))
-    `((fn ~loop-id ~(get-pair-values defs)
-        ~@(ast-map-node
-          (fn (node)
-            (if (&& (symbol? node) (== node (symbol "recur")))
-              loop-id
-              node))
-          body))
-      ~@(get-odd-values defs))))
+    `((fn ~loop-id ~(list-pair-values defs)
+        ~@(ast-map-node (\ if (== # 'recur) loop-id #) body))
+      ~@(list-odd-values defs))))

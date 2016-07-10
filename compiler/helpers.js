@@ -17,33 +17,7 @@ var __eth__import = (function (moduleName) {
     }
   }.call(this));
 });
-var ethAst = __eth__import("eth/ast");
-var EthList = ethAst.EthList;
-var list = ethAst.list;
-var symbol = ethAst.symbol;
-var keyword = ethAst.keyword;
-var string = ethAst.string;
-var isList = ethAst.isList;
-var isArray = ethAst.isArray;
-var isObject = ethAst.isObject;
-var isSymbol = ethAst.isSymbol;
-var isKeyword = ethAst.isKeyword;
-var isString = ethAst.isString;
-var isNumber = ethAst.isNumber;
-var isBoolean = ethAst.isBoolean;
-var isNull = ethAst.isNull;
-var isUndefined = ethAst.isUndefined;
-var isUnquote = ethAst.isUnquote;
-var isUnquoteSplicing = ethAst.isUnquoteSplicing;
-var isQuote = ethAst.isQuote;
-var isQuasiQuote = ethAst.isQuasiQuote;
-var isSymbolList = ethAst.isSymbolList;
-var symbolName = ethAst.symbolName;
-var keywordName = ethAst.keywordName;
-var name = ethAst.name;
-var astMapNode = ethAst.astMapNode;
-var astMap = ethAst.astMap;
-var gensym = ethAst.gensym;
+var list = __eth__import("eth/ast").list;
 var ethCore = __eth__import("eth/core");
 var F = ethCore.F;
 var T = ethCore.T;
@@ -284,11 +258,6 @@ var assert = ethCore.assert;
 var print = ethCore.print;
 var fromJson = ethCore.fromJson;
 var toJson = ethCore.toJson;
-var isPair = ethCore.isPair;
-var isOdd = ethCore.isOdd;
-var regexp = ethCore.regexp;
-var regexpMatch = ethCore.regexpMatch;
-var regexpFind = ethCore.regexpFind;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
@@ -296,34 +265,40 @@ var updateIn = ethCore.updateIn;
   var __eth__module = {
     
   };
-  var newRun = __eth__import("../testing").newRun,run = __eth__import("../testing").run,test = __eth__import("../testing").test,assert = __eth__import("../testing").assert,assertEqual = __eth__import("../testing").assertEqual;
-  var core = __eth__import("../core");
-  newRun();
-  test("print: calls console.log right", (function () {
-    return (function () {
-      var _log = console.log;
-      var givenArgs = null;
-      var fakeLog = (function () {
-        var args = Array.prototype.slice.call(arguments, 0);
-        return (givenArgs = args);
-      });
-      (console.log = fakeLog);
-      core.print("Mess", 1, 2);
-      (console.log = _log);
-      return assertEqual(givenArgs, ["Mess", 1, 2]);
-    }.call(this));
-  }));
-  run();
+  var listPairValues = (function listPairValues(l) {
+    return apply(list, addIndex(reduce)((function (acc, val, i) {
+      return (function () {
+        if (isPair(i)) {
+          return append(val, acc);
+        } else {
+          return acc;
+        }
+      }.call(this));
+    }), [], l));
+  });
+  var listOddValues = (function listOddValues(l) {
+    return apply(list, addIndex(reduce)((function (acc, val, i) {
+      return (function () {
+        if (isOdd(i)) {
+          return append(val, acc);
+        } else {
+          return acc;
+        }
+      }.call(this));
+    }), [], l));
+  });
+  __eth__module.listPairValues = listPairValues;
+  __eth__module.listOddValues = listOddValues;
   (function () {
     if (((typeof module) !== "undefined")) {
-      return (module.exports = __eth__module);
+      return module.exports = __eth__module;
     } else {
       return (void 0);
     }
   }.call(this));
   (function () {
     if (((typeof __eth__global) !== "undefined")) {
-      return (__eth__global["eth/tests/core"] = __eth__module);
+      return __eth__global["eth/compiler/helpers"] = __eth__module;
     } else {
       return (void 0);
     }
