@@ -11,6 +11,7 @@
   (set (get :inner-text (document.get-element-by-id id)) content))
 
 (defn compile (value)
+  (set-content :eth-output-code "")
   (try
     (fn ()
       (let ((ast (eth.read "repl" (+ ":__repl__start undefined " value)))
@@ -20,7 +21,6 @@
         (set-content :eth-output-code (.trim relevant-js-code))
         (set-content :eth-output-result (to-json (eval js-code)))))
     (fn (err)
-      (set-content :eth-output-code "")
       (set-content :eth-output-result err.message))))
 
 (defn handle-change (e)

@@ -24,6 +24,11 @@ function keyword(name) {
   return '\uA789' + name;
 }
 
+function string() {
+  var values = Array.prototype.slice(arguments);
+  return values.join('');
+}
+
 function isList(v) {
   return v instanceof EthList;
 }
@@ -108,11 +113,17 @@ function astMap(callback, ast) {
   return ast.map(astMapNode.bind(null, callback));
 }
 
+function gensym(prefix) {
+  this.nextId = (this.nextId || 0) + 1;
+  return symbol((prefix || '_gs_') + String(this.nextId));
+};
+
 var __eth__module = {
   EthList: EthList,
   list: list,
   symbol: symbol,
   keyword: keyword,
+  string: string,
   isList: isList,
   isArray: isArray,
   isObject: isObject,
@@ -133,11 +144,13 @@ var __eth__module = {
   name: name,
   astMapNode: astMapNode,
   astMap: astMap,
+  gensym: gensym,
 };
 
 if (module && module.exports) {
   module.exports = __eth__module;
 }
-if (typeof window !== 'undefined') {
-  window['eth/ast'] = __eth__module;
+var __eth__global = typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : undefined);
+if (typeof __eth__global !== 'undefined') {
+  __eth__global['eth/ast'] = __eth__module;
 }

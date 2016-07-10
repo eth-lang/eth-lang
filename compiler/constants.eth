@@ -1,0 +1,35 @@
+(package eth/compiler/constants (BINARY-OPERATORS UNARY-OPERATORS MACRO-SYNTAX)
+
+(def BINARY-OPERATORS {
+  "+" "+"
+  "-" "-"
+  "/" "/"
+  "*" "*"
+  "%" "%"
+  "<" "<"
+  "<=" "<="
+  ">" ">"
+  ">=" ">="
+  "==" "==="
+  "!=" "!=="
+  "||" "||"
+  "&&" "&&"
+  "in" "in"
+  "instanceof" "instanceof"
+})
+
+(def UNARY-OPERATORS {
+  "!" "!"
+  "void" "void"
+  "typeof" "typeof"
+  "delete" "delete"
+})
+
+(def MACRO-SYNTAX {
+  "'" "quote"
+  "`'" "quasi-quote"
+  "~" "unquote"
+  "~@" "unquote-splicing"
+})
+
+)

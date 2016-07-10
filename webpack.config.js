@@ -1,10 +1,10 @@
 module.exports = {
   entry: [
-    './eth.js',
     './ast.js',
     './core/index.js',
     './promise/index.js',
-    './testing/index.js'
+    './testing/index.js',
+    './eth.js',
   ],
   output: {path: './website', filename: 'eth.js'},
   externals: {

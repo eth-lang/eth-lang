@@ -6,22 +6,19 @@ NODE := node
 all:
 	$(ETH)
 
+#		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
+#		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
+
 testing/index.js: testing/index.eth
 	$(ETH) -c $< \
-		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
-		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
 		>$@
 
-tests/%.js: tests/%.eth
+test/%.js: test/%.eth
 	$(ETH) -c $< \
-		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
-		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
 		>$@
 
 %.js: %.eth
 	$(ETH) -c $< \
-		| sed 's/__eth__import("eth\/ast")/__eth__import(".\/ast")/' \
-		| sed 's/__eth__import("eth\/core")/__eth__import(".\/core")/' \
 		>$@
 
 website/%.js: website/%.eth
@@ -31,11 +28,12 @@ website/eth.js: eth.js syntax.js core/index.js
 	$(WEBPACK) -p
 
 build: syntax.js testing/index.js \
-  tests/core.js \
+  test/reader.js test/core.js \
   website/repl.js website/eth.js
 
 test: build
-	$(NODE) tests/core.js
+	$(NODE) test/reader.js
+	$(NODE) test/core.js
 
 test-watch:
 	$(WATCH) "make test" tests

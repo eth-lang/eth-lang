@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var path = require('path');
+var core = require('../core');
 var eth = require('../eth');
 
 function ethEval(code, env, filename, callback) {

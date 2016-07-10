@@ -504,7 +504,7 @@ function writeList(node) {
   if (calee === 'set') {
     assert(node, node.length === 3, '"set" needs exactly 2 arguments (name, value), got: ' + (node.length - 1));
     assert(node, isValidCalee(node[1]), '"set" needs it\'s first argument to be assignable, got: ' + print(node[1]));
-    return write(node[1]) + ' = ' + write(node[2]);
+    return '(' + write(node[1]) + ' = ' + write(node[2]) + ')';
   }
 
   // fn/function

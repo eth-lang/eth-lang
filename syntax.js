@@ -17,11 +17,12 @@ var __eth__import = (function (moduleName) {
     }
   }.call(this));
 });
-var ethAst = __eth__import("./ast");
+var ethAst = __eth__import("eth/ast");
 var EthList = ethAst.EthList;
 var list = ethAst.list;
 var symbol = ethAst.symbol;
 var keyword = ethAst.keyword;
+var string = ethAst.string;
 var isList = ethAst.isList;
 var isArray = ethAst.isArray;
 var isObject = ethAst.isObject;
@@ -42,7 +43,8 @@ var keywordName = ethAst.keywordName;
 var name = ethAst.name;
 var astMapNode = ethAst.astMapNode;
 var astMap = ethAst.astMap;
-var ethCore = __eth__import("./core");
+var gensym = ethAst.gensym;
+var ethCore = __eth__import("eth/core");
 var F = ethCore.F;
 var T = ethCore.T;
 var __ = ethCore.__;
@@ -282,13 +284,15 @@ var assert = ethCore.assert;
 var print = ethCore.print;
 var fromJson = ethCore.fromJson;
 var toJson = ethCore.toJson;
+var isPair = ethCore.isPair;
+var isOdd = ethCore.isOdd;
 var regexp = ethCore.regexp;
 var regexpMatch = ethCore.regexpMatch;
 var regexpFind = ethCore.regexpFind;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
 var updateIn = ethCore.updateIn;
-var ast = __eth__import("./ast");
+var ast = __eth__import("eth/ast");
 __eth__installMacro("quote", (function (node) {
   var L = ast.list;
   var S = ast.symbol;
@@ -432,7 +436,7 @@ __eth__installMacro("package", (function (name, exports) {
     
   }]))], body, map((function (e) {
     return apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([keyword(e)], ["﻿'__eth__module"]))], [e]));
-  }), exports), [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'module"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat(["꞉exports"], ["﻿'module"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'window"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([symbolName(name)], ["﻿'window"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'void"].concat([0]))]));
+  }), exports), [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'module"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat(["꞉exports"], ["﻿'module"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'if"].concat([apply(list, ["﻿'!="].concat([apply(list, ["﻿'typeof"].concat(["﻿'__eth__global"]))], ["undefined"]))], [apply(list, ["﻿'set"].concat([apply(list, ["﻿'get"].concat([symbolName(name)], ["﻿'__eth__global"]))], ["﻿'__eth__module"]))]))], [apply(list, ["﻿'void"].concat([0]))]));
 }));
 __eth__installMacro("\\", (function () {
   var body = Array.prototype.slice.call(arguments, 0);
@@ -459,4 +463,41 @@ __eth__installMacro("\\", (function () {
       }
     }.call(this));
   }), body).concat())]));
+}));
+__eth__installMacro("loop", (function (defs) {
+  var body = Array.prototype.slice.call(arguments, 1);
+  var getPairValues = (function getPairValues(l) {
+    return apply(list, addIndex(reduce)((function (acc, val, i) {
+      return (function () {
+        if (isPair(i)) {
+          return append(val, acc);
+        } else {
+          return acc;
+        }
+      }.call(this));
+    }), [], l));
+  });
+  var getOddValues = (function getOddValues(l) {
+    return apply(list, addIndex(reduce)((function (acc, val, i) {
+      return (function () {
+        if (isOdd(i)) {
+          return append(val, acc);
+        } else {
+          return acc;
+        }
+      }.call(this));
+    }), [], l));
+  });
+  return (function () {
+    var loopId = gensym();
+    return apply(list, [apply(list, ["﻿'fn"].concat([loopId], [getPairValues(defs)], astMapNode((function (node) {
+      return (function () {
+        if ((isSymbol(node) && (node === symbol("recur")))) {
+          return loopId;
+        } else {
+          return node;
+        }
+      }.call(this));
+    }), body)))].concat(getOddValues(defs)));
+  }.call(this));
 }))

@@ -17,12 +17,11 @@ var __eth__import = (function (moduleName) {
     }
   }.call(this));
 });
-var ethAst = __eth__import("eth/ast");
+var ethAst = __eth__import("../ast");
 var EthList = ethAst.EthList;
 var list = ethAst.list;
 var symbol = ethAst.symbol;
 var keyword = ethAst.keyword;
-var string = ethAst.string;
 var isList = ethAst.isList;
 var isArray = ethAst.isArray;
 var isObject = ethAst.isObject;
@@ -43,8 +42,7 @@ var keywordName = ethAst.keywordName;
 var name = ethAst.name;
 var astMapNode = ethAst.astMapNode;
 var astMap = ethAst.astMap;
-var gensym = ethAst.gensym;
-var ethCore = __eth__import("eth/core");
+var ethCore = __eth__import("../core");
 var F = ethCore.F;
 var T = ethCore.T;
 var __ = ethCore.__;
@@ -284,76 +282,9 @@ var assert = ethCore.assert;
 var print = ethCore.print;
 var fromJson = ethCore.fromJson;
 var toJson = ethCore.toJson;
-var isPair = ethCore.isPair;
-var isOdd = ethCore.isOdd;
 var regexp = ethCore.regexp;
 var regexpMatch = ethCore.regexpMatch;
 var regexpFind = ethCore.regexpFind;
 var getIn = ethCore.getIn;
 var setIn = ethCore.setIn;
-var updateIn = ethCore.updateIn;
-(function () {
-  var __eth__module = {
-    
-  };
-  var eth = window.eth;
-  var debounceDelay = 350;
-  var debounceHandle = null;
-  var setContent = (function setContent(id, content) {
-    return (document.getElementById(id).innerText = content);
-  });
-  var compile = (function compile(value) {
-    setContent("ethOutputCode", "");
-    return (function () {
-      try {
-        return (function () {
-          return (function () {
-            var ast = eth.read("repl", (":__repl__start undefined " + value));
-            var jsCode = eth.write(ast);
-            var skipN = length("\";\nundefined;");
-            var relevantJsCode = split("__repl__start", jsCode)[1].slice(skipN);
-            setContent("ethOutputCode", relevantJsCode.trim());
-            return setContent("ethOutputResult", toJson(eval(jsCode)));
-          }.call(this));
-        })();
-      } catch (e) {
-        return (function (err) {
-          return setContent("ethOutputResult", err.message);
-        })(e);
-      }
-    }.call(this));
-  });
-  var handleChange = (function handleChange(e) {
-    (function () {
-      if (debounceHandle) {
-        return clearTimeout(debounceHandle);
-      } else {
-        return (void 0);
-      }
-    }.call(this));
-    return (function () {
-      var run = (function () {
-        (debounceHandle = null);
-        return compile(e.target.value);
-      });
-      return (debounceHandle = setTimeout(run, debounceDelay));
-    }.call(this));
-  });
-  (document.getElementById("ethCode").onkeyup = handleChange);
-  compile(document.getElementById("ethCode").value);
-  (function () {
-    if (((typeof module) !== "undefined")) {
-      return (module.exports = __eth__module);
-    } else {
-      return (void 0);
-    }
-  }.call(this));
-  (function () {
-    if (((typeof __eth__global) !== "undefined")) {
-      return (__eth__global["repl"] = __eth__module);
-    } else {
-      return (void 0);
-    }
-  }.call(this));
-  return (void 0);
-}.call(this))
+var updateIn = ethCore.updateIn

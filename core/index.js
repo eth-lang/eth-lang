@@ -20,6 +20,14 @@ core.toJson = function toJson(value) {
   return JSON.stringify(value);
 };
 
+core.isPair = function isPair(x) {
+  return x % 2 === 0;
+};
+
+core.isOdd = function isOdd(x) {
+  return x % 2 === 1;
+};
+
 core.regexp = function regexp(re, options) {
   if (re instanceof RegExp) {
     return re;
@@ -108,6 +116,7 @@ core.map = core.curryN(2, function(f, xs) {
 if (module && module.exports) {
   module.exports = core;
 }
-if (typeof window !== 'undefined') {
-  window['eth/core'] = core;
+var __eth__global = typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : undefined);
+if (typeof __eth__global !== 'undefined') {
+  __eth__global['eth/core'] = core;
 }

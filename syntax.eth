@@ -1,4 +1,4 @@
-(import "./ast" ast)
+(import "eth/ast" ast)
 
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
 ; unquotes and unquote-splicings
@@ -65,8 +65,8 @@
     ~@(map (fn (e) `(export ~(keyword e) ~e)) exports)
     (if (!= (typeof module) "undefined")
       (set (get :exports module) __eth__module))
-    (if (!= (typeof window) "undefined")
-      (set (get ~(symbol-name name) window) __eth__module))
+    (if (!= (typeof __eth__global) "undefined")
+      (set (get ~(symbol-name name) __eth__global) __eth__module))
     (void 0)))
 
 (defmacro \ (... body)
@@ -80,3 +80,21 @@
             `(get ~(- (parse-int (.slice sym-name 1)) 1) arguments)
             node)))
       node)) body))))
+
+(defmacro loop (defs ... body)
+  (defn get-pair-values (l)
+    (apply list ((add-index reduce) (fn (acc val i)
+      (if (pair? i) (append val acc) acc)) [] l)))
+  (defn get-odd-values (l)
+    (apply list ((add-index reduce) (fn (acc val i)
+      (if (odd? i) (append val acc) acc)) [] l)))
+
+  (let ((loop-id (gensym)))
+    `((fn ~loop-id ~(get-pair-values defs)
+        ~@(ast-map-node
+          (fn (node)
+            (if (&& (symbol? node) (== node (symbol "recur")))
+              loop-id
+              node))
+          body))
+      ~@(get-odd-values defs))))
