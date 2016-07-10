@@ -1,4 +1,4 @@
-(package eth/helpers (list-pair-values list-odd-values)
+(package eth/helpers (list-pair-values list-odd-values unescape-string)
   "Compiler helpers, mostly ast manipulation functions"
 
 (defn list-pair-values (l)
@@ -12,5 +12,15 @@
   (a 1 b 2) -> (1 2)"
   (apply list ((add-index reduce) (fn (acc val i)
     (if (odd? i) (append val acc) acc)) [] l)))
+
+(defn unescape-string (s)
+  ((pipe
+    (replace (regexp "\\\"") "\"")
+    (replace (regexp "\\b") "\b")
+    (replace (regexp "\\f") "\f")
+    (replace (regexp "\\n") "\n")
+    (replace (regexp "\\r") "\r")
+    (replace (regexp "\\t") "\t")
+      ) s))
 
 )

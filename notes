@@ -16,6 +16,7 @@ files
 - async
 - testing
 
+
 optimize
 
 - let can be faltenned when at first level of blocks
@@ -23,8 +24,15 @@ optimize
 - do can be faltenned when at first level of blocks
   - except if it uses def
 
+
 ?
 
 - should `def` only be allowed at the top level
   - how would that work with package
   - that would be against giving the full power of js to the user
+
+
+todo syntax
+
+- cond as primitive
+  - no need for if as primitive then, just a small macro

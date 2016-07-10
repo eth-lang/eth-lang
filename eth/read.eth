@@ -1,5 +1,9 @@
 (package eth/reader (read)
 
+(import "./helpers" (unescape-string))
+
+(def EOF "__eth__eof")
+
 ;; helpers
 
 (defn newline? (ch)
@@ -43,6 +47,29 @@
     ch))
 
 
+;; types
+
+(def read-string (reader)
+  (loop ((buffer "")
+         (ch (read-char reader)))
+    (if (undefined? char) EOF
+    (if (&& (== ch "\"") (!= (last buffer) "\\")) (unescape-string buffer)
+    (recur (append ch buffer) (read-char reader))))))
+
+
 ;; read
+
+(defn read! (reader)
+  (let ((ch (read-char reader)))
+    (if (== ch "\"") (read-string reader)
+      (reader-error reader (string "Unhandled character encountered " ch)))))
+
+(defn read (filename source)
+  (let ((reader (create-reader filename source)))
+    (loop (ast-nodes [])
+      (let ((node (read! reader)))
+        (if (== node EOF)
+          (ast-nodes)
+          (recur (append node ast-nodes)))))))
 
 )
