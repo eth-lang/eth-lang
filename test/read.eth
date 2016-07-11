@@ -1,6 +1,6 @@
 (package eth/test/read ()
 
-(import "../testing" (new-run run test assert assert-equal))
+(import "../testing" (new-run run test assert assert-equal assert-throws))
 (import "../types" (string))
 (import "../read" (read))
 
@@ -59,6 +59,18 @@
 (test "read: symbol: macro syntax in symbol" (fn ()
   (assert-equal (read "test" "sym`a'b~!") [(symbol "sym`a'b~!")])))
 
+(test "read: list" (fn ()
+  (assert-equal (read "test" "(1 2)") [(list 1 2)])))
+
+(test "read: list: empty" (fn ()
+  (assert-equal (read "test" "()") [(list)])))
+
+(test "read: list: nested" (fn ()
+  (assert-equal (read "test" "((a) 1 (5 [1 2] 6))") ['((a) 1 (5 [1 2] 6))])))
+
+(test "read: list: unterminated throws" (fn ()
+  (assert-throws (fn () (read "test" "(")))))
+
 (test "read: array" (fn ()
   (assert-equal (read "test" "[1 2 3]") [[1 2 3]])))
 
@@ -67,6 +79,9 @@
 
 (test "read: array: empty" (fn ()
   (assert-equal (read "test" "[]") [[]])))
+
+(test "read: array: unterminated throws" (fn ()
+  (assert-throws (fn () (read "test" "[")))))
 
 (test "read: object" (fn ()
   (assert-equal (read "test" (replace (regexp "'") "\"" "{'a' 1 'b' 2}")) [{"a" 1 "b" 2}])))

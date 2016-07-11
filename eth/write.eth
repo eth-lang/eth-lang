@@ -1,0 +1,61 @@
+(package eth/write (write)
+
+(import "./types" (string))
+(import "./helpers" (escape-symbol))
+
+(defn write-error (ast node message)
+  "Create and throws a new write error that include the pretty printed current ast node"
+  (let ((text (string message "\nwriting: " (pretty-print node) "\nfilename: " ast.filename))
+        (error (SyntaxError text ast.filename)))
+    (set error.filename ast.filename)
+    (throw error)))
+
+(defn write-list (ast write-node node)
+  (if (empty? node) "list()"
+  (string (write-node (head node)) "(" (join "," (map write-node (tail node))) ")")))
+
+(defn write! (ast)
+  (fn (node)
+    (if (number? node) (to-json node)
+    (if (string? node) (to-json node)
+    (if (boolean? node) (to-json node)
+    (if (null? node) "null"
+    (if (undefined? node) "undefined"
+
+    ; keyword
+    (if (keyword? node)
+      (to-json (escape-symbol (keyword-name node)))
+
+    ; symbol
+    (if (symbol? node)
+      (escape-symbol (symbol-name node))
+
+    ; quoted keyword or symbol
+    (if (&&
+          (list? node)
+          (&&
+            (== (get 0 node) 'quote)
+            (|| (symbol? (get 1 node)) (keyword? (get 1 node)))))
+      (to-json (get 1 node))
+
+    ; list
+    (if (list? node)
+      (write-list ast (write! ast) node)
+
+    ; array
+    (if (array? node)
+      (string "[" (join "," (map (write! ast) node)) "]")
+
+    ; object
+    (if (object? node)
+      (string "{" (join "," (map
+        (\ join ":" [((write! ast) #) ((write! ast) (get # node))])
+        (keys node))) "}")
+
+    ; unknown
+    (write-error ast node "unhandled ast node given"))))))))))))))
+
+(defn write (ast)
+  (join ";" (map (write! ast) ast.nodes)))
+
+)

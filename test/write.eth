@@ -1,0 +1,70 @@
+(package eth/test/write ()
+
+(import "../testing" (new-run run test assert assert-equal assert-throws))
+(import "../types" (string))
+(import "../write" (write))
+
+(new-run)
+
+(def DQ (String.from-char-code 34)) ; double quote
+
+(defn create-ast (nodes)
+  {:filename "test.eth" :nodes nodes})
+
+(defn create-js-string (text)
+  (string DQ text DQ))
+
+(test "write: string" (fn ()
+  (assert-equal (write (create-ast ["abc"])) (create-js-string "abc"))))
+
+(test "write: number" (fn ()
+  (assert-equal (write (create-ast [0 123 -5 1.23])) "0;123;-5;1.23")))
+
+(test "write: bool" (fn ()
+  (assert-equal (write (create-ast [true false])) "true;false")))
+
+(test "write: null" (fn ()
+  (assert-equal (write (create-ast [null])) "null")))
+
+(test "write: undefined" (fn ()
+  (assert-equal (write (create-ast [undefined])) "undefined")))
+
+(test "write: keyword" (fn ()
+  (assert-equal (write (create-ast '[:abc :a? :a-b :a!]))
+    (join ";"
+      [(create-js-string "abc")
+       (create-js-string "isA")
+       (create-js-string "aB")
+       (create-js-string "a$")]))))
+
+(test "write: keyword: quoted" (fn ()
+  (assert-equal (write (create-ast ['(quote :asd)])) (create-js-string ':asd))))
+
+(test "write: symbol" (fn ()
+  (assert-equal
+    (write (create-ast '[abc a? a-b a!]))
+    (join ";" ["abc" "isA" "aB" "a$"]))))
+
+(test "write: symbol: quoted" (fn ()
+  (assert-equal (write (create-ast ['(quote asd)])) (create-js-string 'asd))))
+
+(test "write: array" (fn ()
+  (assert-equal
+    (write (create-ast [[1 [2 undefined] :a "b"]]))
+    (string
+      "["
+      (join "," ["1" "[2,undefined]" (create-js-string "a") (create-js-string "b")])
+      "]"))))
+
+(test "write: object" (fn ()
+  (assert-equal (write (create-ast [{:a 1 b 2}]))
+  (join "" ["{" (create-js-string "a") ":1," (create-js-string "b") ":2" "}"]))))
+
+(test "write: list: empty" (fn ()
+  (assert-equal (write (create-ast [(list)])) "list()")))
+
+(test "write: list: call" (fn ()
+  (assert-equal (write (create-ast ['(x y z)])) "x(y,z)")))
+
+(run)
+)

@@ -23,6 +23,7 @@ build: \
 	$(ETH) -c test/core.eth >test/core.js
 	$(ETH) -c test/read.eth >test/read.js
 	$(ETH) -c test/helpers.eth >test/helpers.js
+	$(ETH) -c test/write.eth >test/write.js
 
 build-website:
 	#$(WEBPACK) -p
@@ -32,6 +33,7 @@ test: build
 	$(NODE) $(DEPS) test/core.js
 	$(NODE) $(DEPS) test/helpers.js
 	$(NODE) $(DEPS) test/read.js
+	$(NODE) $(DEPS) test/write.js
 
 test-watch:
 	$(WATCH) "make test" test
