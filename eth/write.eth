@@ -2,6 +2,7 @@
 
 (import "./types" (string))
 (import "./helpers" (escape-symbol))
+(import "./constants" (BINARY-OPERATORS UNARY-OPERATORS))
 
 (defn write-error (ast node message)
   "Create and throws a new write error that include the pretty printed current ast node"
@@ -11,8 +12,18 @@
     (throw error)))
 
 (defn write-list (ast write-node node)
-  (if (empty? node) "list()"
-  (string (write-node (head node)) "(" (join "," (map write-node (tail node))) ")")))
+  (let ((calee (if (symbol? (head node)) (symbol-name (head node)) "")))
+    (if (empty? node) "list()"
+    (if (contains calee (keys BINARY-OPERATORS))
+      (string "("
+        (write-node (get 1 node)) " "
+        (get calee BINARY-OPERATORS) " "
+        (write-node (get 2 node)) ")")
+    (if (contains calee (keys UNARY-OPERATORS))
+      (string "("
+        (get calee UNARY-OPERATORS) " "
+        (write-node (get 1 node)) ")")
+      (string (write-node (head node)) "(" (join "," (map write-node (tail node))) ")"))))))
 
 (defn write! (ast)
   (fn (node)

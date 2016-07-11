@@ -66,5 +66,15 @@
 (test "write: list: call" (fn ()
   (assert-equal (write (create-ast ['(x y z)])) "x(y,z)")))
 
+(test "write: list: binary operators" (fn ()
+  (assert-equal
+    (write (create-ast ['(&& (instanceof (in x y) (% a b)) (|| (+ (* 1 1) (/ 1 2)) (- 3 6)))]))
+    "(((x in y) instanceof (a % b)) && (((1 * 1) + (1 / 2)) || (3 - 6)))")))
+
+(test "write: list: unary operators" (fn ()
+  (assert-equal
+    (write (create-ast ['(! (void (typeof (delete x))))]))
+    "(! (void (typeof (delete x))))")))
+
 (run)
 )
