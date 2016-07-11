@@ -64,7 +64,13 @@
   (assert-equal (write (create-ast [(list)])) "list()")))
 
 (test "write: list: call" (fn ()
-  (assert-equal (write (create-ast ['(x y z)])) "x(y,z)")))
+  (assert-equal (write (create-ast ['(x y z)])) "x(y, z)")))
+
+(test "write: list: dot call" (fn ()
+  (assert-equal (write (create-ast ['(.x y z)])) (string "y.x(z)"))))
+
+(test "write: list: dot call: non js ident" (fn ()
+  (assert-equal (write (create-ast ['(.!* y z)])) (string "y[" (create-js-string "!*") "](z)"))))
 
 (test "write: list: binary operators" (fn ()
   (assert-equal
@@ -75,6 +81,91 @@
   (assert-equal
     (write (create-ast ['(! (void (typeof (delete x))))]))
     "(! (void (typeof (delete x))))")))
+
+(test "write: list: get: symbol" (fn ()
+  (assert-equal
+    (write (create-ast ['(get :a b)]))
+    (string "b[" (create-js-string "a") "]"))))
+
+(test "write: list: get: string" (fn ()
+  (assert-equal (write (create-ast ['(get "a" b)])) "b.a")))
+
+(test "write: list: get: number" (fn ()
+  (assert-equal (write (create-ast ['(get 0 b)])) "b[0]")))
+
+(test "write: list: get: keyword" (fn ()
+  (assert-equal (write (create-ast ['(get a b)])) "b[a]")))
+
+(test "write: list: set: one" (fn ()
+  (assert-equal (write (create-ast ['(set x 5)])) "(x = 5)")))
+
+(test "write: list: set: multiple" (fn ()
+  (assert-equal (write (create-ast ['(set x 5 y 10)])) "(x = 5, y = 10)")))
+
+(test "write: list: set: writes value" (fn ()
+  (assert-equal (write (create-ast ['(set x (y z))])) "(x = y(z))")))
+
+(test "write: list: def: one" (fn ()
+  (assert-equal (write (create-ast ['(def x 5)])) "var x = 5")))
+
+(test "write: list: def: multiple" (fn ()
+  (assert-equal (write (create-ast ['(def x 5 y 10)])) "var x = 5, y = 10")))
+
+(test "write: list: def: writes value" (fn ()
+  (assert-equal (write (create-ast ['(def x (y z))])) "var x = y(z)")))
+
+(test "write: list: cond" (fn ()
+  (assert-equal
+    (write (create-ast ['(cond true 0)]))
+    "(function () {if (true) {return 0;}}.call(this))")))
+
+(test "write: list: cond: multiple" (fn ()
+  (assert-equal
+    (write (create-ast ['(cond true 0 false 1)]))
+    "(function () {if (true) {return 0;} else if (false) {return 1;}}.call(this))")))
+
+(test "write: list: cond: else" (fn ()
+  (assert-equal
+    (write (create-ast ['(cond true 0 :else 1)]))
+    "(function () {if (true) {return 0;} else if (true) {return 1;}}.call(this))")))
+
+(test "write: list: fn: simplest" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn ())]))
+    "(function () {return undefined;})")))
+
+(test "write: list: fn: one element body" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn () 5)]))
+    "(function () {return 5;})")))
+
+(test "write: list: fn: multiple element body" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn () 5 10)]))
+    "(function () {5;return 10;})")))
+
+(test "write: list: fn: named" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn name() 5)]))
+    "(function name() {return 5;})")))
+
+(test "write: list: fn: null args" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn null 5)]))
+    "(function () {return 5;})")))
+
+(test "write: list: fn: rest: alone" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn (... xs) 5)]))
+    "(function () {var xs = Array.prototype.slice.call(arguments, 0);return 5;})")))
+
+(test "write: list: fn: rest: multiple args" (fn ()
+  (assert-equal
+    (write (create-ast ['(fn (x xx ... xs) 5)]))
+    "(function (x, xx) {var xs = Array.prototype.slice.call(arguments, 2);return 5;})")))
+
+(test "write: list: fn: non symbol args throws" (fn ()
+  (assert-throws (fn () (write (create-ast ['(fn (a ok 5))]))))))
 
 (run)
 )

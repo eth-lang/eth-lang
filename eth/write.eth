@@ -1,8 +1,16 @@
 (package eth/write (write)
 
-(import "./types" (string))
-(import "./helpers" (escape-symbol))
+(import "./types" (string string? node-name))
+(import "./helpers" (escape-symbol map-pairs valid-js-ident?))
 (import "./constants" (BINARY-OPERATORS UNARY-OPERATORS))
+
+; pretty print
+
+(defn pretty-print (node)
+  (to-json node))
+
+
+; write
 
 (defn write-error (ast node message)
   "Create and throws a new write error that include the pretty printed current ast node"
@@ -11,19 +19,99 @@
     (set error.filename ast.filename)
     (throw error)))
 
+(defn iife-block? (node)
+  (&& (list? node)
+      (&&
+        (== (head node) '.call)
+        (&&
+          (list? (get 1 node))
+          (== (head (get 1 node)) 'fn)))))
+
+(defn wrap-in-iife (body-code)
+  (string "(function () {" body-code "}.call(this))"))
+
+(defn write-body (write-node body)
+  (string (join ";" (concat
+    (map write-node (init body))
+    [(string "return " (write-node (last body)))])) ";"))
+
 (defn write-list (ast write-node node)
   (let ((calee (if (symbol? (head node)) (symbol-name (head node)) "")))
+    ; empty list
     (if (empty? node) "list()"
+
+    ; binary operators
     (if (contains calee (keys BINARY-OPERATORS))
       (string "("
         (write-node (get 1 node)) " "
         (get calee BINARY-OPERATORS) " "
         (write-node (get 2 node)) ")")
+
+    ; unary operators
     (if (contains calee (keys UNARY-OPERATORS))
       (string "("
         (get calee UNARY-OPERATORS) " "
         (write-node (get 1 node)) ")")
-      (string (write-node (head node)) "(" (join "," (map write-node (tail node))) ")"))))))
+
+    (if (== calee "get")
+      (if (&& (string? (get 1 node)) (valid-js-ident? (get 1 node)))
+        (string (write-node (get 2 node)) "." (get 1 node))
+        (string (write-node (get 2 node)) "[" (write-node (get 1 node)) "]"))
+
+    (if (== calee "set")
+      (string "(" (join ", "
+        (map-pairs
+          (fn (key-and-value) (apply
+            (\ string (node-name #1) " = " (write-node #2)) key-and-value))
+          (tail node))) ")")
+
+    (if (== calee "def")
+      (string "var " (join ", "
+        (map-pairs
+          (fn (key-and-value) (apply
+            (\ string (node-name #1) " = " (write-node #2)) key-and-value))
+          (tail node))))
+
+    (if (== calee "cond")
+      (wrap-in-iife (join " else " (map-pairs
+        (fn (cond-and-value)
+          (let ((c (get 0 cond-and-value))
+                (v (get 1 cond-and-value)))
+            (string "if (" (if (== c ':else) "true" (write-node c)) ") {"
+              (string "return " (write-node v) ";")
+              "}")))
+        (tail node))))
+
+    (if (== calee "fn")
+      (let ((name "")
+            (params (get 1 node))
+            (body (.slice node 2)))
+        (if (symbol? params)
+          (do
+            (set name (write-node params))
+            (set params (get 2 node))
+            (set body (.slice node 3))))
+        (if (null? params)
+          (do (print params)
+          (set params (list))))
+        (if (! (symbol-list? params))
+          (write-error ast node "'fn' needs it's arguments to be a list of symbols"))
+        ; handle ...
+        (if (&& (> (length params) 1) (== (nth -2 params) '...))
+          (do
+            (set body (prepend `(def
+              ~(last params)
+              (Array.prototype.slice.call arguments ~(- (length params) 2))) body))
+            (set params (.slice params 0 -2))))
+
+        (string "(function " name "(" (join ", " (map write-node params)) ") {"
+          (write-body write-node body) "})"))
+
+    ; dot call notation (.method obj arg1 arg2) -> ((get 'method' obj) arg1 arg2)
+    (if (== (head calee) ".")
+      (write-node `((get ~(.slice calee 1) ~(get 1 node)) ~@(.slice node 2)))
+
+      (string (write-node (head node)) "(" (join ", " (map write-node (tail node))) ")"))))))))))))
 
 (defn write! (ast)
   (fn (node)

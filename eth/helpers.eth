@@ -1,4 +1,5 @@
-(package eth/helpers (list-pair-values list-odd-values unescape-string escape-symbol)
+(package eth/helpers (
+  list-pair-values list-odd-values unescape-string escape-symbol map-pairs valid-js-ident?)
   "Compiler helpers, mostly ast manipulation functions"
 
 (import "./constants" (DOUBLE-QUOTE BACK-SLASH))
@@ -46,5 +47,13 @@
       (let ((parts (split "." (.slice n 0 -1))))
         (escape-symbol (join "." (concat (init parts) (string "is-" (last parts))))))
       (replace (regexp "-(.)") (\ .to-upper-case #2) n)))))))))
+
+(defn map-pairs (f l)
+  "Map in pairs from a flat array
+  (map-pairs f [a 1 b 2]) -> (f [a 1]) (f [b 2])"
+  (map f (apply zip ((add-index partition) (\ pair? #2) l))))
+
+(defn valid-js-ident? (str)
+  (regexp-find "[a-zA-Z_$][0-9a-zA-Z_$]*" str))
 
 )

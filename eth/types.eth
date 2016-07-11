@@ -1,7 +1,8 @@
 (package eth/types (
   type of-type?
   string?
-  string number array object)
+  string number array object
+  node-name)
 
 (defn type (x)
   (if (instanceof x EthList) :list
@@ -13,7 +14,11 @@
   (== t (type x)))
 
 (defn string? (x)
-  (of-type? :string x))
+  (&&
+    (! (symbol? x))
+    (&&
+      (! (keyword? x))
+      (of-type? :string x))))
 
 (defn string (... args)
   (.join args ""))
@@ -35,5 +40,10 @@
         (keys (map name (get 0 keys-and-values)))
         (values (get 1 keys-and-values)))
     (zip-obj keys values)))
+
+(defn node-name (node)
+  (if (keyword? node) (keyword-name node)
+  (if (symbol? node) (symbol-name node)
+    (assert false (+ "node-name: called with non keyword or symbol value: " node)))))
 
 )

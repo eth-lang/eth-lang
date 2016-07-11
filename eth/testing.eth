@@ -2,6 +2,7 @@
                       run new-run
                       assert-equal assert-throws)
 
+(import "./types" (string))
 (import "./async" async)
 
 ; reporting
@@ -106,7 +107,7 @@
 
 (defn assert-equal (a b)
   (if (!= (to-json a) (to-json b))
-    (assert false (to-json a) " is not equal to " (to-json b))
+    (assert false (string "\n" (to-json a) "\n" "\u2191" " is not equal to " "\u2193" "\n" (to-json b)))
     ()))
 
 (defn assert-throws (f message)
