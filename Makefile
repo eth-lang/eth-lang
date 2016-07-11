@@ -25,7 +25,7 @@ build: \
 	$(ETH) -c test/helpers.eth >test/helpers.js
 
 build-website:
-	$(WEBPACK) -p
+	#$(WEBPACK) -p
 
 test: build
 	$(NODE) $(DEPS) test/types.js

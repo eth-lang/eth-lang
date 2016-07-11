@@ -1,2 +1,39 @@
-(package eth/types ()
-  )
+(package eth/types (
+  type of-type?
+  string?
+  string number array object)
+
+(defn type (x)
+  (if (instanceof x EthList) :list
+  (if (Array.isArray x) :array
+  (if (== x null) :null
+    (typeof x)))))
+
+(defn of-type? (t x)
+  (== t (type x)))
+
+(defn string? (x)
+  (of-type? :string x))
+
+(defn string (... args)
+  (.join args ""))
+
+(defn number (x)
+  (if (of-type? :number x) x
+  (if (of-type? :string x)
+    (if (contains "." x)
+      (parse-float x 10)
+      (parse-int x 10))
+    (Number x))))
+
+(defn array (... xs)
+  (if (empty? xs) []
+    (.concat [] xs)))
+
+(defn object (... xs)
+  (let ((keys-and-values ((add-index partition) (\ pair? #2) xs))
+        (keys (map name (get 0 keys-and-values)))
+        (values (get 1 keys-and-values)))
+    (zip-obj keys values)))
+
+)

@@ -1,0 +1,99 @@
+(package eth/test/read ()
+
+(import "../testing" (new-run run test assert assert-equal))
+(import "../types" (string))
+(import "../read" (read))
+
+(new-run)
+
+(def DQUOTE (String.from-char-code 34))
+
+(defn test-string (text)
+  (string DQUOTE text DQUOTE))
+
+(test "read: strings: normal" (fn ()
+  (assert-equal (read "test" (test-string "abc")) ["abc"])))
+
+(test "read: strings: empty" (fn ()
+  (assert-equal (read "test" (test-string "")) [""])))
+
+(test "read: numbers: normal" (fn ()
+  (assert-equal (read "test" "0") [0])))
+
+(test "read: numbers: signed +" (fn ()
+  (assert-equal (read "test" "+50") [50])))
+
+(test "read: numbers: signed -" (fn ()
+  (assert-equal (read "test" "-523") [-523])))
+
+(test "read: numbers: float" (fn ()
+  (assert-equal (read "test" "1.34") [1.34])))
+
+(test "read: true" (fn ()
+  (assert-equal (read "test" "true") [true])))
+
+(test "read: false" (fn ()
+  (assert-equal (read "test" "false") [false])))
+
+(test "read: null" (fn ()
+  (assert-equal (read "test" "null") [null])))
+
+(test "read: undefined" (fn ()
+  (assert-equal (read "test" "undefined") [undefined])))
+
+(test "read: whitespace" (fn ()
+  (assert-equal (read "test" (string "1 2\n1" "\t" "2 true null")) [1 2 1 2 true null])))
+
+(test "read: keyword" (fn ()
+  (assert-equal (read "test" ":abc") [(keyword "abc")])))
+
+(test "read: symbol" (fn ()
+  (assert-equal (read "test" "abc") [(symbol "abc")])))
+
+(test "read: symbol: +" (fn ()
+  (assert-equal (read "test" "+") [(symbol "+")])))
+
+(test "read: symbol: -" (fn ()
+  (assert-equal (read "test" "-") [(symbol "-")])))
+
+(test "read: symbol: macro syntax in symbol" (fn ()
+  (assert-equal (read "test" "sym`a'b~!") [(symbol "sym`a'b~!")])))
+
+(test "read: array" (fn ()
+  (assert-equal (read "test" "[1 2 3]") [[1 2 3]])))
+
+(test "read: array: nested" (fn ()
+  (assert-equal (read "test" "[1 [2 3] [4 [5 6]]]") [[1 [2 3] [4 [5 6]]]])))
+
+(test "read: array: empty" (fn ()
+  (assert-equal (read "test" "[]") [[]])))
+
+(test "read: object" (fn ()
+  (assert-equal (read "test" (replace (regexp "'") "\"" "{'a' 1 'b' 2}")) [{"a" 1 "b" 2}])))
+
+(test "read: object: keyword keys" (fn ()
+  (assert-equal (read "test" "{:a 1 :b 2}") [{"a" 1 "b" 2}])))
+
+(test "read: object: symbol keys" (fn ()
+  (assert-equal (read "test" "{a 1 b 2}") [{"a" 1 "b" 2}])))
+
+(test "read: object: empty" (fn ()
+  (assert-equal (read "test" "{}") [{}])))
+
+(test "read: object: nested" (fn ()
+  (assert-equal (read "test" "{x {y []}}") [{x {y []}}])))
+
+(test "read: macro: quote" (fn ()
+  (assert-equal (read "test" "'a") [(list (symbol "quote") (symbol "a"))])))
+
+(test "read: macro: quasi-quote" (fn ()
+  (assert-equal (read "test" "`a") [(list (symbol "quasi-quote") (symbol "a"))])))
+
+(test "read: macro: unquote" (fn ()
+  (assert-equal (read "test" "~a") [(list (symbol "unquote") (symbol "a"))])))
+
+(test "read: macro: unquote-splicing" (fn ()
+  (assert-equal (read "test" "~@[1 2 3]") [(list (symbol "unquote-splicing") [1 2 3])])))
+
+(run)
+)
