@@ -1,2 +1,10 @@
 #!/usr/bin/env node
+
+// TODO remove when self compiling
+require('../old/core');
+require('../old/ast');
+
+require('../core');
+require('../types');
+
 require('../cli').main(process.argv);
