@@ -2,7 +2,7 @@
 
 (import fs)
 (import repl)
-(import module)
+(import module M)
 
 (defn run-help ()
   (print (.join ["eth usage:"
@@ -16,7 +16,8 @@
 
 (defn repl-eval (source env filename callback)
   (try
-    (fn () (callback null 
+    (fn () (callback null))
+    (fn () )))
 
 (defn run-repl ()
   (.start repl {
@@ -25,8 +26,8 @@
   }))
 
 (defn run-compile (filenames)
-  (let ((content (.read-file-sync fs filename "utf8")))
-    (._compile module content filename)))
+  (let ((content (.read-file-sync fs (head filenames) "utf8")))
+    (print (._compile M content (head filenames)))))
 
 (defn main (all-args)
   (let ((args (.slice all-args 2))
