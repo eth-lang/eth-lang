@@ -52,7 +52,7 @@
               node
               (expand-node state node))) ast.nodes))
           (recur))))
-    (print ast.nodes)
+    (print (pretty-print ast.nodes))
     ast.nodes))
 
 )

@@ -78,6 +78,14 @@
 
 ;; types
 
+(defn read-comment (reader)
+  (loop (ch (read-char reader))
+    (if (undefined? ch)
+      EOF
+    (if (== ch "\n")
+      reader
+      (recur (read-char reader))))))
+
 (defn read-number (reader first-ch)
   "Reads the number at the current reader's position"
   (loop (buffer [first-ch]
@@ -149,6 +157,7 @@
 (set read! (fn (reader)
   (let ((ch (read-char reader)))
     (if (undefined? ch) EOF
+    (if (== ch ";") (read-comment reader)
     (if (== ch "+") (read-number reader ch)
     (if (== ch "-") (read-number reader ch)
     (if (regexp-find "[0-9]" ch) (read-number reader ch)
@@ -162,7 +171,7 @@
     (if (contains ch (keys MACRO-SYNTAX))
       (read-macro-syntax reader ch)
     (if (whitespace? ch) reader
-      (read-symbol reader ch)))))))))))))))
+      (read-symbol reader ch))))))))))))))))
 
 (defn read (filename source)
   (let ((reader (create-reader filename source)))

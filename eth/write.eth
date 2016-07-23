@@ -1,4 +1,4 @@
-(package eth/write (write)
+(package eth/write (write pretty-print)
 
 (import "./types" (string string? node-name))
 (import "./helpers" (escape-symbol map-pairs valid-js-ident?))
@@ -7,7 +7,7 @@
 ; pretty print
 
 (defn pretty-print (node)
-  (to-json node))
+  (JSON.stringify node null 2))
 
 
 ; write
