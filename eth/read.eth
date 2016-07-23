@@ -5,7 +5,7 @@
 (import "./types" (number string array object))
 (import "./helpers" (unescape-string))
 
-(def EOF "__eth__eof")
+(def EOF (+ "__eth__" "eof"))
 
 (def DELIMITERS {
   :STRING "\""

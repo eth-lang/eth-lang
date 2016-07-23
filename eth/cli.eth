@@ -2,7 +2,8 @@
 
 (import fs)
 (import repl)
-(import module M)
+(import "./eth" eth)
+(import "./syntax" _)
 
 (defn run-help ()
   (print (.join ["eth usage:"
@@ -26,8 +27,9 @@
   }))
 
 (defn run-compile (filenames)
-  (let ((content (.read-file-sync fs (head filenames) "utf8")))
-    (print (._compile M content (head filenames)))))
+  (let ((content (.read-file-sync fs (head filenames) "utf8"))
+        (compiled-ast (eth.compile (head filenames) content)))
+    (print (._compile module compiled-ast.compiled compiled-ast.filename))))
 
 (defn main (all-args)
   (let ((args (.slice all-args 2))

@@ -1,19 +1,19 @@
-(import "eth/ast" ast)
-(import "eth/compiler/helpers" (list-pair-values list-odd-values))
+(import "./helpers" (list-pair-values list-odd-values))
+(import "./write" (pretty-print))
 
 ; Quotes the given AST preventing it's evaluation. This is, while taking care of honoring
 ; unquotes and unquote-splicings
 (defmacro quote (node)
-  (def L ast.list)
-  (def S ast.symbol)
+  (def L list)
+  (def S symbol)
 
   ; Takes a node a unquote it, returning the list of elements to append to the containing list
   ; ~@a -> a
   ; ~@[a b c] -> [a b c]
   ; ~@(a b c) -> [a b c]
   (def unquote-splicing-expand (fn (node)
-    (if (ast.symbol? node) node
-    (if (ast.array? node)
+    (if (symbol? node) node
+    (if (array? node)
       node
       (map identity node)))))
 
@@ -24,31 +24,31 @@
   (def sequence-expand (fn (nodes)
       (apply L (.concat [(S ".concat")]
         (map (fn (node)
-          (if (ast.unquote? node) [(nth 1 node)]
-            (if (ast.unquote-splicing? node)
+          (if (unquote? node) [(nth 1 node)]
+            (if (unquote-splicing? node)
               (unquote-splicing-expand (nth 1 node))
               [(L (S "quote") node)]))) nodes)))))
 
-  (if (ast.symbol? node) (L (S "quote") node)
-  (if (ast.keyword? node) (L (S "quote") node)
-  (if (ast.string? node) node
-  (if (ast.number? node) node
-  (if (ast.boolean? node) node
-  (if (ast.null? node) node
-  (if (ast.undefined? node) node
+  (if (symbol? node) (L (S "quote") node)
+  (if (keyword? node) (L (S "quote") node)
+  (if (string? node) node
+  (if (number? node) node
+  (if (boolean? node) node
+  (if (null? node) node
+  (if (undefined? node) node
   (if (empty? node) node
-  (if (ast.unquote? node) (nth 1 node)
-  (if (ast.unquote-splicing? node)
+  (if (unquote? node) (nth 1 node)
+  (if (unquote-splicing? node)
     (throw (Error. "Illegal use of `~@` expression, can only be present in a list"))
-  (if (ast.array? node) (sequence-expand node)
-  (if (ast.object? node) (mapObjIndexed (fn (v) (L (S "quote") v)))
-  (if (ast.list? node) (L (S "apply") (S "list") (sequence-expand node))
-  (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (ast.print node))))
+  (if (array? node) (sequence-expand node)
+  (if (object? node) (mapObjIndexed (fn (v) (L (S "quote") v)))
+  (if (list? node) (L (S "apply") (S "list") (sequence-expand node))
+  (throw (Error. (+ "Unhandled ast node type given to 'quote', got: " (pretty-print node))))
   ))))))))))))))
 
 ; For now quote behaves like quasi-quote should, just use that
 (defmacro quasi-quote (node)
-  (ast.list (ast.symbol "quote") node))
+  (list (symbol "quote") node))
 
 (defmacro defn (name params ... body)
   `(def ~name (fn ~name ~params ~@body)))
