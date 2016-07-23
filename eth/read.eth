@@ -118,10 +118,9 @@
              node (read! reader))
         ; error on EOF as the sequence
         (if (== node EOF)
-          (do (print nodes)
           (reader-error reader (string "unterminated sequence starting at line "
             start-line " column " start-column " in " reader.filename " close to '"
-            (.slice (get start-line reader.lines) start-column) "'")))
+            (.slice (get start-line reader.lines) start-column) "'"))
         ; return if we've found the list's end
         (if (== (current-char reader) end-ch)
           (do (read-char reader) (apply constructor (append node nodes)))

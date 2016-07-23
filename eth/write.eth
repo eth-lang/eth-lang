@@ -62,7 +62,7 @@
       (string "(" (join ", "
         (map-pairs
           (fn (key-and-value) (apply
-            (\ string (node-name #1) " = " (write-node #2)) key-and-value))
+            (\ string (write-node #1) " = " (write-node #2)) key-and-value))
           (tail node))) ")")
 
     (if (== calee "def")
@@ -92,8 +92,7 @@
             (set params (get 2 node))
             (set body (.slice node 3))))
         (if (null? params)
-          (do (print params)
-          (set params (list))))
+          (set params (list)))
         (if (! (symbol-list? params))
           (write-error ast node "'fn' needs it's arguments to be a list of symbols"))
         ; handle ...

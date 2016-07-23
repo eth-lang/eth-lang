@@ -50,6 +50,12 @@
 (defmacro quasi-quote (node)
   (list (symbol "quote") node))
 
+(defmacro do (... body)
+  `(.call (fn () ~@body) @))
+
+(defmacro if (condition then _else)
+  `(cond ~condition ~then ~_else))
+
 (defmacro defn (name params ... body)
   `(def ~name (fn ~name ~params ~@body)))
 
@@ -100,5 +106,5 @@
         (recur (f acc (head list)) (tail list)))))"
   (let ((loop-id (gensym)))
     `((fn ~loop-id ~(list-pair-values defs)
-        ~@(ast-map-node (\ if (== # 'recur) loop-id #) body))
+        ~@(ast-map-node (fn (x) (if (== n 'recur) loop-id n)) body))
       ~@(list-odd-values defs))))

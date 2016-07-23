@@ -12,7 +12,7 @@
       `(def ~alias-or-import (require ~(name package-name))))
   (if (symbol-list? alias-or-import)
     (do
-      `(def ~@(apply concat (map (fn (import-name)
+      `(def ~@(reduce concat [] (map (fn (import-name)
         [import-name `(require ~(name package-name))]) alias-or-import))))
     ; TODO better error messages (include node)
     (assert false "import: invalid import usage, need package name and optionally an alias or imports")))))
@@ -52,7 +52,6 @@
               node
               (expand-node state node))) ast.nodes))
           (recur))))
-    (print (pretty-print ast.nodes))
     ast.nodes))
 
 )

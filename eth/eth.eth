@@ -8,11 +8,12 @@
 (import "./read" (read))
 (import "./expand" (expand))
 (import "./write" (write))
+(import "./beautify" (beautify))
 
 (defn compile (filename source)
   (let ((ast {:filename filename :source source})
         (read-ast (assoc :nodes (read filename source) ast))
         (expanded-ast (assoc :nodes (expand read-ast) read-ast)))
-    (assoc :compiled (write expanded-ast) expanded-ast)))
+    (assoc :compiled (beautify (write expanded-ast)) expanded-ast)))
 
 )

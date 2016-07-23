@@ -1,0 +1,42 @@
+(package eth/beautify (beautify)
+
+(import "./constants" (DOUBLE-QUOTE BACK-SLASH))
+
+; TODO make less imperative / direct js translation
+(defn beautify (code)
+  (let ((out "")
+        (indent-width "")
+        (in-string false))
+    (loop (i 0)
+      (if (< i code.length)
+        (do
+          ; new line and indent before closing braces
+          (if (&& (== (get i code) "}") (! in-string))
+            (do
+              (set indent-width (slice 0 -2 indent-width))
+              (set out (+ out (+ "\n" indent-width)))))
+
+          ; add current char
+          (set out (+ out (get i code)))
+
+          ; possibly enter in string
+          (if (&& (== (get i code) DOUBLE-QUOTE)
+                  (||
+                    (!= (get (dec 1) code) BACK-SLASH)
+                    (&& (== (get (dec 1) code) BACK-SLASH) (== (get (- i 2) code) BACK-SLASH))))
+            (set in-string (! in-string)))
+
+          ; in crease indent and lf on open brace
+          (if (&& (! in-string) (== (get i code) "{"))
+            (do
+              (set indent-width (+ indent-width "  "))
+              (set out (+ out (+ "\n" indent-width)))))
+
+          ; indent on semi colons
+          (if (&& (&& (! in-string) (== (get i code) ";")) (!= (get (inc i) code) "}"))
+            (set out (+ out (+ "\n" indent-width))))
+
+          (recur (inc i)))
+        out))))
+
+)
