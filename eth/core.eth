@@ -1,0 +1,18 @@
+(package eth/core/dev (assert print split)
+
+(import "./types" (string string?))
+
+(defn assert (cond message)
+  (if (! cond)
+    (throw (Error. (string "invariant: " message)))))
+
+(defn print (... args)
+  "Print the given arguments using `console.log`"
+  (.apply console.log console args))
+
+(defn split (sep value)
+  "Split a given string in parts at each separator"
+  (assert (string? value) "split: value needs to be a string")
+  (.split value sep))
+
+)

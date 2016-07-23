@@ -1,0 +1,49 @@
+(package eth/cli (main)
+
+(import fs)
+(import repl)
+(import "./eth" eth)
+(import "./syntax" _)
+
+(defn run-help ()
+  (print (.join ["eth usage:"
+                 "  eth                            run repl"
+                 "  eth file.eth                   compile and run file"
+                 "  eth [-h|--help]                show this message"
+                 "  eth [-e|--eval]                evaluate given code"
+                 "  eth [-c|--compile] file.eth    compile file to JS"
+                 "  eth [-a|--ast] file.eth        show file's expanded AST/tokens"
+                 ""] "\n")))
+
+(defn repl-eval (source env filename callback)
+  (try
+    (fn () (callback null))
+    (fn () )))
+
+(defn run-repl ()
+  (.start repl {
+    :prompt "eth> "
+    :eval repl-eval
+  }))
+
+(defn run-compile (filenames)
+  (let ((content (.read-file-sync fs (head filenames) "utf8"))
+        (compiled-ast (eth.compile (head filenames) content)))
+    (print compiled-ast.compiled)))
+
+(defn main (all-args)
+  (let ((args (.slice all-args 2))
+        (args-length (length args))
+        (first-arg (head args)))
+    (if (empty? args)
+      (run-repl)
+    (if (|| (== first-arg "-h") (== first-arg "--help"))
+      (run-help)
+    (if (|| (== first-arg "-e") (== first-arg "--eval"))
+      (run-eval (get 1 args))
+    (if (|| (== first-arg "-c") (== first-arg "--compile"))
+      (run-compile (tail args))
+    (if (|| (== first-arg "-a") (== first-arg "--ast"))
+      (run-ast (tail args)))))))))
+
+)

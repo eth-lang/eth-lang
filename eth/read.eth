@@ -1,0 +1,185 @@
+(package eth/reader (read)
+
+(import "./constants" (BACK-SLASH MACRO-SYNTAX))
+(import "./core" (split))
+(import "./types" (number string array object))
+(import "./helpers" (unescape-string))
+
+; split off to avoid reaching EOF when reading eth/read.
+; TODO need something less dangerous and britle
+(def EOF (+ "__eth__" "eof"))
+
+(def DELIMITERS {
+  :STRING "\""
+  :LIST {:LEFT "(" :RIGHT ")"}
+  :ARRAY {:LEFT "[" :RIGHT "]"}
+  :OBJECT {:LEFT "{" :RIGHT "}"}})
+
+; declare read! early until we hoist defs for other readers to use
+(def read undefined)
+
+;; helpers
+
+(defn newline? (ch)
+  (== ch "\n"))
+
+(defn whitespace? (ch)
+  (contains ch [" " "\t" "\n" "\r"]))
+
+(defn whitespace-or-delimiter? (ch)
+  (contains ch [
+    " " "\t" "\n" "\r"
+    DELIMITERS.LIST.LEFT DELIMITERS.LIST.RIGHT
+    DELIMITERS.ARRAY.LEFT DELIMITERS.ARRAY.RIGHT
+    DELIMITERS.OBJECT.LEFT DELIMITERS.OBJECT.RIGHT]))
+
+(defn reader-error (reader message)
+  "Create and throws a new reader error that include file and position information"
+  (let ((text (string message "\nline:" reader.line "\ncolumn:" reader.column))
+        (error (SyntaxError text reader.filename)))
+    (set error.line reader.line)
+    (set error.column reader.column)
+    (set error.filename reader.filename)
+    (throw error)))
+
+
+;; reader
+
+(defn create-reader (filename source)
+  "Create a reader object that keeps track of a position in a source file"
+  {:lines (split "\n" source)
+   :filename filename
+   :column -1
+   :line 0})
+
+(defn peek-char (reader)
+  "Returns the next char to be read (or nil) but doesn't advance the current position"
+  (let ((line (get reader.line reader.lines))
+        (next-column (inc reader.column)))
+    (if (undefined? line) undefined
+      (or (get next-column line) "\n"))))
+
+(defn current-char (reader)
+  "Returns the char at the readers current position"
+  (let ((line (get reader.line reader.lines)))
+    (if (undefined? line) undefined
+      (or (get reader.column line) "\n"))))
+
+(defn read-char (reader)
+  "Returns the next char for the reader and advances it's position"
+  (let ((ch (peek-char reader)))
+    (if (newline? ch)
+      (do
+        (set reader.line (inc reader.line))
+        (set reader.column -1))
+      (set reader.column (inc reader.column)))
+    ch))
+
+
+;; types
+
+(defn read-comment (reader)
+  (loop (ch (read-char reader))
+    (if (undefined? ch)
+      EOF
+    (if (== ch "\n")
+      reader
+      (recur (read-char reader))))))
+
+(defn read-number (reader first-ch)
+  "Reads the number at the current reader's position"
+  (loop (buffer [first-ch]
+         ch (read-char reader))
+    (if (whitespace-or-delimiter? ch)
+      ; return but handle single + or minus before
+      (if (== (join "" buffer) "+") (symbol "+")
+      (if (== (join "" buffer) "-") (symbol "-")
+        (number (join "" buffer))))
+      (recur (append ch buffer) (read-char reader)))))
+
+(defn read-string (reader)
+  "Reads the string at the current reader's position"
+  (loop (buffer []
+         ch (read-char reader))
+    (if (undefined? ch)
+      EOF
+    (if (&& (== ch DELIMITERS.STRING) (!= (last buffer) BACK-SLASH))
+      (unescape-string (join "" buffer))
+      (recur (append ch buffer) (read-char reader))))))
+
+(defn read-sequence (reader constructor end-ch)
+  "Reads the sequence (list, array or object) at the current reader's position"
+  ; before calling read! make sure the next char is not already the end char
+  (if (== (peek-char reader) end-ch)
+    (do (read-char reader) (apply constructor []))
+    (let ((start-line reader.line)
+          (start-column reader.column))
+      (loop (nodes []
+             node (read! reader))
+        ; error on EOF as the sequence
+        (if (== node EOF)
+          (reader-error reader (string "unterminated sequence starting at line "
+            start-line " column " start-column " in " reader.filename " close to '"
+            (.slice (get start-line reader.lines) start-column) "'"))
+        ; return if we've found the list's end
+        (if (== (current-char reader) end-ch)
+          (do (read-char reader) (apply constructor (append node nodes)))
+        (if (== (peek-char reader) end-ch)
+          (do (read-char reader) (apply constructor (append node nodes)))
+        ; we've hit some whitespace, continue
+        (if (== node reader)
+          (recur nodes (read! reader))
+          ; valid ast node read, add to sequence and continue
+          (recur (append node nodes) (read! reader))))))))))
+
+(defn read-macro-syntax (reader first-ch)
+  "Returns the following token wrapped in a call to the current macro syntax's function"
+  (list (symbol (get first-ch MACRO-SYNTAX)) (read! reader)))
+
+(defn create-symbol-or-keyword-or-primitive (name)
+  (if (== (get 0 name) ":") (keyword (.slice name 1))
+  (if (== name "true") true
+  (if (== name "false") false
+  (if (== name "null") null
+  (if (== name "undefined") undefined
+    (symbol name)))))))
+
+(defn read-symbol (reader first-ch)
+  (loop (buffer [first-ch]
+         ch (read-char reader))
+    (if (whitespace-or-delimiter? ch)
+      (create-symbol-or-keyword-or-primitive (join "" buffer))
+      (recur (append ch buffer) (read-char reader)))))
+
+;; read
+
+(set read! (fn (reader)
+  (let ((ch (read-char reader)))
+    (if (undefined? ch) EOF
+    (if (== ch ";") (read-comment reader)
+    (if (== ch "+") (read-number reader ch)
+    (if (== ch "-") (read-number reader ch)
+    (if (regexp-find "[0-9]" ch) (read-number reader ch)
+    (if (== ch DELIMITERS.STRING) (read-string reader)
+    (if (== ch DELIMITERS.LIST.LEFT) (read-sequence reader list DELIMITERS.LIST.RIGHT)
+    (if (== ch DELIMITERS.ARRAY.LEFT) (read-sequence reader array DELIMITERS.ARRAY.RIGHT)
+    (if (== ch DELIMITERS.OBJECT.LEFT) (read-sequence reader object DELIMITERS.OBJECT.RIGHT)
+    (if (contains (+ ch (peek-char reader)) (keys MACRO-SYNTAX))
+      ; handle ~@ which is 2 chars
+      (do (read-char reader) (read-macro-syntax reader (+ ch (current-char reader))))
+    (if (contains ch (keys MACRO-SYNTAX))
+      (read-macro-syntax reader ch)
+    (if (whitespace? ch) reader
+      (read-symbol reader ch))))))))))))))))
+
+(defn read (filename source)
+  (let ((reader (create-reader filename source)))
+    (loop (ast-nodes [])
+      (let ((node (read! reader)))
+        (if (== node EOF)
+          ast-nodes
+        (if (== node reader)
+          (recur ast-nodes)
+          (recur (append node ast-nodes))))))))
+
+)

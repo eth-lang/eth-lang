@@ -1,4 +1,9 @@
-(package eth/compiler/constants (BINARY-OPERATORS UNARY-OPERATORS MACRO-SYNTAX)
+(package eth/compiler/constants (
+  DOUBLE-QUOTE BACK-SLASH
+  BINARY-OPERATORS UNARY-OPERATORS MACRO-SYNTAX)
+
+(def DOUBLE-QUOTE (String.from-char-code 34))
+(def BACK-SLASH (String.from-char-code 92))
 
 (def BINARY-OPERATORS {
   "+" "+"
@@ -27,7 +32,7 @@
 
 (def MACRO-SYNTAX {
   "'" "quote"
-  "`'" "quasi-quote"
+  "`" "quasi-quote"
   "~" "unquote"
   "~@" "unquote-splicing"
 })

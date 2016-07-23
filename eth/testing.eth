@@ -2,7 +2,8 @@
                       run new-run
                       assert-equal assert-throws)
 
-(import "../promise" promise)
+(import "./types" (string))
+(import "./async" async)
 
 ; reporting
 
@@ -60,8 +61,8 @@
           (try (fn () (let ((result (test.body)))
                         (if (if result (of-type? :function result.then) false)
                           result
-                          (promise.resolve))))
-               (fn (err) (promise.reject err))))
+                          (async.resolve))))
+               (fn (err) (async.reject err))))
         (success (fn ()
           (if report?
             (report test.name null)
@@ -71,22 +72,22 @@
             (report test.name err)
             (print (assoc :message
               (string "error in before or after for '" test.name "': " err.message) err))))))
-    (promise.then p-result success failure)))
+    (async.then p-result success failure)))
 
 (defn run-list (report? before-list after-list fn-list)
-  (promise.then (promise.all (map ((curry run-fn) false) before-list))
-    (fn () (promise.then (promise.all (map ((curry run-fn) report?) fn-list))
-      (fn () (promise.all (map ((curry run-fn) false) after-list)))))))
+  (async.then (async.all (map ((curry run-fn) false) before-list))
+    (fn () (async.then (async.all (map ((curry run-fn) report?) fn-list))
+      (fn () (async.all (map ((curry run-fn) false) after-list)))))))
 
 
 (defn run-scope (scope)
-  (promise.then (run-list false [] [] scope.before)
-    (fn () (promise.then (run-list true scope.before-each scope.after-each scope.test)
-      (fn () (promise.then (run-list false [] [] scope.after)))))))
+  (async.then (run-list false [] [] scope.before)
+    (fn () (async.then (run-list true scope.before-each scope.after-each scope.test)
+      (fn () (async.then (run-list false [] [] scope.after)))))))
 
 (defn run ()
   (print "Running" (length current-scope.test) "tests...\n")
-  (promise.then (run-scope current-scope)
+  (async.then (run-scope current-scope)
     (fn () (report-summary))))
 
 
@@ -106,7 +107,7 @@
 
 (defn assert-equal (a b)
   (if (!= (to-json a) (to-json b))
-    (assert false (to-json a) " is not equal to " (to-json b))
+    (assert false (string "\n" (to-json a) "\n" "\u2191" " is not equal to " "\u2193" "\n" (to-json b)))
     ()))
 
 (defn assert-throws (f message)

@@ -2,8 +2,6 @@
 
 (def eth window.eth)
 
-; mock a usable node.js/webpack environment
-
 (def debounce-delay 350)
 (def debounce-handle null)
 

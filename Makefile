@@ -1,55 +1,57 @@
-ETH := ./bin/eth
 WATCH := ./node_modules/.bin/watch
 WEBPACK := ./node_modules/.bin/webpack
 NODE := node
 
-all:
-	$(ETH)
+ifdef current
+	ETH := ./bin/eth
+else
+	ETH := eth
+endif
 
-#		| sed 's/__eth__import("eth\/ast")/__eth__import("..\/ast")/' \
-#		| sed 's/__eth__import("eth\/core")/__eth__import("..\/core")/' \
+DEPS := -r ./old/ast -r ./old/core
 
-testing/index.js: testing/index.eth
-	$(ETH) -c $< \
-		>$@
+all: build build-website
 
-test/%.js: test/%.eth
-	$(ETH) -c $< \
-		>$@
+%.js: eth/%.eth
+	$(ETH) -c $< >$@
 
-%.js: %.eth
-	$(ETH) -c $< \
-		>$@
+build: \
+	types.js core.js async.js testing.js helpers.js syntax.js \
+	constants.js read.js expand.js optimize.js write.js beautify.js \
+	eval.js eth.js cli.js
+	$(ETH) -c test/types.eth >test/types.js
+	$(ETH) -c test/core.eth >test/core.js
+	$(ETH) -c test/read.eth >test/read.js
+	$(ETH) -c test/helpers.eth >test/helpers.js
+	$(ETH) -c test/write.eth >test/write.js
 
-website/%.js: website/%.eth
-	eth -c $< >$@
-
-website/eth.js: eth.js syntax.js core/index.js
-	$(WEBPACK) -p
-
-build: compiler/helpers.js \
-  syntax.js testing/index.js \
-  test/reader.js test/core.js \
-  website/repl.js website/eth.js
+build-website:
+	#$(WEBPACK) -p
 
 test: build
-	$(NODE) -r ./ast -r ./core test/reader.js
-	$(NODE) -r ./ast -r ./core test/core.js
+	$(NODE) $(DEPS) test/types.js
+	$(NODE) $(DEPS) test/core.js
+	$(NODE) $(DEPS) test/helpers.js
+	$(NODE) $(DEPS) test/read.js
+	$(NODE) $(DEPS) test/write.js
 
 test-watch:
-	$(WATCH) "make test" tests
+	$(WATCH) "make test" test
 
 clean:
-	rm -f tests/*.js
+	rm -f *.js
+	rm -f test/*.js
+	rm -f examples/node/utils.js
+	rm -f examples/node/server.js
+	rm -f examples/node/test/utils.js
 
-clean-all: clean
-	rm -f syntax.js
-	rm -f testing/index.js
+repl:
+	$(ETH)
 
-compiler-repl:
+repl-compiler:
 	node -e 'eth = require("./eth");' -i
 
 push-website:
 	git subtree push --prefix website/ origin gh-pages
 
-.PHONY: all build build-stdlib build-tests build-syntax test clean compiler-repl push-website
+.PHONY: all build build-website test test-watch clean repl repl-compiler push-website

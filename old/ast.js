@@ -91,7 +91,7 @@ function name(v) {
   if (isSymbol(v)) return symbolName(v);
   if (isKeyword(v)) return keywordName(v);
   if (isString(v)) return v;
-  throw new Error('name: unhandle name type, got:' + v);
+  throw new Error('name: unhandle name type, got: ' +  JSON.stringify(v));
 }
 
 function astMapNode(callback, node) {

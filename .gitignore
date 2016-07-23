@@ -1,5 +1,6 @@
 node_modules/
 npm-debug.log
-tests/*.js
+test/*.js
+*.js
 examples/node/*.js
 examples/node/test/*.js

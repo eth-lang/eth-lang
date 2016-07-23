@@ -1,0 +1,59 @@
+(package eth/helpers (
+  list-pair-values list-odd-values unescape-string escape-symbol map-pairs valid-js-ident?)
+  "Compiler helpers, mostly ast manipulation functions"
+
+(import "./constants" (DOUBLE-QUOTE BACK-SLASH))
+(import "./types" (string))
+
+(def DBACK-SLASH (+ BACK-SLASH BACK-SLASH))
+
+(defn list-pair-values (l)
+  "Returns a list of the values at the pair indexes in a given list
+  (a 1 b 2) -> (a b)"
+  (apply list ((add-index reduce) (fn (acc val i)
+    (if (pair? i) (append val acc) acc)) [] l)))
+
+(defn list-odd-values (l)
+  "Returns a list of the values at the odd indexes in a given list
+  (a 1 b 2) -> (1 2)"
+  (apply list ((add-index reduce) (fn (acc val i)
+    (if (odd? i) (append val acc) acc)) [] l)))
+
+(defn char-from-hex (x)
+  (String.from-char-code (parse-int x 16)))
+
+(defn unescape-string (s)
+  ((pipe
+    (replace (regexp (+ DBACK-SLASH DBACK-SLASH)) "!#backslash#!")
+    (replace (regexp (+ DBACK-SLASH DOUBLE-QUOTE)) DOUBLE-QUOTE)
+    (replace (regexp (+ DBACK-SLASH "b")) "\b")
+    (replace (regexp (+ DBACK-SLASH "f")) "\f")
+    (replace (regexp (+ DBACK-SLASH "n")) "\n")
+    (replace (regexp (+ DBACK-SLASH "r")) "\r")
+    (replace (regexp (+ DBACK-SLASH "t")) "\t")
+    (replace (regexp (+ DBACK-SLASH "x([a-zA-Z0-9]{2})")) (fn (_ x) (char-from-hex x)))
+    (replace (regexp (+ DBACK-SLASH "u([a-zA-Z0-9]{4})")) (fn (_ x) (char-from-hex x)))
+    (replace (regexp (+ DBACK-SLASH ".")) "$1")
+    (replace (regexp "!#backslash#!") BACK-SLASH)) s))
+
+(defn escape-symbol (s)
+  (let ((n (name s)))
+    (if (== n "...") n
+    (if (== n "@") "this"
+    (if (== (head n) "@") (string "this." (escape-symbol (.slice n 1)))
+    (if (== (tail n) ".") (string "new " (escape-symbol (.slice n 0 -1)))
+    (if (== (tail n) "!") (string (escape-symbol (.slice n 0 -1)) "$")
+    (if (== (tail n) "?")
+      (let ((parts (split "." (.slice n 0 -1))))
+        (escape-symbol (join "." (concat (init parts) (string "is-" (last parts))))))
+      (replace (regexp "-(.)") (\ .to-upper-case #2) n)))))))))
+
+(defn map-pairs (f l)
+  "Map in pairs from a flat array
+  (map-pairs f [a 1 b 2]) -> (f [a 1]) (f [b 2])"
+  (map f (apply zip ((add-index partition) (\ pair? #2) l))))
+
+(defn valid-js-ident? (str)
+  (regexp-find "[a-zA-Z_$][0-9a-zA-Z_$]*" str))
+
+)

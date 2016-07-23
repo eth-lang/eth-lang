@@ -1,0 +1,19 @@
+(package eth/async (Promise create resolve reject then all race)
+
+  (import "promise-polyfill" Promise)
+
+  (def Promise Promise)
+  (def resolve Promise.resolve)
+  (def reject Promise.reject)
+  (def all Promise.all)
+  (def race Promise.race)
+
+  (defn create (f)
+    "Create a new Promise, takes a function that will be called with `resolve` and `reject`"
+    (Promise. f))
+
+  (defn then (p success error)
+    "Pass a success and (optionally) an error handler to a given promise"
+    (.then p success error))
+
+)
