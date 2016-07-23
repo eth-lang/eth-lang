@@ -5,6 +5,8 @@
 (import "./types" (number string array object))
 (import "./helpers" (unescape-string))
 
+; split off to avoid reaching EOF when reading eth/read.
+; TODO need something less dangerous and britle
 (def EOF (+ "__eth__" "eof"))
 
 (def DELIMITERS {

@@ -1,7 +1,58 @@
 (package eth/expand (expand)
 
+(import "./write" (pretty-print))
+
+(defmacro import (package-name alias-or-import)
+  (if (! alias-or-import)
+    (do
+      (assert (symbol? package-name) "import: package name needs to be a symbol when importing and not aliasing")
+      `(def ~package-name (require ~(name package-name))))
+  (if (symbol? alias-or-import)
+    (do
+      `(def ~alias-or-import (require ~(name package-name))))
+  (if (symbol-list? alias-or-import)
+    (do
+      `(def ~@(apply concat (map (fn (import-name)
+        [import-name `(require ~(name package-name))]) alias-or-import))))
+    ; TODO better error messages (include node)
+    (assert false "import: invalid import usage, need package name and optionally an alias or imports")))))
+
+(defn can-be-macro? (node)
+  (&& (list? node) (&& (> node.length 0) (symbol? (get 0 node)))))
+
+(defn get-macro (sym)
+  (get (symbol-name sym) GLOBAL.__eth__macros))
+
+(defn expand-node (state node)
+  (if (can-be-macro? node)
+    (let ((macro (get-macro (get 0 node))))
+      (if macro
+        (try
+          (fn ()
+            (let ((resulting-node (apply macro (.slice node 1))))
+              ; Instruct expand to check again for more macros
+              (set state.found-macro true)
+              resulting-node))
+          (fn (error)
+            (set error.message (string error.message "(when expanding macro: "
+              (pretty-print node) ")"))
+            (throw error)))
+        node))
+    node))
 
 (defn expand (ast)
-  ast.nodes)
+  (let ((state {:found-macro true}))
+    (loop ()
+      (if state.found-macro
+        (do
+          (set state.found-macro false)
+          (set ast.nodes (ast-map (fn (node)
+            ; Exit early if we already dealed with a macro expansion
+            (if state.found-macro
+              node
+              (expand-node state node))) ast.nodes))
+          (recur))))
+    (print ast.nodes)
+    ast.nodes))
 
 )

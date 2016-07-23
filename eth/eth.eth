@@ -1,12 +1,16 @@
 (package eth (compile)
 
+; Initialize macro runtime
+(set GLOBAL.__eth__macros (|| GLOBAL.__eth__macros {}))
+(set GLOBAL.__eth__install-macro (fn (name expander)
+  (set (get name GLOBAL.__eth__macros) expander)))
+
 (import "./read" (read))
 (import "./expand" (expand))
 (import "./write" (write))
 
 (defn compile (filename source)
-  (let ((ast {:filename filename
-              :source source})
+  (let ((ast {:filename filename :source source})
         (read-ast (assoc :nodes (read filename source) ast))
         (expanded-ast (assoc :nodes (expand read-ast) read-ast)))
     (assoc :compiled (write expanded-ast) expanded-ast)))
