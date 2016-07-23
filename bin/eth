@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+Error.stackTraceLimit = Infinity;
 
 // TODO remove when self compiling
 require('../old/core');

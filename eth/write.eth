@@ -69,7 +69,7 @@
       (string "var " (join ", "
         (map-pairs
           (fn (key-and-value) (apply
-            (\ string (node-name #1) " = " (write-node #2)) key-and-value))
+            (\ string (write-node #1) " = " (write-node #2)) key-and-value))
           (tail node))))
 
     (if (== calee "cond")
@@ -81,6 +81,9 @@
               (string "return " (write-node v) ";")
               "}")))
         (tail node))))
+
+    (if (== calee "if")
+      (write-list ast write-node `(cond ~(get 1 node) ~(get 2 node) :else ~(get 3 node)))
 
     (if (== calee "fn")
       (let ((name "")
@@ -110,7 +113,7 @@
     (if (== (head calee) ".")
       (write-node `((get ~(.slice calee 1) ~(get 1 node)) ~@(.slice node 2)))
 
-      (string (write-node (head node)) "(" (join ", " (map write-node (tail node))) ")"))))))))))))
+      (string (write-node (head node)) "(" (join ", " (map write-node (tail node))) ")")))))))))))))
 
 (defn write! (ast)
   (fn (node)
